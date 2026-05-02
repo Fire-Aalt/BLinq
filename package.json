@@ -1,0 +1,14 @@
+{
+  "name": "com.firealt.blinq",
+  "version": "0.1.0",
+  "displayName": "FireAlt BLinq",
+  "description": "Blazingly fast, fully Burst compatible LINQ library. Utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods.",
+  "unity": "6000.23",
+  "documentationUrl": "https://github.com/Fire-Aalt/BLinq/blob/main/README.md",
+
+  "author": {
+    "name": "FireAlt",
+    "email": "krasutskimaksim@gmail.com",
+    "url": "https://github.com/Fire-Aalt"
+  }
+}
