@@ -256,16 +256,15 @@ namespace FireAlt.BLinq.Tests
         {
             return values
                 .Where(SimpleWhere)
-                .Select(SimpleSelect)
-                .Sum();
+                .Sum(SimpleSelect);
         }
 
         private static int QueryBLinqSimple(NativeArray<int> values)
         {
             return values
                 .AsQuery()
-                .Where(new SimpleWherePredicate())
-                .Sum(new SimpleSelectSelector());
+                .Where(SimpleWhere)
+                .Sum(SimpleSelect);
         }
 
         [BurstCompile]
@@ -296,18 +295,19 @@ namespace FireAlt.BLinq.Tests
         {
             return values
                 .AsQuery()
-                .Where(new ComplexWhere0Predicate())
-                .Select(new ComplexSelect0Selector())
-                .Where(new ComplexWhere1Predicate())
-                .Select(new ComplexSelect1Selector())
-                .Where(new ComplexWhere2Predicate())
-                .Select(new ComplexSelect2Selector())
-                .Where(new ComplexWhere3Predicate())
-                .Select(new ComplexSelect3Selector())
-                .Where(new ComplexWhere4Predicate())
-                .Select(new ComplexSelect4Selector())
-                .Where(new ComplexWhere5Predicate())
-                .Sum(new ComplexSelect5Selector());
+                .Where(ComplexWhere0)
+                .Select(ComplexSelect0)
+                .Where(ComplexWhere1)
+                .Select(ComplexSelect1)
+                .Where(ComplexWhere2)
+                .Select(ComplexSelect2)
+                .Where(ComplexWhere3)
+                .Select(ComplexSelect3)
+                .Where(ComplexWhere4)
+                .Select(ComplexSelect4)
+                .Where(ComplexWhere5)
+                .Select(ComplexSelect5)
+                .Sum();
         }
 
         [BurstCompile]

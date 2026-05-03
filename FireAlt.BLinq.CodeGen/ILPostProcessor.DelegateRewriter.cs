@@ -608,6 +608,35 @@ namespace FireAlt.BLinq.CodeGen
             _rewrittenEnumeratorTypes[placeholderQueryType.GenericArguments[1].FullName] = realQueryType.GenericArguments[1];
         }
 
+        private bool TryRewriteGenericCallArguments(
+            ModuleDefinition module,
+            Instruction callInstruction,
+            GenericInstanceMethod genericCall)
+        {
+            if (_rewrittenEnumeratorTypes.Count == 0)
+            {
+                return false;
+            }
+
+            var rewrittenCall = new GenericInstanceMethod(module.ImportReference(genericCall.ElementMethod));
+            var modified = false;
+
+            foreach (var genericArgument in genericCall.GenericArguments)
+            {
+                var rewrittenArgument = ResolveRewrittenType(module, genericArgument);
+                modified |= !TypeReferencesMatch(genericArgument, rewrittenArgument);
+                rewrittenCall.GenericArguments.Add(rewrittenArgument);
+            }
+
+            if (!modified)
+            {
+                return false;
+            }
+
+            callInstruction.Operand = rewrittenCall;
+            return true;
+        }
+
         private TypeReference ResolveRewrittenType(ModuleDefinition module, TypeReference type)
         {
             if (_rewrittenEnumeratorTypes.TryGetValue(type.FullName, out var rewritten))

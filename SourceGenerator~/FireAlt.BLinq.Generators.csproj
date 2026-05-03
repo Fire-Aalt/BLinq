@@ -7,7 +7,7 @@
     <NoWarn>$(NoWarn);RS2008</NoWarn>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <OutDir>..\BLinq\SourceGenerators\</OutDir>
+    <OutDir>..\FireAlt.BLinq\SourceGenerators\</OutDir>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>

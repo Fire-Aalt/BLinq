@@ -97,7 +97,13 @@ namespace FireAlt.BLinq.CodeGen
                     continue;
                 }
 
-                modified |= TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics);
+                if (TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics))
+                {
+                    modified = true;
+                    continue;
+                }
+
+                modified |= TryRewriteGenericCallArguments(method.Module, instruction, genericCall);
             }
 
             if (modified)
