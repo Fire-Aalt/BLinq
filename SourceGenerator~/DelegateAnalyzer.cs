@@ -316,27 +316,56 @@ namespace FireAlt.BLinq.Generators
 
         private static void ValidateMethodUse(SyntaxNodeAnalysisContext context, SyntaxNode location, IMethodSymbol method)
         {
-            if (!method.IsStatic && method.ContainingType != null && !method.ContainingType.IsUnmanagedType)
+            if (IsNativeDelegateOperator(method))
             {
-                Report(context, location, $"BLinq delegate bodies cannot call instance methods on managed type '{method.ContainingType.ToDisplayString()}'.");
+                ValidateNativeDelegateInvocation(context, location);
+                return;
+            }
+
+            var effectiveMethod = method.ReducedFrom ?? method;
+            if (!effectiveMethod.IsStatic && effectiveMethod.ContainingType != null && !effectiveMethod.ContainingType.IsUnmanagedType)
+            {
+                Report(context, location, $"BLinq delegate bodies cannot call instance methods on managed type '{effectiveMethod.ContainingType.ToDisplayString()}'.");
             }
 
             ValidateUnmanagedSignature(
                 context,
                 location,
-                method.Parameters,
-                method.ReturnType,
+                effectiveMethod.Parameters,
+                effectiveMethod.ReturnType,
                 "BLinq delegate method parameter '{0}' must be unmanaged.",
                 "BLinq delegate method return type must be unmanaged.",
                 false,
                 null);
 
-            foreach (var typeArgument in method.TypeArguments)
+            foreach (var typeArgument in effectiveMethod.TypeArguments)
             {
                 if (!typeArgument.IsUnmanagedType)
                 {
                     Report(context, location, $"BLinq delegate generic argument '{typeArgument.ToDisplayString()}' must be unmanaged.");
                 }
+            }
+        }
+
+        private static void ValidateNativeDelegateInvocation(SyntaxNodeAnalysisContext context, SyntaxNode location)
+        {
+            if (location is not InvocationExpressionSyntax invocation)
+            {
+                return;
+            }
+
+            var delegateArguments = invocation.ArgumentList.Arguments
+                .Where(argument => IsDelegateExpression(context, argument.Expression))
+                .ToArray();
+            if (delegateArguments.Length == 0)
+            {
+                Report(context, invocation, "BLinq delegate operators require a lambda or method group delegate argument.");
+                return;
+            }
+
+            foreach (var delegateArgument in delegateArguments)
+            {
+                ValidateDelegateArgument(context, delegateArgument.Expression);
             }
         }
 

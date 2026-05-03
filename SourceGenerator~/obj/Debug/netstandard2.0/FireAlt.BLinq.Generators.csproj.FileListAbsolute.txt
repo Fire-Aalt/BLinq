@@ -9,3 +9,5 @@ C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerato
 C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\obj\Debug\netstandard2.0\FireAlt.BLinq.Generators.dll
 C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\BLinq\SourceGenerators\FireAlt.BLinq.Generators.deps.json
 C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\BLinq\SourceGenerators\FireAlt.BLinq.Generators.dll
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\FireAlt.BLinq\SourceGenerators\FireAlt.BLinq.Generators.deps.json
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\FireAlt.BLinq\SourceGenerators\FireAlt.BLinq.Generators.dll

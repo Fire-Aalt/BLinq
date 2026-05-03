@@ -144,17 +144,29 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             if (instruction.OpCode == OpCodes.Newobj &&
-                instruction.Operand is MethodReference constructor &&
-                !IsUnmanaged(constructor.DeclaringType))
+                instruction.Operand is MethodReference constructor)
             {
-                message = $"BLinq delegate body cannot create managed type '{constructor.DeclaringType.FullName}'.";
-                return true;
+                if (IsDelegateType(constructor.DeclaringType))
+                {
+                    return false;
+                }
+
+                if (!IsUnmanaged(constructor.DeclaringType))
+                {
+                    message = $"BLinq delegate body cannot create managed type '{constructor.DeclaringType.FullName}'.";
+                    return true;
+                }
             }
 
             if (instruction.Operand is FieldReference fieldReference)
             {
                 var resolvedField = fieldReference.Resolve();
                 var fieldName = resolvedField?.FullName ?? fieldReference.FullName;
+                if (IsDelegateType(fieldReference.FieldType))
+                {
+                    return false;
+                }
+
                 if (!capturedFieldNames.Contains(fieldName) &&
                     !IsUnmanaged(fieldReference.FieldType))
                 {
@@ -173,24 +185,32 @@ namespace FireAlt.BLinq.CodeGen
 
             if (instruction.Operand is MethodReference methodReference)
             {
+                var isNativeDelegateMethod = HasNativeDelegateMethodAttribute(methodReference.Resolve());
                 if (methodReference.HasThis && !IsUnmanaged(methodReference.DeclaringType))
                 {
                     message = $"BLinq delegate body cannot call instance method on managed type '{methodReference.DeclaringType.FullName}'.";
                     return true;
                 }
 
-                if (methodReference.ReturnType.MetadataType != MetadataType.Void &&
-                    !IsUnmanaged(methodReference.ReturnType))
+                var returnType = CloseMethodReferenceType(methodReference.ReturnType, methodReference);
+                if (returnType.MetadataType != MetadataType.Void &&
+                    !IsUnmanaged(returnType))
                 {
-                    message = $"BLinq delegate body cannot use managed return type '{methodReference.ReturnType.FullName}'.";
+                    message = $"BLinq delegate body cannot use managed return type '{returnType.FullName}'.";
                     return true;
                 }
 
                 foreach (var parameter in methodReference.Parameters)
                 {
-                    if (!IsUnmanaged(parameter.ParameterType))
+                    var parameterType = CloseMethodReferenceType(parameter.ParameterType, methodReference);
+                    if (isNativeDelegateMethod && IsDelegateType(parameterType))
                     {
-                        message = $"BLinq delegate body cannot call method '{methodReference.FullName}' because parameter type '{parameter.ParameterType.FullName}' is managed.";
+                        continue;
+                    }
+
+                    if (!IsUnmanaged(parameterType))
+                    {
+                        message = $"BLinq delegate body cannot call method '{methodReference.FullName}' because parameter type '{parameterType.FullName}' is managed.";
                         return true;
                     }
                 }
@@ -376,6 +396,32 @@ namespace FireAlt.BLinq.CodeGen
                 genericParameter => genericParameter.Type == GenericParameterType.Type && declaringInstance != null
                     ? declaringInstance.GenericArguments[genericParameter.Position]
                     : null,
+                typeReference => typeReference);
+        }
+
+        private static TypeReference CloseMethodReferenceType(TypeReference type, MethodReference methodReference)
+        {
+            var declaringInstance = methodReference.DeclaringType as GenericInstanceType;
+            var methodInstance = methodReference as GenericInstanceMethod;
+
+            return RewriteTypeReference(
+                type,
+                genericParameter =>
+                {
+                    if (genericParameter.Type == GenericParameterType.Type &&
+                        declaringInstance != null)
+                    {
+                        return declaringInstance.GenericArguments[genericParameter.Position];
+                    }
+
+                    if (genericParameter.Type == GenericParameterType.Method &&
+                        methodInstance != null)
+                    {
+                        return methodInstance.GenericArguments[genericParameter.Position];
+                    }
+
+                    return null;
+                },
                 typeReference => typeReference);
         }
     }

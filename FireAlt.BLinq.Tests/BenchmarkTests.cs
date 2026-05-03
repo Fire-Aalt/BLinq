@@ -321,22 +321,18 @@ namespace FireAlt.BLinq.Tests
             return values
                 .Where(OrderByWhere)
                 .OrderBy(OrderByKey)
-                .Select(OrderBySelect)
-                .Sum();
+                .Sum(OrderBySelect);
         }
 
         private static int QueryBLinqOrderBy(NativeArray<int> values)
         {
-            var ordered = values
+            var result = values
                 .AsQuery()
-                .Where(new OrderByWherePredicate())
-                .ToOrderedBy(new OrderByKeyComparer(), Allocator.Temp);
-
-            var result = ordered
+                .Where(OrderByWhere)
+                .ToOrderedBy(new OrderByKeyComparer(), Allocator.Temp)
                 .AsQuery()
-                .Sum(new OrderBySelectSelector());
+                .Sum(OrderBySelect);
 
-            ordered.Dispose();
             return result;
         }
 
@@ -358,7 +354,7 @@ namespace FireAlt.BLinq.Tests
             var result = values
                 .AsQuery()
                 .GroupBy(new GroupByKeySelector())
-                .Sum(new GroupByAggregateSelector());
+                .Sum(group => (group.Key + 1) * group.AsQuery().Sum(GroupBySelect));
 
             return result;
         }

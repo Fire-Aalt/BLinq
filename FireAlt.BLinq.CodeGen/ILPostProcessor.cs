@@ -92,18 +92,19 @@ namespace FireAlt.BLinq.CodeGen
                     continue;
                 }
 
-                if (call is not GenericInstanceMethod genericCall)
-                {
-                    continue;
-                }
-
-                if (TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics))
+                if (call is GenericInstanceMethod genericCall &&
+                    TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics))
                 {
                     modified = true;
                     continue;
                 }
 
-                modified |= TryRewriteGenericCallArguments(method.Module, instruction, genericCall);
+                modified |= TryRewriteMethodReference(method.Module, instruction, call);
+            }
+
+            if (_rewrittenEnumeratorTypes.Count != 0)
+            {
+                modified |= TryRewriteVariableTypes(method.Module, method.Body.Variables);
             }
 
             if (modified)

@@ -299,7 +299,7 @@ namespace FireAlt.BLinq.CodeGen
             var interfaceType = new GenericInstanceType(importedDefinition);
             foreach (var parameterType in signature.ParameterTypes)
             {
-                interfaceType.GenericArguments.Add(module.ImportReference(parameterType.GetElementType()));
+                interfaceType.GenericArguments.Add(module.ImportReference(GetNativeDelegateInterfaceArgument(parameterType)));
             }
 
             if (interfaceType.GenericArguments.Count < genericParameterCount &&
@@ -309,6 +309,21 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return interfaceType;
+        }
+
+        private static TypeReference GetNativeDelegateInterfaceArgument(TypeReference type)
+        {
+            switch (type)
+            {
+                case ByReferenceType byReference:
+                    return GetNativeDelegateInterfaceArgument(byReference.ElementType);
+                case RequiredModifierType requiredModifier:
+                    return GetNativeDelegateInterfaceArgument(requiredModifier.ElementType);
+                case OptionalModifierType optionalModifier:
+                    return GetNativeDelegateInterfaceArgument(optionalModifier.ElementType);
+                default:
+                    return type;
+            }
         }
 
         private TargetMethodInfo FindTargetMethod(
@@ -608,26 +623,17 @@ namespace FireAlt.BLinq.CodeGen
             _rewrittenEnumeratorTypes[placeholderQueryType.GenericArguments[1].FullName] = realQueryType.GenericArguments[1];
         }
 
-        private bool TryRewriteGenericCallArguments(
+        private bool TryRewriteMethodReference(
             ModuleDefinition module,
             Instruction callInstruction,
-            GenericInstanceMethod genericCall)
+            MethodReference call)
         {
             if (_rewrittenEnumeratorTypes.Count == 0)
             {
                 return false;
             }
 
-            var rewrittenCall = new GenericInstanceMethod(module.ImportReference(genericCall.ElementMethod));
-            var modified = false;
-
-            foreach (var genericArgument in genericCall.GenericArguments)
-            {
-                var rewrittenArgument = ResolveRewrittenType(module, genericArgument);
-                modified |= !TypeReferencesMatch(genericArgument, rewrittenArgument);
-                rewrittenCall.GenericArguments.Add(rewrittenArgument);
-            }
-
+            var rewrittenCall = RewriteMethodReference(module, call, out var modified);
             if (!modified)
             {
                 return false;
@@ -635,6 +641,107 @@ namespace FireAlt.BLinq.CodeGen
 
             callInstruction.Operand = rewrittenCall;
             return true;
+        }
+
+        private bool TryRewriteVariableTypes(
+            ModuleDefinition module,
+            IEnumerable<VariableDefinition> variables)
+        {
+            var modified = false;
+
+            foreach (var variable in variables)
+            {
+                var rewrittenType = ResolveRewrittenType(module, variable.VariableType);
+                if (TypeReferencesMatch(variable.VariableType, rewrittenType))
+                {
+                    continue;
+                }
+
+                variable.VariableType = rewrittenType;
+                modified = true;
+            }
+
+            return modified;
+        }
+
+        private MethodReference RewriteMethodReference(
+            ModuleDefinition module,
+            MethodReference method,
+            out bool modified)
+        {
+            if (method is GenericInstanceMethod genericMethod)
+            {
+                var rewrittenElementMethod = RewriteOpenMethodReference(module, genericMethod.ElementMethod, out modified);
+                var rewrittenGenericMethod = new GenericInstanceMethod(rewrittenElementMethod);
+
+                foreach (var genericArgument in genericMethod.GenericArguments)
+                {
+                    var rewrittenArgument = ResolveRewrittenType(module, genericArgument);
+                    modified |= !TypeReferencesMatch(genericArgument, rewrittenArgument);
+                    rewrittenGenericMethod.GenericArguments.Add(module.ImportReference(rewrittenArgument));
+                }
+
+                return rewrittenGenericMethod;
+            }
+
+            return RewriteOpenMethodReference(module, method, out modified);
+        }
+
+        private MethodReference RewriteOpenMethodReference(
+            ModuleDefinition module,
+            MethodReference method,
+            out bool modified)
+        {
+            var declaringType = ResolveRewrittenType(module, method.DeclaringType);
+            modified = !TypeReferencesMatch(method.DeclaringType, declaringType);
+
+            var methodReference = new MethodReference(
+                method.Name,
+                module.TypeSystem.Void,
+                module.ImportReference(declaringType))
+            {
+                HasThis = method.HasThis,
+                ExplicitThis = method.ExplicitThis,
+                CallingConvention = method.CallingConvention,
+            };
+
+            foreach (var genericParameter in method.GenericParameters)
+            {
+                methodReference.GenericParameters.Add(new GenericParameter(genericParameter.Name, methodReference));
+            }
+
+            methodReference.ReturnType = RewriteMethodReferenceSignatureType(module, method.ReturnType, method, methodReference, ref modified);
+            foreach (var parameter in method.Parameters)
+            {
+                methodReference.Parameters.Add(new ParameterDefinition(
+                    RewriteMethodReferenceSignatureType(module, parameter.ParameterType, method, methodReference, ref modified)));
+            }
+
+            return methodReference;
+        }
+
+        private TypeReference RewriteMethodReferenceSignatureType(
+            ModuleDefinition module,
+            TypeReference type,
+            MethodReference originalMethod,
+            MethodReference rewrittenMethod,
+            ref bool modified)
+        {
+            var rewritten = RewriteTypeReference(
+                type,
+                genericParameter =>
+                {
+                    if (genericParameter.Type == GenericParameterType.Method)
+                    {
+                        return rewrittenMethod.GenericParameters[genericParameter.Position];
+                    }
+
+                    return null;
+                },
+                typeReference => ResolveRewrittenType(module, typeReference));
+
+            modified |= !TypeReferencesMatch(type, rewritten);
+            return rewritten;
         }
 
         private TypeReference ResolveRewrittenType(ModuleDefinition module, TypeReference type)
