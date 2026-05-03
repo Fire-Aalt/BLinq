@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -12,6 +13,28 @@ namespace FireAlt.BLinq
         {
             return new Query<T, WhereQuery<T, TEnumerator, TPredicate>>(
                 new WhereQuery<T, TEnumerator, TPredicate>(GetEnumerator(), predicate));
+        }
+    }
+
+    public static partial class BLinqExtensions
+    {
+        public static Query<T, WhereQuery<T, TEnumerator, TPredicate>> Where<T, TEnumerator, TPredicate>(
+            this Query<T, TEnumerator> source, TPredicate predicate)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TPredicate : unmanaged, IPredicate<T>
+        {
+            return source.Where(predicate);
+        }
+        
+        [NativeDelegateMethod(typeof(IPredicate<>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Query<T, DelegateWhereQuery<T, TEnumerator>> Where<T, TEnumerator>(
+            this Query<T, TEnumerator> source, Func<T, bool> predicate)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+        {
+            return Throw<Query<T, DelegateWhereQuery<T, TEnumerator>>>();
         }
     }
 

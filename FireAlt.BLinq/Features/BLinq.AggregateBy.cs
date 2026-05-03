@@ -5,6 +5,101 @@ using Unity.Collections;
 
 namespace FireAlt.BLinq
 {
+    public partial struct Query<T, TEnumerator>
+        where T : unmanaged
+        where TEnumerator : unmanaged, IEnumerator<T>
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Query<KeyValuePair<TAccumulate, TAccumulate>, NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator>
+            AggregateBy<TAccumulate, TKeySelector, TAggregator>(
+                TKeySelector keySelector,
+                TAccumulate seed,
+                TAggregator aggregator)
+            where TAccumulate : unmanaged, IEquatable<TAccumulate>
+            where TKeySelector : unmanaged, ISelector<T, TAccumulate>
+            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+        {
+            return BLinqUtilities.AggregateBy<T, TAccumulate, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
+                GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+            AggregateBy<TKey, TAccumulate, TKeySelector, TAggregator>(
+                TKeySelector keySelector,
+                TAccumulate seed,
+                TAggregator aggregator)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TAccumulate : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+        {
+            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
+                GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+            AggregateBy<TKey, TAccumulate, TKeySelector, TSeedSelector, TAggregator>(
+                TKeySelector keySelector,
+                TSeedSelector seedSelector,
+                TAggregator aggregator)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TAccumulate : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TSeedSelector : unmanaged, ISelector<TKey, TAccumulate>
+            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+        {
+            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
+                GetEnumerator(), keySelector, seedSelector, aggregator, Allocator.Temp).AsQuery();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeList<KeyValuePair<TAccumulate, TAccumulate>> ToAggregatedBy<TAccumulate, TKeySelector, TAggregator>(
+            TKeySelector keySelector,
+            TAccumulate seed,
+            TAggregator aggregator,
+            AllocatorManager.AllocatorHandle allocator)
+            where TAccumulate : unmanaged, IEquatable<TAccumulate>
+            where TKeySelector : unmanaged, ISelector<T, TAccumulate>
+            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+        {
+            return BLinqUtilities.AggregateBy<T, TAccumulate, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
+                GetEnumerator(), keySelector, seed, aggregator, allocator);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeList<KeyValuePair<TKey, TAccumulate>> ToAggregatedBy<TKey, TAccumulate, TKeySelector, TAggregator>(
+            TKeySelector keySelector,
+            TAccumulate seed,
+            TAggregator aggregator,
+            AllocatorManager.AllocatorHandle allocator)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TAccumulate : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+        {
+            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
+                GetEnumerator(), keySelector, seed, aggregator, allocator);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeList<KeyValuePair<TKey, TAccumulate>> ToAggregatedBy<TKey, TAccumulate, TKeySelector, TSeedSelector, TAggregator>(
+            TKeySelector keySelector,
+            TSeedSelector seedSelector,
+            TAggregator aggregator,
+            AllocatorManager.AllocatorHandle allocator)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TAccumulate : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TSeedSelector : unmanaged, ISelector<TKey, TAccumulate>
+            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+        {
+            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
+                GetEnumerator(), keySelector, seedSelector, aggregator, allocator);
+        }
+    }
+    
     public static partial class BLinqExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -21,11 +116,7 @@ namespace FireAlt.BLinq
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             return BLinqUtilities.AggregateBy<TSource, TAccumulate, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                source.GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                Allocator.Temp).AsQuery();
+                source.GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -43,11 +134,7 @@ namespace FireAlt.BLinq
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             return BLinqUtilities.AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                source.GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                Allocator.Temp).AsQuery();
+                source.GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -66,11 +153,7 @@ namespace FireAlt.BLinq
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             return BLinqUtilities.AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
-                source.GetEnumerator(),
-                keySelector,
-                seedSelector,
-                aggregator,
-                Allocator.Temp).AsQuery();
+                source.GetEnumerator(), keySelector, seedSelector, aggregator, Allocator.Temp).AsQuery();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -88,11 +171,7 @@ namespace FireAlt.BLinq
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             return BLinqUtilities.AggregateBy<TSource, TAccumulate, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                source.GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                allocator);
+                source.GetEnumerator(), keySelector, seed, aggregator, allocator);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -111,11 +190,7 @@ namespace FireAlt.BLinq
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             return BLinqUtilities.AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                source.GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                allocator);
+                source.GetEnumerator(), keySelector, seed, aggregator, allocator);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,130 +210,39 @@ namespace FireAlt.BLinq
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             return BLinqUtilities.AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
-                source.GetEnumerator(),
-                keySelector,
-                seedSelector,
-                aggregator,
-                allocator);
+                source.GetEnumerator(), keySelector, seedSelector, aggregator, allocator);
         }
-    }
-
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
-        where TEnumerator : unmanaged, IEnumerator<T>
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<KeyValuePair<TAccumulate, TAccumulate>, NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator>
-            AggregateBy<TAccumulate, TKeySelector, TAggregator>(
-                TKeySelector keySelector,
+        
+        [NativeDelegateMethod(typeof(ISelector<,>), typeof(IAggregator<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+            AggregateBy<TSource, TKey, TAccumulate, TEnumerator>(
+                this Query<TSource, TEnumerator> source,
+                Func<TSource, TKey> keySelector,
                 TAccumulate seed,
-                TAggregator aggregator)
-            where TAccumulate : unmanaged, IEquatable<TAccumulate>
-            where TKeySelector : unmanaged, ISelector<T, TAccumulate>
-            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
-        {
-            return BLinqUtilities.AggregateBy<T, TAccumulate, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                Allocator.Temp).AsQuery();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
-            AggregateBy<TKey, TAccumulate, TKeySelector, TAggregator>(
-                TKeySelector keySelector,
-                TAccumulate seed,
-                TAggregator aggregator)
+                Func<TAccumulate, TSource, TAccumulate> aggregator)
+            where TSource : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TAccumulate : unmanaged
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+            where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                Allocator.Temp).AsQuery();
+            return Throw<Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>>();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
-            AggregateBy<TKey, TAccumulate, TKeySelector, TSeedSelector, TAggregator>(
-                TKeySelector keySelector,
-                TSeedSelector seedSelector,
-                TAggregator aggregator)
+        [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>), typeof(IAggregator<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+            AggregateBy<TSource, TKey, TAccumulate, TEnumerator>(
+                this Query<TSource, TEnumerator> source,
+                Func<TSource, TKey> keySelector,
+                Func<TKey, TAccumulate> seedSelector,
+                Func<TAccumulate, TSource, TAccumulate> aggregator)
+            where TSource : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TAccumulate : unmanaged
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-            where TSeedSelector : unmanaged, ISelector<TKey, TAccumulate>
-            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
+            where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
-                GetEnumerator(),
-                keySelector,
-                seedSelector,
-                aggregator,
-                Allocator.Temp).AsQuery();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeList<KeyValuePair<TAccumulate, TAccumulate>> ToAggregatedBy<TAccumulate, TKeySelector, TAggregator>(
-            TKeySelector keySelector,
-            TAccumulate seed,
-            TAggregator aggregator,
-            AllocatorManager.AllocatorHandle allocator)
-            where TAccumulate : unmanaged, IEquatable<TAccumulate>
-            where TKeySelector : unmanaged, ISelector<T, TAccumulate>
-            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
-        {
-            return BLinqUtilities.AggregateBy<T, TAccumulate, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                allocator);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeList<KeyValuePair<TKey, TAccumulate>> ToAggregatedBy<TKey, TAccumulate, TKeySelector, TAggregator>(
-            TKeySelector keySelector,
-            TAccumulate seed,
-            TAggregator aggregator,
-            AllocatorManager.AllocatorHandle allocator)
-            where TKey : unmanaged, IEquatable<TKey>
-            where TAccumulate : unmanaged
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
-        {
-            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                GetEnumerator(),
-                keySelector,
-                seed,
-                aggregator,
-                allocator);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeList<KeyValuePair<TKey, TAccumulate>> ToAggregatedBy<TKey, TAccumulate, TKeySelector, TSeedSelector, TAggregator>(
-            TKeySelector keySelector,
-            TSeedSelector seedSelector,
-            TAggregator aggregator,
-            AllocatorManager.AllocatorHandle allocator)
-            where TKey : unmanaged, IEquatable<TKey>
-            where TAccumulate : unmanaged
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-            where TSeedSelector : unmanaged, ISelector<TKey, TAccumulate>
-            where TAggregator : unmanaged, IAggregator<TAccumulate, T>
-        {
-            return BLinqUtilities.AggregateBy<T, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
-                GetEnumerator(),
-                keySelector,
-                seedSelector,
-                aggregator,
-                allocator);
+            return Throw<Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>>();
         }
     }
 

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
@@ -13,8 +15,7 @@ namespace FireAlt.BLinq
         }
 
         public static TResult Sum<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
-            this Query<TSource, TEnumerator> source,
-            TSelector selector)
+            this Query<TSource, TEnumerator> source, TSelector selector)
             where TSource : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
@@ -36,8 +37,7 @@ namespace FireAlt.BLinq
         }
 
         public static TResult Average<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
-            this Query<TSource, TEnumerator> source,
-            TSelector selector)
+            this Query<TSource, TEnumerator> source, TSelector selector)
             where TSource : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
@@ -49,44 +49,16 @@ namespace FireAlt.BLinq
                 selector,
                 default);
         }
-    }
-
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
-        where TEnumerator : unmanaged, IEnumerator<T>
-    {
-        public T Sum<TAccumulator>(TAccumulator accumulator)
-            where TAccumulator : unmanaged, IAccumulator<T>
-        {
-            return BLinqUtilities.Sum<T, TEnumerator, TAccumulator>(GetEnumerator(), accumulator);
-        }
-
-        public TResult Sum<TResult, TSelector, TAccumulator>(TSelector selector, TAccumulator accumulator)
+        
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static TResult Sum<TSource, TResult, TEnumerator>(
+            this Query<TSource, TEnumerator> source, Func<TSource, TResult> selector, TResult _ = default)
+            where TSource : unmanaged
             where TResult : unmanaged
-            where TSelector : unmanaged, ISelector<T, TResult>
-            where TAccumulator : unmanaged, IAccumulator<TResult>
+            where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return BLinqUtilities.Sum<T, TResult, TEnumerator, TSelector, TAccumulator>(
-                GetEnumerator(),
-                selector,
-                accumulator);
-        }
-
-        public T Average<TAccumulator>(TAccumulator accumulator)
-            where TAccumulator : unmanaged, IAccumulator<T>
-        {
-            return BLinqUtilities.Average<T, TEnumerator, TAccumulator>(GetEnumerator(), accumulator);
-        }
-
-        public TResult Average<TResult, TSelector, TAccumulator>(TSelector selector, TAccumulator accumulator)
-            where TResult : unmanaged
-            where TSelector : unmanaged, ISelector<T, TResult>
-            where TAccumulator : unmanaged, IAccumulator<TResult>
-        {
-            return BLinqUtilities.Average<T, TResult, TEnumerator, TSelector, TAccumulator>(
-                GetEnumerator(),
-                selector,
-                accumulator);
+            return Throw<TResult>();
         }
     }
 
@@ -109,9 +81,7 @@ namespace FireAlt.BLinq
         }
 
         public static TResult Sum<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
-            TEnumerator enumerator,
-            TSelector selector,
-            TAccumulator accumulator)
+            TEnumerator enumerator, TSelector selector, TAccumulator accumulator)
             where TSource : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
@@ -149,9 +119,7 @@ namespace FireAlt.BLinq
         }
 
         public static TResult Average<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
-            TEnumerator enumerator,
-            TSelector selector,
-            TAccumulator accumulator)
+            TEnumerator enumerator, TSelector selector, TAccumulator accumulator)
             where TSource : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
