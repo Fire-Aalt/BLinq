@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace KrasCore.NativeLinq.CodeGen
+namespace FireAlt.BLinq.CodeGen
 {
     internal sealed partial class ILPostProcessor
     {

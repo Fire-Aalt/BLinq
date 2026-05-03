@@ -7,7 +7,7 @@ using Unity.Jobs;
 
 namespace FireAlt.BLinq.Tests
 {
-    public class NativeLinqBurstedDelegatesTests
+    public class BLinqBurstedDelegatesTests
     {
         [Test]
         public void DelegatePipeline_WhereSelectSum_UsesUnmanagedCapturedValues()

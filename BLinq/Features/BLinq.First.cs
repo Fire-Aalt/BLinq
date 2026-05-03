@@ -42,7 +42,7 @@ namespace FireAlt.BLinq
         }
     }
     
-    public partial class BLinqExtensions
+    public static partial class BLinqExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T FirstOrDefault<T, TEnumerator, TPredicate>(this Query<T, TEnumerator> source, TPredicate predicate)

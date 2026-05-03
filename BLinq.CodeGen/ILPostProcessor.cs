@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
@@ -7,7 +7,7 @@ using Mono.Cecil.Rocks;
 using Unity.CompilationPipeline.Common.Diagnostics;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
 
-namespace KrasCore.NativeLinq.CodeGen
+namespace FireAlt.BLinq.CodeGen
 {
     internal sealed partial class ILPostProcessor : Unity.CompilationPipeline.Common.ILPostProcessing.ILPostProcessor
     {

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
 
-namespace KrasCore.NativeLinq.CodeGen
+namespace FireAlt.BLinq.CodeGen
 {
     internal sealed partial class ILPostProcessor
     {
@@ -27,7 +27,7 @@ namespace KrasCore.NativeLinq.CodeGen
                     delegateCtorInstruction.Operand is not MethodReference cachedDelegateCtor ||
                     cachedDelegateCtor.Parameters.Count != 2)
                 {
-                    AddError(diagnostics, owner, callInstruction, "NativeLinq delegate weaving only supports direct lambda or compiler-cached static lambda delegate construction.");
+                    AddError(diagnostics, owner, callInstruction, "BLinq delegate weaving only supports direct lambda or compiler-cached static lambda delegate construction.");
                     return null;
                 }
             }
@@ -36,14 +36,14 @@ namespace KrasCore.NativeLinq.CodeGen
             if (functionInstruction?.OpCode != OpCodes.Ldftn ||
                 functionInstruction.Operand is not MethodReference lambdaReference)
             {
-                AddError(diagnostics, owner, callInstruction, "NativeLinq delegate weaving could not find the lambda method.");
+                AddError(diagnostics, owner, callInstruction, "BLinq delegate weaving could not find the lambda method.");
                 return null;
             }
 
             var lambda = lambdaReference.Resolve();
             if (lambda == null)
             {
-                AddError(diagnostics, owner, callInstruction, $"NativeLinq delegate weaving could not resolve '{lambdaReference.FullName}'.");
+                AddError(diagnostics, owner, callInstruction, $"BLinq delegate weaving could not resolve '{lambdaReference.FullName}'.");
                 return null;
             }
 
@@ -62,13 +62,13 @@ namespace KrasCore.NativeLinq.CodeGen
             {
                 if (targetInstruction == null)
                 {
-                    AddError(diagnostics, owner, callInstruction, "NativeLinq delegate weaving could not find the instance method target.");
+                    AddError(diagnostics, owner, callInstruction, "BLinq delegate weaving could not find the instance method target.");
                     return null;
                 }
 
                 if (!IsUnmanaged(lambdaReference.DeclaringType))
                 {
-                    AddError(diagnostics, owner, callInstruction, $"NativeLinq delegate target '{lambdaReference.DeclaringType.FullName}' has managed type.");
+                    AddError(diagnostics, owner, callInstruction, $"BLinq delegate target '{lambdaReference.DeclaringType.FullName}' has managed type.");
                     return null;
                 }
             }
@@ -93,8 +93,8 @@ namespace KrasCore.NativeLinq.CodeGen
 
             var module = owner.Module;
             var adapterType = new TypeDefinition(
-                "KrasCore.Generated.NativeLinq",
-                $"__NativeLinqDelegateAdapter_{_adapterIndex++}",
+                "FireAlt.BLinq.Generated",
+                $"__BLinqDelegateAdapter_{_adapterIndex++}",
                 TypeAttributes.NestedPrivate | TypeAttributes.Sealed | TypeAttributes.SequentialLayout | TypeAttributes.BeforeFieldInit,
                 module.ImportReference(typeof(ValueType)));
 
@@ -220,7 +220,7 @@ namespace KrasCore.NativeLinq.CodeGen
             if (targetInstruction == null ||
                 !TryGetLoadedLocal(owner, targetInstruction, out var closureLocal))
             {
-                AddError(diagnostics, owner, diagnosticInstruction, "NativeLinq delegate weaving only supports local variable captures.");
+                AddError(diagnostics, owner, diagnosticInstruction, "BLinq delegate weaving only supports local variable captures.");
                 return false;
             }
 
@@ -278,7 +278,7 @@ namespace KrasCore.NativeLinq.CodeGen
                     var target = valueStart == null ? null : PreviousMeaningful(valueStart);
                     if (target == null || !IsLoadLocal(owner, target, closureLocal))
                     {
-                        AddError(diagnostics, owner, diagnosticInstruction, "NativeLinq delegate weaving only supports direct captured local assignments.");
+                        AddError(diagnostics, owner, diagnosticInstruction, "BLinq delegate weaving only supports direct captured local assignments.");
                         return false;
                     }
 
@@ -292,7 +292,7 @@ namespace KrasCore.NativeLinq.CodeGen
                     var target = PreviousMeaningful(instruction);
                     if (target == null || !IsLoadLocal(owner, target, closureLocal))
                     {
-                        AddError(diagnostics, owner, diagnosticInstruction, "NativeLinq delegate weaving only supports direct captured local reads.");
+                        AddError(diagnostics, owner, diagnosticInstruction, "BLinq delegate weaving only supports direct captured local reads.");
                         return false;
                     }
 

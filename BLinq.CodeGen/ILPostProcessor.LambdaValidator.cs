@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
 
-namespace KrasCore.NativeLinq.CodeGen
+namespace FireAlt.BLinq.CodeGen
 {
     internal sealed partial class ILPostProcessor
     {
@@ -28,7 +28,7 @@ namespace KrasCore.NativeLinq.CodeGen
                     return Array.Empty<FieldDefinition>();
                 }
 
-                AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate target '{lambda.FullName}' is not a compiler-generated lambda.");
+                AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate target '{lambda.FullName}' is not a compiler-generated lambda.");
                 return null;
             }
 
@@ -40,7 +40,7 @@ namespace KrasCore.NativeLinq.CodeGen
             {
                 if (!IsUnmanaged(field.FieldType))
                 {
-                    AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate capture '{field.Name}' has managed type '{field.FieldType.FullName}'.");
+                    AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate capture '{field.Name}' has managed type '{field.FieldType.FullName}'.");
                     return null;
                 }
             }
@@ -64,7 +64,7 @@ namespace KrasCore.NativeLinq.CodeGen
             {
                 if (!IsUnmanaged(parameter.ParameterType))
                 {
-                    AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate parameter '{parameter.Name}' has managed type '{parameter.ParameterType.FullName}'.");
+                    AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate parameter '{parameter.Name}' has managed type '{parameter.ParameterType.FullName}'.");
                     return false;
                 }
             }
@@ -72,7 +72,7 @@ namespace KrasCore.NativeLinq.CodeGen
             if (lambda.ReturnType.MetadataType != MetadataType.Void &&
                 !IsUnmanaged(lambda.ReturnType))
             {
-                AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate return type '{lambda.ReturnType.FullName}' is managed.");
+                AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate return type '{lambda.ReturnType.FullName}' is managed.");
                 return false;
             }
 
@@ -80,7 +80,7 @@ namespace KrasCore.NativeLinq.CodeGen
             {
                 if (!IsUnmanaged(variable.VariableType))
                 {
-                    AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate local '{lambda.Body.Variables.IndexOf(variable)}' has managed type '{variable.VariableType.FullName}'.");
+                    AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate local '{lambda.Body.Variables.IndexOf(variable)}' has managed type '{variable.VariableType.FullName}'.");
                     return false;
                 }
             }
@@ -89,7 +89,7 @@ namespace KrasCore.NativeLinq.CodeGen
             {
                 if (handler.CatchType != null)
                 {
-                    AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate body cannot catch managed exception type '{handler.CatchType.FullName}'.");
+                    AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate body cannot catch managed exception type '{handler.CatchType.FullName}'.");
                     return false;
                 }
             }
@@ -117,27 +117,27 @@ namespace KrasCore.NativeLinq.CodeGen
             switch (instruction.OpCode.Code)
             {
                 case Code.Ldstr:
-                    message = "NativeLinq delegate body cannot use string literals.";
+                    message = "BLinq delegate body cannot use string literals.";
                     return true;
                 case Code.Newarr:
                     if (instruction.Operand is TypeReference arrayElementType)
                     {
-                        message = $"NativeLinq delegate body cannot create managed array '{arrayElementType.FullName}[]'.";
+                        message = $"BLinq delegate body cannot create managed array '{arrayElementType.FullName}[]'.";
                     }
                     else
                     {
-                        message = "NativeLinq delegate body cannot create managed arrays.";
+                        message = "BLinq delegate body cannot create managed arrays.";
                     }
 
                     return true;
                 case Code.Box:
                     if (instruction.Operand is TypeReference boxedType)
                     {
-                        message = $"NativeLinq delegate body cannot box '{boxedType.FullName}'.";
+                        message = $"BLinq delegate body cannot box '{boxedType.FullName}'.";
                     }
                     else
                     {
-                        message = "NativeLinq delegate body cannot box values.";
+                        message = "BLinq delegate body cannot box values.";
                     }
 
                     return true;
@@ -147,7 +147,7 @@ namespace KrasCore.NativeLinq.CodeGen
                 instruction.Operand is MethodReference constructor &&
                 !IsUnmanaged(constructor.DeclaringType))
             {
-                message = $"NativeLinq delegate body cannot create managed type '{constructor.DeclaringType.FullName}'.";
+                message = $"BLinq delegate body cannot create managed type '{constructor.DeclaringType.FullName}'.";
                 return true;
             }
 
@@ -158,13 +158,13 @@ namespace KrasCore.NativeLinq.CodeGen
                 if (!capturedFieldNames.Contains(fieldName) &&
                     !IsUnmanaged(fieldReference.FieldType))
                 {
-                    message = $"NativeLinq delegate body cannot use managed field type '{fieldReference.FieldType.FullName}'.";
+                    message = $"BLinq delegate body cannot use managed field type '{fieldReference.FieldType.FullName}'.";
                     return true;
                 }
 
                 if (TryGetManagedGenericArgument(fieldReference.DeclaringType, out var managedDeclaringGenericArgument))
                 {
-                    message = $"NativeLinq delegate body cannot use managed generic type '{managedDeclaringGenericArgument.FullName}'.";
+                    message = $"BLinq delegate body cannot use managed generic type '{managedDeclaringGenericArgument.FullName}'.";
                     return true;
                 }
 
@@ -175,14 +175,14 @@ namespace KrasCore.NativeLinq.CodeGen
             {
                 if (methodReference.HasThis && !IsUnmanaged(methodReference.DeclaringType))
                 {
-                    message = $"NativeLinq delegate body cannot call instance method on managed type '{methodReference.DeclaringType.FullName}'.";
+                    message = $"BLinq delegate body cannot call instance method on managed type '{methodReference.DeclaringType.FullName}'.";
                     return true;
                 }
 
                 if (methodReference.ReturnType.MetadataType != MetadataType.Void &&
                     !IsUnmanaged(methodReference.ReturnType))
                 {
-                    message = $"NativeLinq delegate body cannot use managed return type '{methodReference.ReturnType.FullName}'.";
+                    message = $"BLinq delegate body cannot use managed return type '{methodReference.ReturnType.FullName}'.";
                     return true;
                 }
 
@@ -190,7 +190,7 @@ namespace KrasCore.NativeLinq.CodeGen
                 {
                     if (!IsUnmanaged(parameter.ParameterType))
                     {
-                        message = $"NativeLinq delegate body cannot call method '{methodReference.FullName}' because parameter type '{parameter.ParameterType.FullName}' is managed.";
+                        message = $"BLinq delegate body cannot call method '{methodReference.FullName}' because parameter type '{parameter.ParameterType.FullName}' is managed.";
                         return true;
                     }
                 }
@@ -201,7 +201,7 @@ namespace KrasCore.NativeLinq.CodeGen
                     {
                         if (!IsUnmanaged(genericArgument))
                         {
-                            message = $"NativeLinq delegate body cannot use managed generic argument '{genericArgument.FullName}'.";
+                            message = $"BLinq delegate body cannot use managed generic argument '{genericArgument.FullName}'.";
                             return true;
                         }
                     }
@@ -209,7 +209,7 @@ namespace KrasCore.NativeLinq.CodeGen
 
                 if (TryGetManagedGenericArgument(methodReference.DeclaringType, out var managedMethodDeclaringGenericArgument))
                 {
-                    message = $"NativeLinq delegate body cannot use managed generic type '{managedMethodDeclaringGenericArgument.FullName}'.";
+                    message = $"BLinq delegate body cannot use managed generic type '{managedMethodDeclaringGenericArgument.FullName}'.";
                     return true;
                 }
 
@@ -221,7 +221,7 @@ namespace KrasCore.NativeLinq.CodeGen
                 if (callSite.ReturnType.MetadataType != MetadataType.Void &&
                     !IsUnmanaged(callSite.ReturnType))
                 {
-                    message = $"NativeLinq delegate body cannot use managed return type '{callSite.ReturnType.FullName}'.";
+                    message = $"BLinq delegate body cannot use managed return type '{callSite.ReturnType.FullName}'.";
                     return true;
                 }
 
@@ -229,7 +229,7 @@ namespace KrasCore.NativeLinq.CodeGen
                 {
                     if (!IsUnmanaged(parameter.ParameterType))
                     {
-                        message = $"NativeLinq delegate body cannot use managed calli parameter type '{parameter.ParameterType.FullName}'.";
+                        message = $"BLinq delegate body cannot use managed calli parameter type '{parameter.ParameterType.FullName}'.";
                         return true;
                     }
                 }
@@ -240,7 +240,7 @@ namespace KrasCore.NativeLinq.CodeGen
             if (instruction.Operand is TypeReference typeReference &&
                 IsManagedTypeOperand(instruction.OpCode.Code, typeReference))
             {
-                message = $"NativeLinq delegate body cannot use managed type '{typeReference.FullName}'.";
+                message = $"BLinq delegate body cannot use managed type '{typeReference.FullName}'.";
                 return true;
             }
 

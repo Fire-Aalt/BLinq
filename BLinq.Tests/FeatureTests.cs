@@ -8,7 +8,7 @@ using Unity.Mathematics;
 
 namespace FireAlt.BLinq.Tests
 {
-    public class NativeLinqTests
+    public class BLinqTests
     {
         [Test]
         public void Where_ToNativeList_FiltersValues()
@@ -455,7 +455,7 @@ namespace FireAlt.BLinq.Tests
         }
 
         [Test]
-        public void BurstJob_CanExecuteNativeLinqGroupBy()
+        public void BurstJob_CanExecuteBLinqGroupBy()
         {
             var input = new NativeArray<int>(new[] { 1, 2, 3, 4, 5 }, Allocator.TempJob);
             var output = new NativeArray<int>(5, Allocator.TempJob);
@@ -482,7 +482,7 @@ namespace FireAlt.BLinq.Tests
         }
 
         [Test]
-        public void BurstJob_CanExecuteNativeLinqAggregateBy()
+        public void BurstJob_CanExecuteBLinqAggregateBy()
         {
             var input = new NativeArray<GroupRecord>(
                 new[]
@@ -516,7 +516,7 @@ namespace FireAlt.BLinq.Tests
         }
 
         [Test]
-        public void BurstJob_CanExecuteNativeLinqQuery()
+        public void BurstJob_CanExecuteBLinqQuery()
         {
             var input = new NativeArray<int>(new[] { 0, 1, 2, 3 }, Allocator.TempJob);
             var output = new NativeArray<int>(9, Allocator.TempJob);

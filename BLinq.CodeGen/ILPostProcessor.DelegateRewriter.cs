@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
 
-namespace KrasCore.NativeLinq.CodeGen
+namespace FireAlt.BLinq.CodeGen
 {
     internal sealed partial class ILPostProcessor
     {
@@ -34,7 +34,7 @@ namespace KrasCore.NativeLinq.CodeGen
 
             if (delegateParameters.Length != interfaceDefinitions.Length)
             {
-                AddError(diagnostics, owner, callInstruction, $"NativeLinq delegate method '{placeholder.FullName}' has {interfaceDefinitions.Length} delegate attributes but {delegateParameters.Length} delegate parameters.");
+                AddError(diagnostics, owner, callInstruction, $"BLinq delegate method '{placeholder.FullName}' has {interfaceDefinitions.Length} delegate attributes but {delegateParameters.Length} delegate parameters.");
                 return false;
             }
 
@@ -154,7 +154,7 @@ namespace KrasCore.NativeLinq.CodeGen
                 var producerStart = FindStackProducerStart(current, 1);
                 if (producerStart == null)
                 {
-                    AddError(diagnostics, owner, callInstruction, "NativeLinq delegate weaving only supports simple trailing arguments after the delegate parameter.");
+                    AddError(diagnostics, owner, callInstruction, "BLinq delegate weaving only supports simple trailing arguments after the delegate parameter.");
                     return null;
                 }
 
@@ -164,7 +164,7 @@ namespace KrasCore.NativeLinq.CodeGen
                 {
                     if (!CanMoveTrailingArgumentInstruction(instruction))
                     {
-                        AddError(diagnostics, owner, callInstruction, "NativeLinq delegate weaving only supports simple trailing arguments after the delegate parameter.");
+                        AddError(diagnostics, owner, callInstruction, "BLinq delegate weaving only supports simple trailing arguments after the delegate parameter.");
                         return null;
                     }
 
@@ -254,7 +254,7 @@ namespace KrasCore.NativeLinq.CodeGen
             var invoke = delegateDefinition?.Methods.FirstOrDefault(method => method.Name == "Invoke");
             if (invoke == null)
             {
-                AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate type '{delegateType.FullName}' does not have an Invoke method.");
+                AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate type '{delegateType.FullName}' does not have an Invoke method.");
                 return null;
             }
 
@@ -342,7 +342,7 @@ namespace KrasCore.NativeLinq.CodeGen
                 }
             }
 
-            AddError(diagnostics, owner, diagnosticInstruction, $"NativeLinq delegate weaving could not find unmanaged overload for '{placeholder.FullName}'.");
+            AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate weaving could not find unmanaged overload for '{placeholder.FullName}'.");
             return null;
         }
 

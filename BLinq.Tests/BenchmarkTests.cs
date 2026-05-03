@@ -9,7 +9,7 @@ using Unity.PerformanceTesting;
 namespace FireAlt.BLinq.Tests
 {
     [BurstCompile]
-    public class NativeLinqBenchmarkTests
+    public class BLinqBenchmarkTests
     {
         private const int WARMUP_RUNS = 2;
         private const int MEASURE_RUNS = 10;
@@ -21,7 +21,7 @@ namespace FireAlt.BLinq.Tests
         [TestCase(1_024)]
         [TestCase(65_536)]
         [TestCase(262_144)]
-        public void SimpleQuery_CompareLinqNativeLinq(int elementCount)
+        public void SimpleQuery_CompareLinqBLinq(int elementCount)
         {
             MeasureLinq(
                 $"LINQ.Simple/{elementCount}",
@@ -29,16 +29,16 @@ namespace FireAlt.BLinq.Tests
                 QueryLinqSimple,
                 QueryLinqSimple);
 
-            MeasureNativeLinq(
+            MeasureBLinq(
                 $"NativeLINQ.NoBurst.Simple/{elementCount}",
                 elementCount,
-                QueryNativeLinqSimple,
+                QueryBLinqSimple,
                 QueryLinqSimple);
 
-            MeasureBurstNativeLinq(
+            MeasureBurstBLinq(
                 $"NativeLINQ.Burst.Simple/{elementCount}",
                 elementCount,
-                array => QueryNativeLinqSimpleBurst(array),
+                array => QueryBLinqSimpleBurst(array),
                 QueryLinqSimple);
         }
 
@@ -49,7 +49,7 @@ namespace FireAlt.BLinq.Tests
         [TestCase(1_024)]
         [TestCase(65_536)]
         [TestCase(262_144)]
-        public void ComplexQuery_CompareLinqNativeLinq(int elementCount)
+        public void ComplexQuery_CompareLinqBLinq(int elementCount)
         {
             MeasureLinq(
                 $"LINQ.Complex/{elementCount}",
@@ -57,16 +57,16 @@ namespace FireAlt.BLinq.Tests
                 QueryLinqComplex,
                 QueryLinqComplex);
 
-            MeasureNativeLinq(
+            MeasureBLinq(
                 $"NativeLINQ.NoBurst.Complex/{elementCount}",
                 elementCount,
-                QueryNativeLinqComplex,
+                QueryBLinqComplex,
                 QueryLinqComplex);
 
-            MeasureBurstNativeLinq(
+            MeasureBurstBLinq(
                 $"NativeLINQ.Burst.Complex/{elementCount}",
                 elementCount,
-                array => QueryNativeLinqComplexBurst(array),
+                array => QueryBLinqComplexBurst(array),
                 QueryLinqComplex);
         }
 
@@ -77,7 +77,7 @@ namespace FireAlt.BLinq.Tests
         [TestCase(1_024)]
         [TestCase(65_536)]
         [TestCase(262_144)]
-        public void OrderByQuery_CompareLinqNativeLinq(int elementCount)
+        public void OrderByQuery_CompareLinqBLinq(int elementCount)
         {
             MeasureLinq(
                 $"LINQ.OrderBy/{elementCount}",
@@ -85,16 +85,16 @@ namespace FireAlt.BLinq.Tests
                 QueryLinqOrderBy,
                 QueryLinqOrderBy);
 
-            MeasureNativeLinq(
+            MeasureBLinq(
                 $"NativeLINQ.NoBurst.OrderBy/{elementCount}",
                 elementCount,
-                QueryNativeLinqOrderBy,
+                QueryBLinqOrderBy,
                 QueryLinqOrderBy);
 
-            MeasureBurstNativeLinq(
+            MeasureBurstBLinq(
                 $"NativeLINQ.Burst.OrderBy/{elementCount}",
                 elementCount,
-                array => QueryNativeLinqOrderByBurst(array),
+                array => QueryBLinqOrderByBurst(array),
                 QueryLinqOrderBy);
         }
 
@@ -105,7 +105,7 @@ namespace FireAlt.BLinq.Tests
         [TestCase(1_024)]
         [TestCase(65_536)]
         [TestCase(262_144)]
-        public void GroupByQuery_CompareLinqNativeLinq(int elementCount)
+        public void GroupByQuery_CompareLinqBLinq(int elementCount)
         {
             MeasureLinq(
                 $"LINQ.GroupBy/{elementCount}",
@@ -113,16 +113,16 @@ namespace FireAlt.BLinq.Tests
                 QueryLinqGroupBy,
                 QueryLinqGroupBy);
 
-            MeasureNativeLinq(
+            MeasureBLinq(
                 $"NativeLINQ.NoBurst.GroupBy/{elementCount}",
                 elementCount,
-                QueryNativeLinqGroupBy,
+                QueryBLinqGroupBy,
                 QueryLinqGroupBy);
 
-            MeasureBurstNativeLinq(
+            MeasureBurstBLinq(
                 $"NativeLINQ.Burst.GroupBy/{elementCount}",
                 elementCount,
-                array => QueryNativeLinqGroupByBurst(array),
+                array => QueryBLinqGroupByBurst(array),
                 QueryLinqGroupBy);
         }
 
@@ -133,7 +133,7 @@ namespace FireAlt.BLinq.Tests
         [TestCase(1_024)]
         [TestCase(65_536)]
         [TestCase(262_144)]
-        public void AggregateByQuery_CompareLinqNativeLinq(int elementCount)
+        public void AggregateByQuery_CompareLinqBLinq(int elementCount)
         {
             MeasureLinq(
                 $"LINQ.GroupByAggregate/{elementCount}",
@@ -141,16 +141,16 @@ namespace FireAlt.BLinq.Tests
                 QueryLinqGroupBy,
                 QueryLinqGroupBy);
 
-            MeasureNativeLinq(
+            MeasureBLinq(
                 $"NativeLINQ.NoBurst.AggregateBy/{elementCount}",
                 elementCount,
-                QueryNativeLinqAggregateBy,
+                QueryBLinqAggregateBy,
                 QueryLinqGroupBy);
 
-            MeasureBurstNativeLinq(
+            MeasureBurstBLinq(
                 $"NativeLINQ.Burst.AggregateBy/{elementCount}",
                 elementCount,
-                array => QueryNativeLinqAggregateByBurst(array),
+                array => QueryBLinqAggregateByBurst(array),
                 QueryLinqGroupBy);
         }
 
@@ -181,7 +181,7 @@ namespace FireAlt.BLinq.Tests
                 .Run();
         }
 
-        private static void MeasureNativeLinq(
+        private static void MeasureBLinq(
             string sampleGroupName,
             int elementCount,
             Func<NativeArray<int>, int> query,
@@ -211,7 +211,7 @@ namespace FireAlt.BLinq.Tests
                 .Run();
         }
 
-        private static void MeasureBurstNativeLinq(
+        private static void MeasureBurstBLinq(
             string sampleGroupName,
             int elementCount,
             Func<NativeArray<int>, int> query,
@@ -260,7 +260,7 @@ namespace FireAlt.BLinq.Tests
                 .Sum();
         }
 
-        private static int QueryNativeLinqSimple(NativeArray<int> values)
+        private static int QueryBLinqSimple(NativeArray<int> values)
         {
             return values
                 .AsQuery()
@@ -269,9 +269,9 @@ namespace FireAlt.BLinq.Tests
         }
 
         [BurstCompile]
-        private static int QueryNativeLinqSimpleBurst(in NativeArray<int> values)
+        private static int QueryBLinqSimpleBurst(in NativeArray<int> values)
         {
-            return QueryNativeLinqSimple(values);
+            return QueryBLinqSimple(values);
         }
 
         private static int QueryLinqComplex(int[] values)
@@ -292,7 +292,7 @@ namespace FireAlt.BLinq.Tests
                 .Sum();
         }
 
-        private static int QueryNativeLinqComplex(NativeArray<int> values)
+        private static int QueryBLinqComplex(NativeArray<int> values)
         {
             return values
                 .AsQuery()
@@ -311,9 +311,9 @@ namespace FireAlt.BLinq.Tests
         }
 
         [BurstCompile]
-        private static int QueryNativeLinqComplexBurst(in NativeArray<int> values)
+        private static int QueryBLinqComplexBurst(in NativeArray<int> values)
         {
-            return QueryNativeLinqComplex(values);
+            return QueryBLinqComplex(values);
         }
 
         private static int QueryLinqOrderBy(int[] values)
@@ -325,7 +325,7 @@ namespace FireAlt.BLinq.Tests
                 .Sum();
         }
 
-        private static int QueryNativeLinqOrderBy(NativeArray<int> values)
+        private static int QueryBLinqOrderBy(NativeArray<int> values)
         {
             var ordered = values
                 .AsQuery()
@@ -341,9 +341,9 @@ namespace FireAlt.BLinq.Tests
         }
 
         [BurstCompile]
-        private static int QueryNativeLinqOrderByBurst(in NativeArray<int> values)
+        private static int QueryBLinqOrderByBurst(in NativeArray<int> values)
         {
-            return QueryNativeLinqOrderBy(values);
+            return QueryBLinqOrderBy(values);
         }
 
         private static int QueryLinqGroupBy(int[] values)
@@ -353,7 +353,7 @@ namespace FireAlt.BLinq.Tests
                 .Sum(group => (group.Key + 1) * group.Sum(GroupBySelect));
         }
 
-        private static int QueryNativeLinqGroupBy(NativeArray<int> values)
+        private static int QueryBLinqGroupBy(NativeArray<int> values)
         {
             var result = values
                 .AsQuery()
@@ -364,12 +364,12 @@ namespace FireAlt.BLinq.Tests
         }
 
         [BurstCompile]
-        private static int QueryNativeLinqGroupByBurst(in NativeArray<int> values)
+        private static int QueryBLinqGroupByBurst(in NativeArray<int> values)
         {
-            return QueryNativeLinqGroupBy(values);
+            return QueryBLinqGroupBy(values);
         }
 
-        private static int QueryNativeLinqAggregateBy(NativeArray<int> values)
+        private static int QueryBLinqAggregateBy(NativeArray<int> values)
         {
             var result = values
                 .AsQuery()
@@ -383,9 +383,9 @@ namespace FireAlt.BLinq.Tests
         }
 
         [BurstCompile]
-        private static int QueryNativeLinqAggregateByBurst(in NativeArray<int> values)
+        private static int QueryBLinqAggregateByBurst(in NativeArray<int> values)
         {
-            return QueryNativeLinqAggregateBy(values);
+            return QueryBLinqAggregateBy(values);
         }
 
         private static bool SimpleWhere(int value)

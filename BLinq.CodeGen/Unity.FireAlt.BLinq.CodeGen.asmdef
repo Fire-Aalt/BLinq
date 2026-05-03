@@ -1,6 +1,6 @@
 {
-    "name": "Unity.KrasCore.BLinq.CodeGen",
-    "rootNamespace": "KrasCore.BLinq.CodeGen",
+    "name": "Unity.FireAlt.BLinq.CodeGen",
+    "rootNamespace": "FireAlt.BLinq.CodeGen",
     "references": [
         "FireAlt.BLinq"
     ],

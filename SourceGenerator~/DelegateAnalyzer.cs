@@ -9,15 +9,15 @@ namespace FireAlt.BLinq.Generators
     using Microsoft.CodeAnalysis.Diagnostics;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class NativeLinqDelegateAnalyzer : DiagnosticAnalyzer
+    public sealed class BLinqDelegateAnalyzer : DiagnosticAnalyzer
     {
-        private const string ATTRIBUTE_METADATA_NAME = "KrasCore.NativeDelegateMethodAttribute";
+        private const string ATTRIBUTE_METADATA_NAME = "FireAlt.BLinq.NativeDelegateMethodAttribute";
 
         private static readonly DiagnosticDescriptor UnsupportedLambda = new DiagnosticDescriptor(
-            "KCNL001",
-            "Unsupported NativeLinq delegate lambda",
+            "FABL001",
+            "Unsupported BLinq delegate lambda",
             "{0}",
-            "NativeLinq",
+            "BLinq",
             DiagnosticSeverity.Error,
             true);
 
@@ -44,7 +44,7 @@ namespace FireAlt.BLinq.Generators
                 .ToArray();
             if (delegateArguments.Length == 0)
             {
-                Report(context, invocation, "NativeLinq delegate operators require a lambda or method group delegate argument.");
+                Report(context, invocation, "BLinq delegate operators require a lambda or method group delegate argument.");
                 return;
             }
 
@@ -64,12 +64,12 @@ namespace FireAlt.BLinq.Generators
 
             if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
             {
-                Report(context, lambda, "NativeLinq delegate lambdas cannot be async.");
+                Report(context, lambda, "BLinq delegate lambdas cannot be async.");
             }
 
             if (lambda.DescendantNodes().OfType<AnonymousFunctionExpressionSyntax>().Any(n => n != lambda))
             {
-                Report(context, lambda, "NativeLinq delegate lambdas cannot contain nested lambdas or anonymous functions.");
+                Report(context, lambda, "BLinq delegate lambdas cannot contain nested lambdas or anonymous functions.");
             }
 
             ValidateSignature(context, lambda);
@@ -106,7 +106,7 @@ namespace FireAlt.BLinq.Generators
                 symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
             if (method == null)
             {
-                Report(context, expression, "NativeLinq delegate method group could not be resolved.");
+                Report(context, expression, "BLinq delegate method group could not be resolved.");
                 return;
             }
 
@@ -119,7 +119,7 @@ namespace FireAlt.BLinq.Generators
                     : method.ContainingType;
                 if (receiverType != null && !receiverType.IsUnmanagedType)
                 {
-                    Report(context, expression, $"NativeLinq delegate target '{receiverType.ToDisplayString()}' must be unmanaged.");
+                    Report(context, expression, $"BLinq delegate target '{receiverType.ToDisplayString()}' must be unmanaged.");
                 }
             }
 
@@ -143,7 +143,7 @@ namespace FireAlt.BLinq.Generators
             if (context.SemanticModel.GetTypeInfo(lambda, context.CancellationToken).ConvertedType is not INamedTypeSymbol delegateType ||
                 delegateType.DelegateInvokeMethod == null)
             {
-                Report(context, lambda, "NativeLinq delegate lambda type could not be resolved.");
+                Report(context, lambda, "BLinq delegate lambda type could not be resolved.");
                 return;
             }
 
@@ -152,8 +152,8 @@ namespace FireAlt.BLinq.Generators
                 lambda,
                 delegateType.DelegateInvokeMethod.Parameters,
                 delegateType.DelegateInvokeMethod.ReturnType,
-                "NativeLinq delegate parameter '{0}' must be unmanaged.",
-                "NativeLinq delegate return type must be unmanaged.",
+                "BLinq delegate parameter '{0}' must be unmanaged.",
+                "BLinq delegate return type must be unmanaged.",
                 false,
                 null);
 
@@ -164,7 +164,7 @@ namespace FireAlt.BLinq.Generators
                     if (parameter.Modifiers.Any(SyntaxKind.RefKeyword) ||
                         parameter.Modifiers.Any(SyntaxKind.OutKeyword))
                     {
-                        Report(context, parameter, "NativeLinq delegate lambda parameters cannot be ref or out parameters.");
+                        Report(context, parameter, "BLinq delegate lambda parameters cannot be ref or out parameters.");
                     }
                 }
             }
@@ -177,10 +177,10 @@ namespace FireAlt.BLinq.Generators
                 location,
                 method.Parameters,
                 method.ReturnType,
-                "NativeLinq delegate parameter '{0}' must be unmanaged.",
-                "NativeLinq delegate return type must be unmanaged.",
+                "BLinq delegate parameter '{0}' must be unmanaged.",
+                "BLinq delegate return type must be unmanaged.",
                 true,
-                "NativeLinq delegate method parameters cannot be ref or out parameters.");
+                "BLinq delegate method parameters cannot be ref or out parameters.");
         }
 
         private static void ValidateMethodBody(SyntaxNodeAnalysisContext context, MethodDeclarationSyntax methodDeclaration, IMethodSymbol method)
@@ -217,14 +217,14 @@ namespace FireAlt.BLinq.Generators
         {
             foreach (var nestedLambda in body.DescendantNodes().OfType<AnonymousFunctionExpressionSyntax>())
             {
-                Report(context, nestedLambda, "NativeLinq delegate bodies cannot contain nested lambdas or anonymous functions.");
+                Report(context, nestedLambda, "BLinq delegate bodies cannot contain nested lambdas or anonymous functions.");
             }
 
             foreach (var thisExpression in body.DescendantNodes().OfType<ThisExpressionSyntax>())
             {
                 if (thisType == null || !thisType.IsUnmanagedType)
                 {
-                    Report(context, thisExpression, "NativeLinq delegate bodies can only use this when the containing type is unmanaged.");
+                    Report(context, thisExpression, "BLinq delegate bodies can only use this when the containing type is unmanaged.");
                 }
             }
 
@@ -232,7 +232,7 @@ namespace FireAlt.BLinq.Generators
             {
                 if (literal.IsKind(SyntaxKind.StringLiteralExpression))
                 {
-                    Report(context, literal, "NativeLinq delegate bodies cannot use managed string literals.");
+                    Report(context, literal, "BLinq delegate bodies cannot use managed string literals.");
                 }
             }
 
@@ -246,18 +246,18 @@ namespace FireAlt.BLinq.Generators
                 var createdType = context.SemanticModel.GetTypeInfo(objectCreation, context.CancellationToken).Type;
                 if (createdType == null || !createdType.IsUnmanagedType)
                 {
-                    Report(context, objectCreation, "NativeLinq delegate bodies cannot create managed objects.");
+                    Report(context, objectCreation, "BLinq delegate bodies cannot create managed objects.");
                 }
             }
 
             foreach (var arrayCreation in body.DescendantNodes().OfType<ArrayCreationExpressionSyntax>())
             {
-                Report(context, arrayCreation, "NativeLinq delegate bodies cannot create managed arrays.");
+                Report(context, arrayCreation, "BLinq delegate bodies cannot create managed arrays.");
             }
 
             foreach (var implicitArrayCreation in body.DescendantNodes().OfType<ImplicitArrayCreationExpressionSyntax>())
             {
-                Report(context, implicitArrayCreation, "NativeLinq delegate bodies cannot create managed arrays.");
+                Report(context, implicitArrayCreation, "BLinq delegate bodies cannot create managed arrays.");
             }
 
             foreach (var elementAccess in body.DescendantNodes().OfType<ElementAccessExpressionSyntax>())
@@ -267,12 +267,12 @@ namespace FireAlt.BLinq.Generators
                 {
                     if (!elementAccess.Expression.IsKind(SyntaxKind.StringLiteralExpression))
                     {
-                        Report(context, elementAccess.Expression, "NativeLinq delegate bodies cannot use managed strings.");
+                        Report(context, elementAccess.Expression, "BLinq delegate bodies cannot use managed strings.");
                     }
                 }
                 else if (receiverType == null || !receiverType.IsUnmanagedType)
                 {
-                    Report(context, elementAccess, "NativeLinq delegate bodies cannot use managed indexers or array access.");
+                    Report(context, elementAccess, "BLinq delegate bodies cannot use managed indexers or array access.");
                 }
             }
 
@@ -282,7 +282,7 @@ namespace FireAlt.BLinq.Generators
                     localSymbol.Type.SpecialType != SpecialType.System_Void &&
                     !localSymbol.Type.IsUnmanagedType)
                 {
-                    Report(context, local, $"NativeLinq delegate local '{localSymbol.Name}' must be unmanaged.");
+                    Report(context, local, $"BLinq delegate local '{localSymbol.Name}' must be unmanaged.");
                 }
             }
 
@@ -291,7 +291,7 @@ namespace FireAlt.BLinq.Generators
                 var symbol = context.SemanticModel.GetSymbolInfo(memberAccess, context.CancellationToken).Symbol;
                 if (symbol is IEventSymbol)
                 {
-                    Report(context, memberAccess, "NativeLinq delegate bodies cannot use events.");
+                    Report(context, memberAccess, "BLinq delegate bodies cannot use events.");
                 }
                 else if (symbol is IPropertySymbol property)
                 {
@@ -307,7 +307,7 @@ namespace FireAlt.BLinq.Generators
                 symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
             if (method == null)
             {
-                Report(context, invocationExpression, "NativeLinq delegate method call could not be resolved.");
+                Report(context, invocationExpression, "BLinq delegate method call could not be resolved.");
                 return;
             }
 
@@ -318,7 +318,7 @@ namespace FireAlt.BLinq.Generators
         {
             if (!method.IsStatic && method.ContainingType != null && !method.ContainingType.IsUnmanagedType)
             {
-                Report(context, location, $"NativeLinq delegate bodies cannot call instance methods on managed type '{method.ContainingType.ToDisplayString()}'.");
+                Report(context, location, $"BLinq delegate bodies cannot call instance methods on managed type '{method.ContainingType.ToDisplayString()}'.");
             }
 
             ValidateUnmanagedSignature(
@@ -326,8 +326,8 @@ namespace FireAlt.BLinq.Generators
                 location,
                 method.Parameters,
                 method.ReturnType,
-                "NativeLinq delegate method parameter '{0}' must be unmanaged.",
-                "NativeLinq delegate method return type must be unmanaged.",
+                "BLinq delegate method parameter '{0}' must be unmanaged.",
+                "BLinq delegate method return type must be unmanaged.",
                 false,
                 null);
 
@@ -335,7 +335,7 @@ namespace FireAlt.BLinq.Generators
             {
                 if (!typeArgument.IsUnmanagedType)
                 {
-                    Report(context, location, $"NativeLinq delegate generic argument '{typeArgument.ToDisplayString()}' must be unmanaged.");
+                    Report(context, location, $"BLinq delegate generic argument '{typeArgument.ToDisplayString()}' must be unmanaged.");
                 }
             }
         }
@@ -344,12 +344,12 @@ namespace FireAlt.BLinq.Generators
         {
             if (!property.IsStatic && property.ContainingType != null && !property.ContainingType.IsUnmanagedType)
             {
-                Report(context, location, $"NativeLinq delegate bodies cannot use properties on managed type '{property.ContainingType.ToDisplayString()}'.");
+                Report(context, location, $"BLinq delegate bodies cannot use properties on managed type '{property.ContainingType.ToDisplayString()}'.");
             }
 
             if (!property.Type.IsUnmanagedType)
             {
-                Report(context, location, $"NativeLinq delegate property '{property.Name}' must return an unmanaged type.");
+                Report(context, location, $"BLinq delegate property '{property.Name}' must return an unmanaged type.");
             }
         }
 
@@ -421,14 +421,14 @@ namespace FireAlt.BLinq.Generators
                         field.ContainingType != null &&
                         !field.ContainingType.IsUnmanagedType)
                     {
-                        Report(context, lambda, $"NativeLinq delegate capture '{field.Name}' is on managed type '{field.ContainingType.ToDisplayString()}'.");
+                        Report(context, lambda, $"BLinq delegate capture '{field.Name}' is on managed type '{field.ContainingType.ToDisplayString()}'.");
                     }
 
                     ValidateCapturedType(context, lambda, field.Name, field.Type);
                 }
                 else
                 {
-                    Report(context, lambda, $"NativeLinq delegate capture '{symbol.Name}' is not a local unmanaged value.");
+                    Report(context, lambda, $"BLinq delegate capture '{symbol.Name}' is not a local unmanaged value.");
                 }
             }
         }
@@ -437,7 +437,7 @@ namespace FireAlt.BLinq.Generators
         {
             if (!type.IsUnmanagedType)
             {
-                Report(context, location, $"NativeLinq delegate capture '{name}' must be unmanaged.");
+                Report(context, location, $"BLinq delegate capture '{name}' must be unmanaged.");
             }
         }
 
