@@ -1,0 +1,11 @@
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\bin\Debug\netstandard2.0\FireAlt.BLinq.Generators.deps.json
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\bin\Debug\netstandard2.0\FireAlt.BLinq.Generators.dll
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\bin\Debug\netstandard2.0\FireAlt.BLinq.Generators.pdb
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\obj\Debug\netstandard2.0\FireAlt.BLinq.Generators.csproj.AssemblyReference.cache
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\obj\Debug\netstandard2.0\FireAlt.BLinq.Generators.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\obj\Debug\netstandard2.0\FireAlt.BLinq.Generators.AssemblyInfoInputs.cache
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\obj\Debug\netstandard2.0\FireAlt.BLinq.Generators.AssemblyInfo.cs
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\obj\Debug\netstandard2.0\FireAlt.BLinq.Generators.csproj.CoreCompileInputs.cache
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\SourceGenerator~\obj\Debug\netstandard2.0\FireAlt.BLinq.Generators.dll
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\BLinq\SourceGenerators\FireAlt.BLinq.Generators.deps.json
+C:\Users\forty\Documents\Unity\Sandbox\Packages\com.firealt.blinq\BLinq\SourceGenerators\FireAlt.BLinq.Generators.dll

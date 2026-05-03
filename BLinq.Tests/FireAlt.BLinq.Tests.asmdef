@@ -1,0 +1,29 @@
+{
+    "name": "FireAlt.BLinq.Tests",
+    "rootNamespace": "FireAlt.BLinq.Tests",
+    "references": [
+        "KrasCore",
+        "FireAlt.BLinq",
+        "Unity.Entities",
+        "Unity.PerformanceTesting",
+        "Unity.Collections",
+        "Unity.Jobs",
+        "Unity.Burst",
+        "Unity.Mathematics",
+        "BovineLabs.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

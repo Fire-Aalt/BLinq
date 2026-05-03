@@ -1,0 +1,48 @@
+{
+    "name": "FireAlt.BLinq",
+    "rootNamespace": "FireAlt.BLinq",
+    "references": [
+        "KrasCore",
+        "Unity.Mathematics",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Entities.Graphics",
+        "Unity.Mathematics.Extensions",
+        "Unity.Physics",
+        "Unity.Physics.Hybrid",
+        "Unity.Transforms",
+        "Unity.Entities.Hybrid",
+        "Unity.Scenes"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.bovinelabs.quill",
+            "expression": "",
+            "define": "BL_QUILL"
+        },
+        {
+            "name": "com.bovinelabs.essence",
+            "expression": "",
+            "define": "BL_ESSENSE"
+        },
+        {
+            "name": "com.bovinelabs.bridge",
+            "expression": "",
+            "define": "BL_BRIDGE"
+        },
+        {
+            "name": "com.unity.addressables",
+            "expression": "",
+            "define": "ADDRESSABLES"
+        }
+    ],
+    "noEngineReferences": false
+}
