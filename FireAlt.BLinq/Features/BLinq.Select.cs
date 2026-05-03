@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -23,6 +24,31 @@ namespace FireAlt.BLinq
         }
     }
 
+    public static partial class BLinqExtensions
+    {
+        public static Query<TResult, SelectQuery<T, TResult, TEnumerator, TSelector>> Select<T, TResult, TEnumerator, TSelector>(
+            this Query<T, TEnumerator> source, TSelector selector)
+            where T : unmanaged
+            where TResult : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TSelector : unmanaged, ISelector<T, TResult>
+        {
+            return source.Select<TResult, TSelector>(selector);
+        }
+        
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Query<TResult, DelegateSelectQuery<T, TResult, TEnumerator>> Select<T, TResult, TEnumerator>(
+            this Query<T, TEnumerator> source,
+            Func<T, TResult> selector)
+            where T : unmanaged
+            where TResult : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+        {
+            return Throw<Query<TResult, DelegateSelectQuery<T, TResult, TEnumerator>>>();
+        }
+    }
+    
     public struct SelectQuery<TSource, TResult, TEnumerator, TSelector> : IEnumerator<TResult>
         where TSource : unmanaged
         where TResult : unmanaged

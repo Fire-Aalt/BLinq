@@ -96,30 +96,8 @@ namespace FireAlt.BLinq
         {
             return Throw<Query<T, DelegateWhereQuery<T, TEnumerator>>>();
         }
-        
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<TResult, SelectQuery<TSource, TResult, TEnumerator, TSelector>> Select<TSource, TResult, TEnumerator, TSelector>(
-            this Query<TSource, TEnumerator> source,
-            TSelector selector)
-            where TSource : unmanaged
-            where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
-            where TSelector : unmanaged, ISelector<TSource, TResult>
-        {
-            return source.Select<TResult, TSelector>(selector);
-        }
 
-        [NativeDelegateMethod(typeof(ISelector<,>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<TResult, DelegateSelectQuery<TSource, TResult, TEnumerator>> Select<TSource, TResult, TEnumerator>(
-            this Query<TSource, TEnumerator> source,
-            Func<TSource, TResult> selector)
-            where TSource : unmanaged
-            where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
-        {
-            return Throw<Query<TResult, DelegateSelectQuery<TSource, TResult, TEnumerator>>>();
-        }
+
 
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
