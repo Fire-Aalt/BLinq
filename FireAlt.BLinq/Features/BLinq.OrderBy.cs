@@ -7,7 +7,6 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OrderedQuery<T, TEnumerator, AscendingComparer<T>> OrderBy<T, TEnumerator>(this Query<T, TEnumerator> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -15,7 +14,6 @@ namespace FireAlt.BLinq
             return source.OrderBy(new AscendingComparer<T>());
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OrderedQuery<T, TEnumerator, DescendingComparer<T>> OrderByDescending<T, TEnumerator>(this Query<T, TEnumerator> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -23,7 +21,6 @@ namespace FireAlt.BLinq
             return source.OrderBy(new DescendingComparer<T>());
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeList<T> ToOrderedBy<T, TEnumerator>(this Query<T, TEnumerator> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -31,7 +28,6 @@ namespace FireAlt.BLinq
             return source.ToOrderedBy(new AscendingComparer<T>(), allocator);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(this Query<T, TEnumerator> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -39,7 +35,6 @@ namespace FireAlt.BLinq
             return source.ToOrderedBy(new DescendingComparer<T>(), allocator);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OrderedQuery<T, TEnumerator, ThenByComparer<T, TComparer, AscendingComparer<T>>> ThenBy<T, TEnumerator, TComparer>(
             this OrderedQuery<T, TEnumerator, TComparer> source)
             where T : unmanaged, IComparable<T>
@@ -49,7 +44,6 @@ namespace FireAlt.BLinq
             return source.ThenBy(new AscendingComparer<T>());
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static OrderedQuery<T, TEnumerator, ThenByComparer<T, TComparer, DescendingComparer<T>>> ThenByDescending<T, TEnumerator, TComparer>(
             this OrderedQuery<T, TEnumerator, TComparer> source)
             where T : unmanaged, IComparable<T>
@@ -64,21 +58,18 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TEnumerator : unmanaged, IEnumerator<T>
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public OrderedQuery<T, TEnumerator, TComparer> OrderBy<TComparer>(TComparer comparer)
             where TComparer : unmanaged, IComparer<T>
         {
             return new OrderedQuery<T, TEnumerator, TComparer>(this, comparer);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public OrderedQuery<T, TEnumerator, ReverseComparer<T, TComparer>> OrderByDescending<TComparer>(TComparer comparer)
             where TComparer : unmanaged, IComparer<T>
         {
             return new OrderedQuery<T, TEnumerator, ReverseComparer<T, TComparer>>(this, new ReverseComparer<T, TComparer>(comparer));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeList<T> ToOrderedBy<TComparer>(TComparer comparer, AllocatorManager.AllocatorHandle allocator)
             where TComparer : unmanaged, IComparer<T>
         {
@@ -87,7 +78,6 @@ namespace FireAlt.BLinq
             return list;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeList<T> ToOrderedByDescending<TComparer>(TComparer comparer, AllocatorManager.AllocatorHandle allocator)
             where TComparer : unmanaged, IComparer<T>
         {

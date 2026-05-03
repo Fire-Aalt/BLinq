@@ -6,7 +6,6 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool SequenceEquals<T, TEnumerator, TOtherEnumerator>(
             this Query<T, TEnumerator> source,
             Query<T, TOtherEnumerator> other)
@@ -22,7 +21,6 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TEnumerator : unmanaged, IEnumerator<T>
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SequenceEquals<TOtherEnumerator, TEqualityComparer>(TOtherEnumerator other, TEqualityComparer comparer)
             where TOtherEnumerator : unmanaged, IEnumerator<T>
             where TEqualityComparer : unmanaged, INativeEqualityComparer<T>

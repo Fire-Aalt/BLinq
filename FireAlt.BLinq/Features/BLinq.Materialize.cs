@@ -10,14 +10,12 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TEnumerator : unmanaged, IEnumerator<T>
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {
             var list = ToNativeList(Allocator.Temp);
             return list.ToArray(allocator);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeArray<T> ToUnsafeArray(Allocator allocator)
         {
             var list = ToNativeList(Allocator.Temp);
@@ -26,7 +24,6 @@ namespace FireAlt.BLinq
             return array;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeList<T> ToUnsafeList(AllocatorManager.AllocatorHandle allocator)
         {
             var enumerator = GetEnumerator();
@@ -40,7 +37,6 @@ namespace FireAlt.BLinq
             return list;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeList<T> ToNativeList(AllocatorManager.AllocatorHandle allocator)
         {
             var enumerator = GetEnumerator();
@@ -54,14 +50,12 @@ namespace FireAlt.BLinq
             return list;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] ToManagedArray()
         {
             var list = ToNativeList(Allocator.Temp);
             return list.ToManagedArray();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<T> ToManagedList()
         {
             var enumerator = GetEnumerator();

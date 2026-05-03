@@ -9,7 +9,7 @@ using Unity.PerformanceTesting;
 namespace FireAlt.BLinq.Tests
 {
     [BurstCompile]
-    public class BLinqBenchmarkTests
+    public class BenchmarkTests
     {
         private const int WARMUP_RUNS = 2;
         private const int MEASURE_RUNS = 10;

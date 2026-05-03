@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace FireAlt.BLinq
 {
     public interface IPredicate<T>

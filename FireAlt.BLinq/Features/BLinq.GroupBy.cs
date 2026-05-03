@@ -7,7 +7,6 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Query<Group<T, T>, LookupEnumerator<T, T>> GroupBy<T, TEnumerator, TKeySelector>(this Query<T, TEnumerator> source,
             TKeySelector keySelector)
             where T : unmanaged, IEquatable<T>
@@ -20,7 +19,6 @@ namespace FireAlt.BLinq
                 Allocator.Temp).AsQuery();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Lookup<T, T> ToLookup<T, TEnumerator, TKeySelector>(this Query<T, TEnumerator> source,
             TKeySelector keySelector,
             AllocatorManager.AllocatorHandle allocator)
@@ -39,7 +37,6 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TEnumerator : unmanaged, IEnumerator<T>
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<Group<TKey, T>, LookupEnumerator<TKey, T>> GroupBy<TKey, TKeySelector>(
             TKeySelector keySelector)
             where TKey : unmanaged, IEquatable<TKey>
@@ -51,7 +48,6 @@ namespace FireAlt.BLinq
                 Allocator.Temp).AsQuery();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Lookup<TKey, T> ToLookup<TKey, TKeySelector>(
             TKeySelector keySelector,
             AllocatorManager.AllocatorHandle allocator)
@@ -69,7 +65,6 @@ namespace FireAlt.BLinq
     {
         private const int DEFAULT_GROUP_BY_CAPACITY = 64;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Lookup<TKey, T> GroupBy<T, TKey, TEnumerator, TKeySelector>(
             TEnumerator source,
             TKeySelector keySelector,

@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Sum<T, TEnumerator, TAccumulator>(this Query<T, TEnumerator> source)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -14,7 +12,6 @@ namespace FireAlt.BLinq
             return BLinqUtilities.Sum<T, TEnumerator, TAccumulator>(source.GetEnumerator(), default);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TResult Sum<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
             this Query<TSource, TEnumerator> source,
             TSelector selector)
@@ -30,7 +27,6 @@ namespace FireAlt.BLinq
                 default);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Average<T, TEnumerator, TAccumulator>(this Query<T, TEnumerator> source)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -39,7 +35,6 @@ namespace FireAlt.BLinq
             return BLinqUtilities.Average<T, TEnumerator, TAccumulator>(source.GetEnumerator(), default);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TResult Average<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
             this Query<TSource, TEnumerator> source,
             TSelector selector)
@@ -60,14 +55,12 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TEnumerator : unmanaged, IEnumerator<T>
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Sum<TAccumulator>(TAccumulator accumulator)
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             return BLinqUtilities.Sum<T, TEnumerator, TAccumulator>(GetEnumerator(), accumulator);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TResult Sum<TResult, TSelector, TAccumulator>(TSelector selector, TAccumulator accumulator)
             where TResult : unmanaged
             where TSelector : unmanaged, ISelector<T, TResult>
@@ -79,14 +72,12 @@ namespace FireAlt.BLinq
                 accumulator);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Average<TAccumulator>(TAccumulator accumulator)
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             return BLinqUtilities.Average<T, TEnumerator, TAccumulator>(GetEnumerator(), accumulator);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TResult Average<TResult, TSelector, TAccumulator>(TSelector selector, TAccumulator accumulator)
             where TResult : unmanaged
             where TSelector : unmanaged, ISelector<T, TResult>
@@ -101,7 +92,6 @@ namespace FireAlt.BLinq
 
     internal static partial class BLinqUtilities
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Sum<T, TEnumerator, TAccumulator>(TEnumerator enumerator, TAccumulator accumulator)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -118,7 +108,6 @@ namespace FireAlt.BLinq
             return total;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TResult Sum<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
             TEnumerator enumerator,
             TSelector selector,
@@ -141,7 +130,6 @@ namespace FireAlt.BLinq
             return total;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Average<T, TEnumerator, TAccumulator>(TEnumerator enumerator, TAccumulator accumulator)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -160,7 +148,6 @@ namespace FireAlt.BLinq
             return count == 0u ? default : accumulator.Divide(in total, count);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TResult Average<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
             TEnumerator enumerator,
             TSelector selector,

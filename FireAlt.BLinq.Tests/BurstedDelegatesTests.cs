@@ -1,0 +1,77 @@
+using NUnit.Framework;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
+
+// ReSharper disable Unity.BurstFunctionSignatureContainsManagedTypes
+
+namespace FireAlt.BLinq.Tests
+{
+    [BurstCompile]
+    public class BurstedDelegatesTests
+    {
+        [Test]
+        public void DelegatePipeline_WhereSelectSum_UsesUnmanagedCapturedValues()
+        {
+            var input = new NativeArray<int>(new[] { 0, 1, 2, 3 }, Allocator.Temp);
+
+            var result = Execute_WhereSelectSum_UsesUnmanagedCapturedValues(input);
+
+            Assert.That(result, Is.EqualTo(19));
+        }
+
+        [BurstCompile(CompileSynchronously = true)]
+        private static float Execute_WhereSelectSum_UsesUnmanagedCapturedValues(in NativeArray<int> input)
+        {
+            var min = 1;
+            var factor = 3;
+            var offset = 2;
+            
+            var result = input
+                .AsQuery()
+                .Where(value => value > min)
+                .Select(value => (float)(value * factor))
+                .Sum(value => value + offset);
+
+            return result;
+        }
+        
+        [Test]
+        public void DelegateAggregateBy_UsesMultipleNonAdjacentDelegates()
+        {
+            var input = new NativeArray<int>(new[] { 1, 2, 3, 4 }, Allocator.Temp);
+            var output = new NativeArray<int>(5, Allocator.Temp);
+
+            BurstDelegateAggregateBy(input, ref output);
+            
+            Assert.That(output[0], Is.EqualTo(2));
+            Assert.That(output[1], Is.EqualTo(1));
+            Assert.That(output[2], Is.EqualTo(16));
+            Assert.That(output[3], Is.EqualTo(0));
+            Assert.That(output[4], Is.EqualTo(18));
+        }
+        
+        [BurstCompile(CompileSynchronously = true)]
+        private static void BurstDelegateAggregateBy(in NativeArray<int> input, ref NativeArray<int> output)
+        {
+            var keyMask = 1;
+            var addend = 1;
+
+            var aggregates = input
+                .AsQuery()
+                .AggregateBy(
+                    value => (byte)(value & keyMask),
+                    10,
+                    (aggregate, value) => aggregate + value + addend)
+                .ToNativeList(Allocator.Temp);
+
+            output[0] = aggregates.Length;
+            output[1] = aggregates[0].Key;
+            output[2] = aggregates[0].Value;
+            output[3] = aggregates[1].Key;
+            output[4] = aggregates[1].Value;
+
+            aggregates.Dispose();
+        }
+    }
+}

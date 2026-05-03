@@ -96,15 +96,6 @@ namespace FireAlt.BLinq
         {
             return Throw<Query<T, DelegateWhereQuery<T, TEnumerator>>>();
         }
-
-        [NativeDelegateMethod(typeof(IPredicate<>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static T FirstOrDefault<T, TEnumerator>(this Query<T, TEnumerator> source, Func<T, bool> predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-        {
-            return Throw<T>();
-        }
         
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<TResult, SelectQuery<TSource, TResult, TEnumerator, TSelector>> Select<TSource, TResult, TEnumerator, TSelector>(

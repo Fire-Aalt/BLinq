@@ -7,7 +7,6 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TEnumerator : unmanaged, IEnumerator<T>
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<T, WhereQuery<T, TEnumerator, TPredicate>> Where<TPredicate>(TPredicate predicate)
             where TPredicate : unmanaged, IPredicate<T>
         {

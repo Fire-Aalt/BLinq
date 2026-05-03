@@ -8,7 +8,7 @@ using Unity.Mathematics;
 
 namespace FireAlt.BLinq.Tests
 {
-    public class BLinqTests
+    public class FeatureTests
     {
         [Test]
         public void Where_ToNativeList_FiltersValues()
@@ -430,7 +430,7 @@ namespace FireAlt.BLinq.Tests
         public void From_WrapsCustomUnmanagedEnumerableEnumerator()
         {
             var collection = new CustomEnumerable(5, 3);
-            var values = BLinq
+            var values = Feature
                 .From<int, CustomEnumerable.Enumerator>(collection.GetEnumerator())
                 .ToNativeList(Allocator.Temp);
 

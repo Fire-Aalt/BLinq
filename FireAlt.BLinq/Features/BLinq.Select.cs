@@ -7,7 +7,6 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TEnumerator : unmanaged, IEnumerator<T>
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<T, SelectQuery<T, T, TEnumerator, TSelector>> Select<TSelector>(TSelector selector)
             where TSelector : unmanaged, ISelector<T, T>
         {
@@ -15,7 +14,6 @@ namespace FireAlt.BLinq
                 new SelectQuery<T, T, TEnumerator, TSelector>(GetEnumerator(), selector));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<TResult, SelectQuery<T, TResult, TEnumerator, TSelector>> Select<TResult, TSelector>(TSelector selector)
             where TResult : unmanaged
             where TSelector : unmanaged, ISelector<T, TResult>
