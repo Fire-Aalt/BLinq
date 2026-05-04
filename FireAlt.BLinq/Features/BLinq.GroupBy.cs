@@ -5,6 +5,34 @@ using Unity.Collections;
 
 namespace FireAlt.BLinq
 {
+    public partial struct Query<TEnumerator, T>
+        where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
+    {
+        public Query<LookupEnumerator<TKey, T>, Group<TKey, T>> GroupBy<TKey, TKeySelector>(
+            TKeySelector keySelector)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+        {
+            return BLinqUtilities.GroupBy<T, TKey, TEnumerator, TKeySelector>(
+                GetEnumerator(),
+                keySelector,
+                Allocator.Temp).AsQuery();
+        }
+
+        public Lookup<TKey, T> ToLookup<TKey, TKeySelector>(
+            TKeySelector keySelector,
+            AllocatorManager.AllocatorHandle allocator)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+        {
+            return BLinqUtilities.GroupBy<T, TKey, TEnumerator, TKeySelector>(
+                GetEnumerator(),
+                keySelector,
+                allocator);
+        }
+    }
+    
     public static partial class BLinqExtensions
     {
         public static Query<LookupEnumerator<T, T>, Group<T, T>> GroupBy<T, TEnumerator, TKeySelector>(this Query<TEnumerator, T> source,
@@ -31,33 +59,26 @@ namespace FireAlt.BLinq
                 keySelector,
                 allocator);
         }
-    }
-
-    public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
-        where T : unmanaged
-    {
-        public Query<LookupEnumerator<TKey, T>, Group<TKey, T>> GroupBy<TKey, TKeySelector>(
-            TKeySelector keySelector)
+        
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Query<LookupEnumerator<TKey, T>, Group<TKey, T>> GroupBy<T, TKey, TEnumerator>(
+                this Query<TEnumerator, T> source, Func<TKey, T> keySelector)
+            where T : unmanaged, IEquatable<T>
             where TKey : unmanaged, IEquatable<TKey>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TEnumerator : unmanaged, IEnumerator<T>
         {
-            return BLinqUtilities.GroupBy<T, TKey, TEnumerator, TKeySelector>(
-                GetEnumerator(),
-                keySelector,
-                Allocator.Temp).AsQuery();
+            return ThrowCodeGen<Query<LookupEnumerator<TKey, T>, Group<TKey, T>>>();
         }
-
-        public Lookup<TKey, T> ToLookup<TKey, TKeySelector>(
-            TKeySelector keySelector,
-            AllocatorManager.AllocatorHandle allocator)
-            where TKey : unmanaged, IEquatable<TKey>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
+        
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Query<LookupEnumerator<T, T>, Group<T, T>> GroupBy<T, TEnumerator>(
+                this Query<TEnumerator, T> source, Func<T, T> keySelector)
+            where T : unmanaged, IEquatable<T>
+            where TEnumerator : unmanaged, IEnumerator<T>
         {
-            return BLinqUtilities.GroupBy<T, TKey, TEnumerator, TKeySelector>(
-                GetEnumerator(),
-                keySelector,
-                allocator);
+            return ThrowCodeGen<Query<LookupEnumerator<T, T>, Group<T, T>>>();
         }
     }
 

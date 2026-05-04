@@ -44,7 +44,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         {
             return values
                 .AsQuery()
-                .GroupBy(new KeySelector())
+                .GroupBy(Key)
                 .Sum(group => (group.Key + 1) * group.AsQuery().Sum(Select));
         }
 
@@ -62,14 +62,6 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         private static int Select(int value)
         {
             return (value & 255) + 1;
-        }
-
-        private struct KeySelector : ISelector<int, int>
-        {
-            public int Select(in int value)
-            {
-                return Key(value);
-            }
         }
     }
 }
