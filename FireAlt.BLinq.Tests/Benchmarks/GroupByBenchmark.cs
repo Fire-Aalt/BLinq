@@ -37,7 +37,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
             return values
                 .AsValueEnumerable()
                 .GroupBy(Key)
-                .Sum(group => (group.Key + 1) * group.Sum(Select));
+                .Sum(group => (group.Key + 1) * group.AsValueEnumerable().Sum(Select));
         }
 
         public static int BLinq(in NativeArray<int> values)

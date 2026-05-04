@@ -252,37 +252,33 @@ namespace FireAlt.BLinq
             where TKeySelector : unmanaged, ISelector<TSource, TKey>
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
-            var keyToAggregateIndex = new NativeHashMap<TKey, int>(DEFAULT_AGGREGATE_BY_CAPACITY, Allocator.Temp);
-            var aggregates = new NativeList<KeyValuePair<TKey, TAccumulate>>(DEFAULT_AGGREGATE_BY_CAPACITY, allocator);
+            var aggregatesByKey = new UnsafeHashMapSlim<TKey, TAccumulate>(DEFAULT_AGGREGATE_BY_CAPACITY, Allocator.Temp);
 
             while (source.MoveNext())
             {
                 var value = source.Current;
                 var key = keySelector.Select(in value);
+                ref var aggregate = ref aggregatesByKey.GetValueRefOrAddDefault(key, out var exists);
 
-                if (!keyToAggregateIndex.TryGetValue(key, out var aggregateIndex))
+                if (!exists)
                 {
-                    if (aggregates.Length == keyToAggregateIndex.Capacity)
-                    {
-                        keyToAggregateIndex.Capacity *= 2;
-                    }
-
-                    aggregateIndex = aggregates.Length;
-                    keyToAggregateIndex.Add(key, aggregateIndex);
-
-                    var aggregate = aggregator.Aggregate(in seed, in value);
-                    aggregates.Add(new KeyValuePair<TKey, TAccumulate>(key, aggregate));
+                    aggregate = aggregator.Aggregate(in seed, in value);
                 }
                 else
                 {
-                    ref var aggregatePair = ref aggregates.ElementAt(aggregateIndex);
-                    var current = aggregatePair.Value;
-                    var aggregate = aggregator.Aggregate(in current, in value);
-                    aggregatePair = new KeyValuePair<TKey, TAccumulate>(aggregatePair.Key, aggregate);
+                    aggregate = aggregator.Aggregate(in aggregate, in value);
                 }
             }
 
             source.Dispose();
+            var aggregates = new NativeList<KeyValuePair<TKey, TAccumulate>>(aggregatesByKey.Count, allocator);
+            var aggregateEnumerator = aggregatesByKey.GetEnumerator();
+            while (aggregateEnumerator.TryGetNext(out var aggregate))
+            {
+                aggregates.Add(aggregate);
+            }
+
+            aggregatesByKey.Dispose();
             return aggregates;
         }
 
@@ -301,38 +297,34 @@ namespace FireAlt.BLinq
             where TSeedSelector : unmanaged, ISelector<TKey, TAccumulate>
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
-            var keyToAggregateIndex = new NativeHashMap<TKey, int>(DEFAULT_AGGREGATE_BY_CAPACITY, Allocator.Temp);
-            var aggregates = new NativeList<KeyValuePair<TKey, TAccumulate>>(DEFAULT_AGGREGATE_BY_CAPACITY, allocator);
+            var aggregatesByKey = new UnsafeHashMapSlim<TKey, TAccumulate>(DEFAULT_AGGREGATE_BY_CAPACITY, Allocator.Temp);
 
             while (source.MoveNext())
             {
                 var value = source.Current;
                 var key = keySelector.Select(in value);
+                ref var aggregate = ref aggregatesByKey.GetValueRefOrAddDefault(key, out var exists);
 
-                if (!keyToAggregateIndex.TryGetValue(key, out var aggregateIndex))
+                if (!exists)
                 {
-                    if (aggregates.Length == keyToAggregateIndex.Capacity)
-                    {
-                        keyToAggregateIndex.Capacity *= 2;
-                    }
-
-                    aggregateIndex = aggregates.Length;
-                    keyToAggregateIndex.Add(key, aggregateIndex);
-
                     var seed = seedSelector.Select(in key);
-                    var aggregate = aggregator.Aggregate(in seed, in value);
-                    aggregates.Add(new KeyValuePair<TKey, TAccumulate>(key, aggregate));
+                    aggregate = aggregator.Aggregate(in seed, in value);
                 }
                 else
                 {
-                    ref var aggregatePair = ref aggregates.ElementAt(aggregateIndex);
-                    var current = aggregatePair.Value;
-                    var aggregate = aggregator.Aggregate(in current, in value);
-                    aggregatePair = new KeyValuePair<TKey, TAccumulate>(aggregatePair.Key, aggregate);
+                    aggregate = aggregator.Aggregate(in aggregate, in value);
                 }
             }
 
             source.Dispose();
+            var aggregates = new NativeList<KeyValuePair<TKey, TAccumulate>>(aggregatesByKey.Count, allocator);
+            var aggregateEnumerator = aggregatesByKey.GetEnumerator();
+            while (aggregateEnumerator.TryGetNext(out var aggregate))
+            {
+                aggregates.Add(aggregate);
+            }
+
+            aggregatesByKey.Dispose();
             return aggregates;
         }
     }

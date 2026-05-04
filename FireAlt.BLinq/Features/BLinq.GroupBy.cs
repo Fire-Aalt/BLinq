@@ -95,7 +95,7 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
-            var keyToGroupIndex = new NativeHashMap<TKey, int>(DEFAULT_GROUP_BY_CAPACITY, Allocator.Temp);
+            var keyToGroupIndex = new UnsafeHashMapSlim<TKey, int>(DEFAULT_GROUP_BY_CAPACITY, Allocator.Temp);
             var groups = new NativeList<Group<TKey, T>>(DEFAULT_GROUP_BY_CAPACITY, allocator);
             var valueCount = 0;
 
@@ -103,16 +103,11 @@ namespace FireAlt.BLinq
             {
                 var value = source.Current;
                 var key = keySelector.Select(in value);
+                ref var groupIndex = ref keyToGroupIndex.GetValueRefOrAddDefault(key, out var exists);
 
-                if (!keyToGroupIndex.TryGetValue(key, out var groupIndex))
+                if (!exists)
                 {
-                    if (groups.Length == keyToGroupIndex.Capacity)
-                    {
-                        keyToGroupIndex.Capacity *= 2;
-                    }
-
                     groupIndex = groups.Length;
-                    keyToGroupIndex.Add(key, groupIndex);
                     groups.Add(new Group<TKey, T>(key, value, allocator));
                 }
                 else
@@ -125,6 +120,7 @@ namespace FireAlt.BLinq
             }
 
             source.Dispose();
+            keyToGroupIndex.Dispose();
 
             return new Lookup<TKey, T>(groups, valueCount);
         }

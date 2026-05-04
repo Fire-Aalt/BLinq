@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -237,6 +238,57 @@ namespace FireAlt.BLinq.Tests
 
             Assert.That(aggregates[1].Key, Is.EqualTo(1));
             Assert.That(aggregates[1].Value, Is.EqualTo(14));
+        }
+
+        [Test]
+        public void GroupBy_HandlesSlimMapResizeAndHashCollisions()
+        {
+            var input = new NativeArray<int>(160, Allocator.Temp);
+            for (var i = 0; i < input.Length; i++)
+            {
+                input[i] = i;
+            }
+
+            var grouped = input
+                .AsQuery()
+                .ToLookup<BadHashKey, BadHashKeySelector>(new BadHashKeySelector(), Allocator.Temp);
+
+            Assert.That(grouped.GroupCount, Is.EqualTo(80));
+            Assert.That(grouped.ValueCount, Is.EqualTo(160));
+
+            for (var i = 0; i < grouped.GroupCount; i++)
+            {
+                Assert.That(grouped[i].Key.Value, Is.EqualTo(i));
+                Assert.That(grouped[i].Length, Is.EqualTo(2));
+                Assert.That(grouped[i][0], Is.EqualTo(i));
+                Assert.That(grouped[i][1], Is.EqualTo(i + 80));
+            }
+        }
+
+        [Test]
+        public void AggregateBy_HandlesSlimMapResizeAndHashCollisions()
+        {
+            var input = new NativeArray<int>(160, Allocator.Temp);
+            for (var i = 0; i < input.Length; i++)
+            {
+                input[i] = i;
+            }
+
+            var aggregates = input
+                .AsQuery()
+                .ToAggregatedBy<BadHashKey, int, BadHashKeySelector, IntSumAggregator>(
+                    new BadHashKeySelector(),
+                    0,
+                    new IntSumAggregator(),
+                    Allocator.Temp);
+
+            Assert.That(aggregates.Length, Is.EqualTo(80));
+
+            for (var i = 0; i < aggregates.Length; i++)
+            {
+                Assert.That(aggregates[i].Key.Value, Is.EqualTo(i));
+                Assert.That(aggregates[i].Value, Is.EqualTo(i + i + 80));
+            }
         }
 
         [Test]
@@ -610,6 +662,37 @@ namespace FireAlt.BLinq.Tests
             public int Aggregate(in int aggregate, in GroupRecord value)
             {
                 return aggregate + value.Value;
+            }
+        }
+
+        private struct BadHashKey : IEquatable<BadHashKey>
+        {
+            public int Value;
+
+            public bool Equals(BadHashKey other)
+            {
+                return Value == other.Value;
+            }
+
+            public override int GetHashCode()
+            {
+                return Value & 7;
+            }
+        }
+
+        private struct BadHashKeySelector : ISelector<int, BadHashKey>
+        {
+            public BadHashKey Select(in int value)
+            {
+                return new BadHashKey { Value = value % 80 };
+            }
+        }
+
+        private struct IntSumAggregator : IAggregator<int, int>
+        {
+            public int Aggregate(in int aggregate, in int value)
+            {
+                return aggregate + value;
             }
         }
 
