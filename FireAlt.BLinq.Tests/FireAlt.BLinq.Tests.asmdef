@@ -10,7 +10,9 @@
         "Unity.Jobs",
         "Unity.Burst",
         "Unity.Mathematics",
-        "BovineLabs.Core"
+        "BovineLabs.Core",
+        "ZLinq.Unity",
+        "ZLinq.Unity.UnityCollectoins"
     ],
     "includePlatforms": [
         "Editor"
@@ -18,7 +20,9 @@
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "ZLinq.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
