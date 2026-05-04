@@ -21,7 +21,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(1_000)]
         [TestCase(10_000)]
         [TestCase(100_000)]
-        public void CompareLinqZLinqBLinq(int elementCount)
+        public void CompareLINQs(int elementCount)
         {
             BenchmarkRunner.Run<OrderByBenchmark>(elementCount, BLinq, BLinqBurst);
         }

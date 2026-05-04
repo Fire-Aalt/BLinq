@@ -16,11 +16,22 @@ namespace FireAlt.BLinq.Tests.Benchmarks
             where TBenchmark : IBenchmark, new()
         {
             var benchmark = new TBenchmark();
+            var linqGroup = $"LINQ.{benchmark.Name}/{elementCount}";
+            var zLinqGroup = $"ZLinq.{benchmark.Name}/{elementCount}";
+            var bLinqGroup = $"BLinq.NoBurst.{benchmark.Name}/{elementCount}";
+            var burstGroup = $"BLinq.Burst.{benchmark.Name}/{elementCount}";
 
-            MeasureNative($"LINQ.{benchmark.Name}/{elementCount}", elementCount, benchmark.Linq, benchmark.Linq);
-            MeasureNative($"ZLinq.{benchmark.Name}/{elementCount}", elementCount, benchmark.ZLinq, benchmark.Linq);
-            MeasureNative($"BLinq.NoBurst.{benchmark.Name}/{elementCount}", elementCount, bLinqQuery, benchmark.Linq);
-            MeasureNative($"BLinq.Burst.{benchmark.Name}/{elementCount}", elementCount, burstQuery, benchmark.Linq);
+            MeasureNative(linqGroup, elementCount, benchmark.Linq, benchmark.Linq);
+            MeasureNative(zLinqGroup, elementCount, benchmark.ZLinq, benchmark.Linq);
+            MeasureNative(bLinqGroup, elementCount, bLinqQuery, benchmark.Linq);
+            MeasureNative(burstGroup, elementCount, burstQuery, benchmark.Linq);
+            ReportRelativePerformance(
+                benchmark.Name,
+                elementCount,
+                linqGroup,
+                zLinqGroup,
+                bLinqGroup,
+                burstGroup);
         }
 
         private static void MeasureNative(
@@ -42,6 +53,10 @@ namespace FireAlt.BLinq.Tests.Benchmarks
                 .CleanUp(() =>
                 {
                     Assert.That(result, Is.EqualTo(expected));
+                    if (values.IsCreated)
+                    {
+                        values.Dispose();
+                    }
                 })
                 .WarmupCount(WARMUP_RUNS)
                 .MeasurementCount(MEASURE_RUNS)
@@ -58,6 +73,46 @@ namespace FireAlt.BLinq.Tests.Benchmarks
             }
 
             return values;
+        }
+
+        private static void ReportRelativePerformance(
+            string benchmarkName,
+            int elementCount,
+            string linqGroup,
+            string zLinqGroup,
+            string bLinqGroup,
+            string burstGroup)
+        {
+            var linqMean = Mean(linqGroup);
+            var zLinqSpeedup = Speedup(linqMean, Mean(zLinqGroup));
+            var bLinqSpeedup = Speedup(linqMean, Mean(bLinqGroup));
+            var burstSpeedup = Speedup(linqMean, Mean(burstGroup));
+
+            Measure.Custom(new SampleGroup($"Relative.ZLinq.{benchmarkName}/{elementCount}", SampleUnit.Undefined, true), zLinqSpeedup);
+            Measure.Custom(new SampleGroup($"Relative.BLinq.NoBurst.{benchmarkName}/{elementCount}", SampleUnit.Undefined, true), bLinqSpeedup);
+            Measure.Custom(new SampleGroup($"Relative.BLinq.Burst.{benchmarkName}/{elementCount}", SampleUnit.Undefined, true), burstSpeedup);
+
+            TestContext.Out.WriteLine("\n");
+            TestContext.Out.WriteLine($"{benchmarkName}.Benchmark @ {elementCount} elements | LINQ x1.00 | ZLinq x{zLinqSpeedup:0.00} | BLinq.NoBurst x{bLinqSpeedup:0.00} | BLinq.Burst x{burstSpeedup:0.00}");
+            TestContext.Out.WriteLine("\n");
+        }
+
+        private static double Speedup(double baselineMean, double variantMean)
+        {
+            return variantMean <= 0.0 ? 0.0 : baselineMean / variantMean;
+        }
+
+        private static double Mean(string sampleGroupName)
+        {
+            var samples = PerformanceTest.GetSampleGroup(sampleGroupName).Samples;
+            var sum = 0.0;
+
+            for (var i = 0; i < samples.Count; i++)
+            {
+                sum += samples[i];
+            }
+
+            return samples.Count == 0 ? 0.0 : sum / samples.Count;
         }
     }
 }

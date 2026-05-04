@@ -5,6 +5,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.PerformanceTesting;
 using ZLinq;
+// ReSharper disable Unity.BurstFunctionSignatureContainsManagedTypes
 
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
@@ -20,7 +21,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(1_000)]
         [TestCase(10_000)]
         [TestCase(100_000)]
-        public void CompareLinqZLinqBLinq(int elementCount)
+        public void CompareLINQs(int elementCount)
         {
             BenchmarkRunner.Run<AggregateByBenchmark>(elementCount, BLinq, BLinqBurst);
         }
@@ -34,26 +35,21 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int ZLinq(in NativeArray<int> values)
         {
+
             return values
                 .AsValueEnumerable()
-                .AggregateBy(
-                    Key,
-                    _ => 0,
-                    (aggregate, value) => aggregate + Select(value))
-                .Sum(value => (value.Key + 1) * value.Value);
+                .AggregateBy(Key, _ => 0, Aggregator)
+                .Sum(AggregateSelector);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
             return values
                 .AsQuery()
-                .AggregateBy(
-                    new KeySelector(),
-                    0,
-                    new SelectAggregator())
-                .Sum(new AggregateSelector());
+                .AggregateBy(Key, _ => 0, Aggregator)
+                .Sum(AggregateSelector);
         }
-
+        
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
@@ -69,29 +65,15 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         {
             return (value & 255) + 1;
         }
-
-        private struct KeySelector : ISelector<int, int>
+        
+        private static int Aggregator(int aggregate, int value)
         {
-            public int Select(in int value)
-            {
-                return Key(value);
-            }
+            return aggregate + Select(value);
         }
-
-        private struct SelectAggregator : IAggregator<int, int>
+        
+        private static int AggregateSelector(KeyValuePair<int, int> value)
         {
-            public int Aggregate(in int aggregate, in int value)
-            {
-                return aggregate + Select(value);
-            }
-        }
-
-        private struct AggregateSelector : ISelector<KeyValuePair<int, int>, int>
-        {
-            public int Select(in KeyValuePair<int, int> value)
-            {
-                return (value.Key + 1) * value.Value;
-            }
+            return (value.Key + 1) * value.Value;
         }
     }
 }
