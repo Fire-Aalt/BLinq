@@ -479,16 +479,28 @@ namespace FireAlt.BLinq.CodeGen
                 var lambdaParameterIndex = argumentIndex - lambdaParameterOffset;
                 if (lambdaParameterIndex >= 0 && lambdaParameterIndex < signature.ParameterTypes.Count)
                 {
+                    var targetParameter = targetMethod.Parameters[lambdaParameterIndex];
+                    var targetParameterIsByReference = IsByReferenceType(targetParameter.ParameterType);
                     if (store)
                     {
-                        var starg = Instruction.Create(OpCodes.Starg, targetMethod.Parameters[lambdaParameterIndex]);
+                        var starg = Instruction.Create(OpCodes.Starg, targetParameter);
                         il.Append(starg);
                         return starg;
                     }
 
+                    if (loadAddress)
+                    {
+                        var loadAddressInstruction = targetParameterIsByReference
+                            ? CreateLoadArgument(targetMethod, lambdaParameterIndex + 1)
+                            : Instruction.Create(OpCodes.Ldarga, targetParameter);
+                        il.Append(loadAddressInstruction);
+                        return loadAddressInstruction;
+                    }
+
                     var load = CreateLoadArgument(targetMethod, lambdaParameterIndex + 1);
                     il.Append(load);
-                    if (loadAddress || signature.ParameterTypes[lambdaParameterIndex] is ByReferenceType)
+                    if (!targetParameterIsByReference ||
+                        IsByReferenceType(signature.ParameterTypes[lambdaParameterIndex]))
                     {
                         return load;
                     }
@@ -503,6 +515,21 @@ namespace FireAlt.BLinq.CodeGen
             cloned.Operand = CloneOperand(module, sourceInstruction.Operand, fieldMap, variableMap, sourceMethod, targetMethod);
             il.Append(cloned);
             return cloned;
+        }
+
+        private static bool IsByReferenceType(TypeReference type)
+        {
+            switch (type)
+            {
+                case ByReferenceType:
+                    return true;
+                case RequiredModifierType requiredModifier:
+                    return IsByReferenceType(requiredModifier.ElementType);
+                case OptionalModifierType optionalModifier:
+                    return IsByReferenceType(optionalModifier.ElementType);
+                default:
+                    return false;
+            }
         }
 
         private static bool TryGetArgumentAccess(

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -33,7 +32,7 @@ namespace FireAlt.BLinq.Tests
         }
 
         [Test]
-        public void ThenBy_ComposesPrimaryAndSecondaryComparers()
+        public void ToOrderedBy_UsesCustomComparator()
         {
             var input = new NativeArray<SortRecord>(
                 new[]
@@ -47,9 +46,11 @@ namespace FireAlt.BLinq.Tests
 
             var ordered = input
                 .AsQuery()
-                .OrderBy(new PrimaryComparer())
-                .ThenBy(new SecondaryComparer())
-                .ToNativeList(Allocator.Temp);
+                .ToOrderedBy((x, y) =>
+                {
+                    var primary = x.Primary.CompareTo(y.Primary);
+                    return primary != 0 ? primary : x.Secondary.CompareTo(y.Secondary);
+                }, Allocator.Temp);
 
             Assert.That(ordered.Length, Is.EqualTo(4));
             Assert.That(ordered[0], Is.EqualTo(new SortRecord { Primary = 0, Secondary = 3 }));
@@ -59,7 +60,7 @@ namespace FireAlt.BLinq.Tests
         }
 
         [Test]
-        public void ThenByDescending_ComposesPrimaryAndDescendingSecondaryComparers()
+        public void ToOrderedByDescending_UsesCustomComparator()
         {
             var input = new NativeArray<SortRecord>(
                 new[]
@@ -73,37 +74,23 @@ namespace FireAlt.BLinq.Tests
 
             var ordered = input
                 .AsQuery()
-                .OrderBy(new PrimaryComparer())
-                .ThenByDescending(new SecondaryComparer())
-                .ToNativeList(Allocator.Temp);
+                .ToOrderedByDescending((x, y) =>
+                {
+                    var primary = x.Primary.CompareTo(y.Primary);
+                    return primary != 0 ? primary : x.Secondary.CompareTo(y.Secondary);
+                }, Allocator.Temp);
 
             Assert.That(ordered.Length, Is.EqualTo(4));
-            Assert.That(ordered[0], Is.EqualTo(new SortRecord { Primary = 0, Secondary = 5 }));
-            Assert.That(ordered[1], Is.EqualTo(new SortRecord { Primary = 0, Secondary = 3 }));
-            Assert.That(ordered[2], Is.EqualTo(new SortRecord { Primary = 1, Secondary = 2 }));
-            Assert.That(ordered[3], Is.EqualTo(new SortRecord { Primary = 1, Secondary = 1 }));
+            Assert.That(ordered[0], Is.EqualTo(new SortRecord { Primary = 1, Secondary = 2 }));
+            Assert.That(ordered[1], Is.EqualTo(new SortRecord { Primary = 1, Secondary = 1 }));
+            Assert.That(ordered[2], Is.EqualTo(new SortRecord { Primary = 0, Secondary = 5 }));
+            Assert.That(ordered[3], Is.EqualTo(new SortRecord { Primary = 0, Secondary = 3 }));
         }
 
         private struct SortRecord
         {
             public int Primary;
             public int Secondary;
-        }
-
-        private struct PrimaryComparer : IComparer<SortRecord>
-        {
-            public int Compare(SortRecord x, SortRecord y)
-            {
-                return x.Primary.CompareTo(y.Primary);
-            }
-        }
-
-        private struct SecondaryComparer : IComparer<SortRecord>
-        {
-            public int Compare(SortRecord x, SortRecord y)
-            {
-                return x.Secondary.CompareTo(y.Secondary);
-            }
         }
     }
 }

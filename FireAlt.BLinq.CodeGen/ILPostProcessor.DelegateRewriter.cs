@@ -250,6 +250,11 @@ namespace FireAlt.BLinq.CodeGen
             MethodDefinition owner,
             Instruction diagnosticInstruction)
         {
+            if (TryResolveFuncSignature(module, delegateType, out var funcSignature))
+            {
+                return funcSignature;
+            }
+
             var delegateDefinition = delegateType.Resolve();
             var invoke = delegateDefinition?.Methods.FirstOrDefault(method => method.Name == "Invoke");
             if (invoke == null)
@@ -263,6 +268,28 @@ namespace FireAlt.BLinq.CodeGen
                     .Select(parameter => CloseDelegateType(module, parameter.ParameterType, delegateType))
                     .ToArray(),
                 CloseDelegateType(module, invoke.ReturnType, delegateType));
+        }
+
+        private static bool TryResolveFuncSignature(ModuleDefinition module, TypeReference delegateType, out DelegateSignature signature)
+        {
+            signature = null;
+            if (delegateType is not GenericInstanceType genericDelegate ||
+                delegateType.Namespace != "System" ||
+                !delegateType.Name.StartsWith("Func`") ||
+                genericDelegate.GenericArguments.Count < 1)
+            {
+                return false;
+            }
+
+            var parameterTypes = genericDelegate.GenericArguments
+                .Take(genericDelegate.GenericArguments.Count - 1)
+                .Select(module.ImportReference)
+                .ToArray();
+
+            signature = new DelegateSignature(
+                parameterTypes,
+                module.ImportReference(genericDelegate.GenericArguments[genericDelegate.GenericArguments.Count - 1]));
+            return true;
         }
 
         private static TypeReference CloseDelegateType(ModuleDefinition module, TypeReference type, TypeReference delegateType)
@@ -299,6 +326,11 @@ namespace FireAlt.BLinq.CodeGen
             var interfaceType = new GenericInstanceType(importedDefinition);
             foreach (var parameterType in signature.ParameterTypes)
             {
+                if (interfaceType.GenericArguments.Count >= genericParameterCount)
+                {
+                    break;
+                }
+
                 interfaceType.GenericArguments.Add(module.ImportReference(GetNativeDelegateInterfaceArgument(parameterType)));
             }
 

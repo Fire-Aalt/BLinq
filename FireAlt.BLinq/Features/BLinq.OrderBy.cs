@@ -52,6 +52,52 @@ namespace FireAlt.BLinq
         {
             return source.ThenBy(new DescendingComparer<T>());
         }
+
+        public static NativeList<T> ToOrderedBy<T, TEnumerator, TComparer>(
+            this Query<TEnumerator, T> source,
+            TComparer comparer,
+            AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, global::System.Collections.Generic.IComparer<T>
+        {
+            return source.ToOrderedBy(comparer, allocator);
+        }
+
+        public static NativeList<T> ToOrderedByDescending<T, TEnumerator, TComparer>(
+            this Query<TEnumerator, T> source,
+            TComparer comparer,
+            AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, global::System.Collections.Generic.IComparer<T>
+        {
+            return source.ToOrderedByDescending(comparer, allocator);
+        }
+
+        [NativeDelegateMethod(typeof(IComparer<>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static NativeList<T> ToOrderedBy<T, TEnumerator>(
+            this Query<TEnumerator, T> source,
+            Func<T, T, int> comparer,
+            AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+        {
+            return ThrowCodeGen<NativeList<T>>();
+        }
+
+        [NativeDelegateMethod(typeof(IComparer<>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(
+            this Query<TEnumerator, T> source,
+            Func<T, T, int> comparer,
+            AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+        {
+            return ThrowCodeGen<NativeList<T>>();
+        }
     }
 
     public partial struct Query<TEnumerator, T>
