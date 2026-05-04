@@ -19,7 +19,14 @@ using Unity.Collections.LowLevel.Unsafe;
 
 #if FA_CORE
 [assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafeArray<>), typeof(KrasCore.UnsafeArray<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafeThreadData<>), typeof(KrasCore.UnsafeThreadData<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativeThreadData<>), typeof(KrasCore.NativeThreadData<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafeThreadList<>), typeof(KrasCore.UnsafeThreadList<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativeThreadList<>), typeof(KrasCore.NativeThreadList<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafePriorityHeap<>), typeof(KrasCore.UnsafePriorityHeap<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativePriorityHeap<>), typeof(KrasCore.NativePriorityHeap<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafePriorityQueue<>), typeof(KrasCore.UnsafePriorityQueue<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativePriorityQueue<>), typeof(KrasCore.NativePriorityQueue<>.Enumerator))]
 #endif
 
 #if BL_CORE
