@@ -58,7 +58,7 @@ namespace FireAlt.BLinq
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return Throw<TResult>();
+            return ThrowCodeGen<TResult>();
         }
     }
 

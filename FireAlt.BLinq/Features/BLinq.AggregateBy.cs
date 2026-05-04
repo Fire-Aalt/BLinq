@@ -226,7 +226,7 @@ namespace FireAlt.BLinq
             where TAccumulate : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return Throw<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
+            return ThrowCodeGen<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
         }
 
         [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>), typeof(IAggregator<,>))]
@@ -242,7 +242,7 @@ namespace FireAlt.BLinq
             where TAccumulate : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return Throw<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
+            return ThrowCodeGen<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
         }
     }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -8,25 +9,25 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
-        public Query<SelectQuery<TEnumerator, T, T, TSelector>, T> Select<TSelector>(TSelector selector)
+        public Query<Select<TEnumerator, T, T, TSelector>, T> Select<TSelector>(TSelector selector)
             where TSelector : unmanaged, ISelector<T, T>
         {
-            return new Query<SelectQuery<TEnumerator, T, T, TSelector>, T>(
-                new SelectQuery<TEnumerator, T, T, TSelector>(GetEnumerator(), selector));
+            return new Query<Select<TEnumerator, T, T, TSelector>, T>(
+                new Select<TEnumerator, T, T, TSelector>(GetEnumerator(), selector));
         }
 
-        public Query<SelectQuery<TEnumerator, T, TResult, TSelector>, TResult> Select<TResult, TSelector>(TSelector selector)
+        public Query<Select<TEnumerator, T, TResult, TSelector>, TResult> Select<TResult, TSelector>(TSelector selector)
             where TResult : unmanaged
             where TSelector : unmanaged, ISelector<T, TResult>
         {
-            return new Query<SelectQuery<TEnumerator, T, TResult, TSelector>, TResult>(
-                new SelectQuery<TEnumerator, T, TResult, TSelector>(GetEnumerator(), selector));
+            return new Query<Select<TEnumerator, T, TResult, TSelector>, TResult>(
+                new Select<TEnumerator, T, TResult, TSelector>(GetEnumerator(), selector));
         }
     }
 
     public static partial class BLinqExtensions
     {
-        public static Query<SelectQuery<TEnumerator, T, TResult, TSelector>, TResult> Select<T, TResult, TEnumerator, TSelector>(
+        public static Query<Select<TEnumerator, T, TResult, TSelector>, TResult> Select<T, TResult, TEnumerator, TSelector>(
             this Query<TEnumerator, T> source, TSelector selector)
             where T : unmanaged
             where TResult : unmanaged
@@ -38,18 +39,18 @@ namespace FireAlt.BLinq
         
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<DelegateSelectQuery<TEnumerator, T, TResult>, TResult> Select<T, TResult, TEnumerator>(
+        public static Query<Select<TEnumerator, T, TResult>, TResult> Select<T, TResult, TEnumerator>(
             this Query<TEnumerator, T> source,
             Func<T, TResult> selector)
             where T : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            return Throw<Query<DelegateSelectQuery<TEnumerator, T, TResult>, TResult>>();
+            return ThrowCodeGen<Query<Select<TEnumerator, T, TResult>, TResult>>();
         }
     }
     
-    public struct SelectQuery<TEnumerator, TSource, TResult, TSelector> : IEnumerator<TResult>
+    public struct Select<TEnumerator, TSource, TResult, TSelector> : IEnumerator<TResult>
         where TEnumerator : unmanaged, IEnumerator<TSource>
         where TSource : unmanaged
         where TResult : unmanaged
@@ -58,7 +59,7 @@ namespace FireAlt.BLinq
         private TEnumerator _source;
         private TSelector _selector;
 
-        public SelectQuery(TEnumerator source, TSelector selector)
+        public Select(TEnumerator source, TSelector selector)
         {
             _source = source;
             _selector = selector;
@@ -74,7 +75,7 @@ namespace FireAlt.BLinq
             }
         }
 
-        object System.Collections.IEnumerator.Current => Current;
+        object IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
@@ -90,6 +91,30 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+    }
+    
+    public struct Select<TEnumerator, TSource, TResult> : IEnumerator<TResult>
+        where TEnumerator : unmanaged, IEnumerator<TSource>
+        where TSource : unmanaged
+        where TResult : unmanaged
+    {
+        public TResult Current => BLinqExtensions.ThrowCodeGen<TResult>();
+
+        object IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            return BLinqExtensions.ThrowCodeGen<bool>();
+        }
+
+        public void Reset()
+        {
+            BLinqExtensions.ThrowCodeGen();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

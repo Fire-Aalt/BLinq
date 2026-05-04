@@ -430,7 +430,7 @@ namespace FireAlt.BLinq.Tests
         public void From_WrapsCustomUnmanagedEnumerableEnumerator()
         {
             var collection = new CustomEnumerable(5, 3);
-            var values = Feature
+            var values = BLinq
                 .From<int, CustomEnumerable.Enumerator>(collection.GetEnumerator())
                 .ToNativeList(Allocator.Temp);
 

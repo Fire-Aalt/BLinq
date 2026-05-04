@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -8,17 +9,17 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
-        public Query<WhereQuery<TEnumerator, T, TPredicate>, T> Where<TPredicate>(TPredicate predicate)
+        public Query<Where<TEnumerator, T, TPredicate>, T> Where<TPredicate>(TPredicate predicate)
             where TPredicate : unmanaged, IPredicate<T>
         {
-            return new Query<WhereQuery<TEnumerator, T, TPredicate>, T>(
-                new WhereQuery<TEnumerator, T, TPredicate>(GetEnumerator(), predicate));
+            return new Query<Where<TEnumerator, T, TPredicate>, T>(
+                new Where<TEnumerator, T, TPredicate>(GetEnumerator(), predicate));
         }
     }
 
     public static partial class BLinqExtensions
     {
-        public static Query<WhereQuery<TEnumerator, T, TPredicate>, T> Where<T, TEnumerator, TPredicate>(
+        public static Query<Where<TEnumerator, T, TPredicate>, T> Where<T, TEnumerator, TPredicate>(
             this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -29,16 +30,16 @@ namespace FireAlt.BLinq
         
         [NativeDelegateMethod(typeof(IPredicate<>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<DelegateWhereQuery<TEnumerator, T>, T> Where<T, TEnumerator>(
+        public static Query<Where<TEnumerator, T>, T> Where<T, TEnumerator>(
             this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            return Throw<Query<DelegateWhereQuery<TEnumerator, T>, T>>();
+            return ThrowCodeGen<Query<Where<TEnumerator, T>, T>>();
         }
     }
 
-    public struct WhereQuery<TEnumerator, T, TPredicate> : IEnumerator<T>
+    public struct Where<TEnumerator, T, TPredicate> : IEnumerator<T>
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
         where TPredicate : unmanaged, IPredicate<T>
@@ -47,7 +48,7 @@ namespace FireAlt.BLinq
         private TPredicate _predicate;
         private T _current;
 
-        public WhereQuery(TEnumerator source, TPredicate predicate)
+        public Where(TEnumerator source, TPredicate predicate)
         {
             _source = source;
             _predicate = predicate;
@@ -60,7 +61,7 @@ namespace FireAlt.BLinq
             get => _current;
         }
 
-        object System.Collections.IEnumerator.Current => Current;
+        object IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
@@ -89,6 +90,29 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+    }
+    
+    public struct Where<TEnumerator, T> : IEnumerator<T>
+        where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
+    {
+        public T Current => BLinqExtensions.ThrowCodeGen<T>();
+
+        object IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            return BLinqExtensions.ThrowCodeGen<bool>();
+        }
+
+        public void Reset()
+        {
+            BLinqExtensions.ThrowCodeGen();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

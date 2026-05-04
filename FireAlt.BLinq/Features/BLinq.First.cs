@@ -90,7 +90,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            return Throw<T>();
+            return ThrowCodeGen<T>();
         }
         
         [NativeDelegateMethod(typeof(IPredicate<>))]
@@ -99,7 +99,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            return Throw<T>();
+            return ThrowCodeGen<T>();
         }
     }
 }

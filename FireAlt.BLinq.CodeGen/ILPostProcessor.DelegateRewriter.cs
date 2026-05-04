@@ -620,7 +620,7 @@ namespace FireAlt.BLinq.CodeGen
                 return;
             }
 
-            _rewrittenEnumeratorTypes[placeholderQueryType.GenericArguments[1].FullName] = realQueryType.GenericArguments[1];
+            _rewrittenEnumeratorTypes[placeholderQueryType.GenericArguments[0].FullName] = realQueryType.GenericArguments[0];
         }
 
         private bool TryRewriteMethodReference(
