@@ -20,7 +20,6 @@ namespace FireAlt.BLinq
             _comparer = comparer;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>> ThenBy<TThenComparer>(TThenComparer comparer)
             where TThenComparer : unmanaged, IComparer<T>
         {
@@ -29,14 +28,12 @@ namespace FireAlt.BLinq
                 new ThenByComparer<T, TComparer, TThenComparer>(_comparer, comparer));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, ReverseComparer<T, TThenComparer>>> ThenByDescending<TThenComparer>(TThenComparer comparer)
             where TThenComparer : unmanaged, IComparer<T>
         {
             return ThenBy(new ReverseComparer<T, TThenComparer>(comparer));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {
             var array = _source.ToNativeArray(allocator);
@@ -44,7 +41,6 @@ namespace FireAlt.BLinq
             return array;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe UnsafeArray<T> ToUnsafeArray(Allocator allocator)
         {
             var array = _source.ToUnsafeArray(allocator);
@@ -52,7 +48,6 @@ namespace FireAlt.BLinq
             return array;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeList<T> ToUnsafeList(AllocatorManager.AllocatorHandle allocator)
         {
             var list = _source.ToUnsafeList(allocator);
@@ -60,7 +55,6 @@ namespace FireAlt.BLinq
             return list;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeList<T> ToNativeList(AllocatorManager.AllocatorHandle allocator)
         {
             var list = _source.ToNativeList(allocator);
@@ -68,14 +62,12 @@ namespace FireAlt.BLinq
             return list;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] ToManagedArray()
         {
             var list = ToNativeList(Allocator.Temp);
             return list.ToManagedArray();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<T> ToManagedList()
         {
             var array = ToManagedArray();

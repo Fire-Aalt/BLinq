@@ -74,7 +74,6 @@ namespace FireAlt.BLinq
 
             throw new InvalidOperationException("The BLinq source contains no elements.");
         }
-
         
         public static T FirstOrDefault<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
