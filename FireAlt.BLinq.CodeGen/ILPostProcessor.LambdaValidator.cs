@@ -348,18 +348,19 @@ namespace FireAlt.BLinq.CodeGen
                     return genericParameter.HasNotNullableValueTypeConstraint;
             }
 
-            type = type.GetElementType();
-            if (type.MetadataType == MetadataType.Void || type.IsPrimitive)
+            var closedType = type;
+            var elementType = type.GetElementType();
+            if (elementType.MetadataType == MetadataType.Void || elementType.IsPrimitive)
             {
                 return true;
             }
 
-            if (type.MetadataType == MetadataType.IntPtr || type.MetadataType == MetadataType.UIntPtr)
+            if (elementType.MetadataType == MetadataType.IntPtr || elementType.MetadataType == MetadataType.UIntPtr)
             {
                 return true;
             }
 
-            var definition = type.Resolve();
+            var definition = elementType.Resolve();
             if (definition == null || !definition.IsValueType)
             {
                 return false;
@@ -370,7 +371,7 @@ namespace FireAlt.BLinq.CodeGen
                 return true;
             }
 
-            var visitKey = type.FullName;
+            var visitKey = closedType.FullName;
             if (!visited.Add(visitKey))
             {
                 return true;
@@ -380,7 +381,7 @@ namespace FireAlt.BLinq.CodeGen
             {
                 return definition.Fields
                     .Where(field => !field.IsStatic)
-                    .All(field => IsUnmanaged(CloseTypeGenericType(type, field.FieldType), visited));
+                    .All(field => IsUnmanaged(CloseTypeGenericType(closedType, field.FieldType), visited));
             }
             finally
             {

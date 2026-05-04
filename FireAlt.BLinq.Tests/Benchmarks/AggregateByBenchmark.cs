@@ -35,10 +35,9 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int ZLinq(in NativeArray<int> values)
         {
-
             return values
                 .AsValueEnumerable()
-                .AggregateBy(Key, _ => 0, Aggregator)
+                .AggregateBy(Key, 0, Aggregator)
                 .Sum(AggregateSelector);
         }
 
@@ -46,7 +45,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         {
             return values
                 .AsQuery()
-                .AggregateBy(Key, _ => 0, Aggregator)
+                .AggregateBy(Key, 0, Aggregator)
                 .Sum(AggregateSelector);
         }
         
