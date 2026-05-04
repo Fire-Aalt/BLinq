@@ -8,76 +8,76 @@ namespace FireAlt.BLinq
     public static partial class BLinqExtensions
     {
 #if ENTITIES
-        public static Query<T, NativeArray<T>.Enumerator> AsQuery<T>(this DynamicBuffer<T> collection)
+        public static Query<NativeArray<T>.Enumerator, T> AsQuery<T>(this DynamicBuffer<T> collection)
             where T : unmanaged
         {
-            return new Query<T, NativeArray<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<NativeArray<T>.Enumerator, T>(collection.GetEnumerator());
         }
 #endif
         
 #if FA_CORE
-        public static Query<T, KrasCore.UnsafeArray<T>.Enumerator> AsQuery<T>(this KrasCore.UnsafeArray<T> collection)
+        public static Query<KrasCore.UnsafeArray<T>.Enumerator, T> AsQuery<T>(this KrasCore.UnsafeArray<T> collection)
             where T : unmanaged
         {
-            return new Query<T, KrasCore.UnsafeArray<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<KrasCore.UnsafeArray<T>.Enumerator, T>(collection.GetEnumerator());
         }
 #endif
 
 #if BL_CORE
-        public static Query<T, BovineLabs.Core.Collections.UnsafeArray<T>.Enumerator> AsQuery<T>(this BovineLabs.Core.Collections.UnsafeArray<T> collection)
+        public static Query<BovineLabs.Core.Collections.UnsafeArray<T>.Enumerator, T> AsQuery<T>(this BovineLabs.Core.Collections.UnsafeArray<T> collection)
             where T : unmanaged
         {
-            return new Query<T, BovineLabs.Core.Collections.UnsafeArray<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<BovineLabs.Core.Collections.UnsafeArray<T>.Enumerator, T>(collection.GetEnumerator());
         }
         
-        public static Query<KVPair<TKey, TValue>, UnsafeHashMap<TKey, TValue>.Enumerator> AsQuery<TKey, TValue>(this UnsafeMultiHashMap<TKey, TValue> collection)
+        public static Query<UnsafeHashMap<TKey, TValue>.Enumerator, KVPair<TKey, TValue>> AsQuery<TKey, TValue>(this UnsafeMultiHashMap<TKey, TValue> collection)
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
-            return new Query<KVPair<TKey, TValue>, UnsafeHashMap<TKey, TValue>.Enumerator>(collection.GetEnumerator());
+            return new Query<UnsafeHashMap<TKey, TValue>.Enumerator, KVPair<TKey, TValue>>(collection.GetEnumerator());
         }
 #endif
         
-        public static Query<T, NativeArray<T>.Enumerator> AsQuery<T>(this NativeArray<T> collection)
+        public static Query<NativeArray<T>.Enumerator, T> AsQuery<T>(this NativeArray<T> collection)
             where T : unmanaged
         {
-            return new Query<T, NativeArray<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<NativeArray<T>.Enumerator, T>(collection.GetEnumerator());
         }
         
-        public static Query<T, NativeSlice<T>.Enumerator> AsQuery<T>(this NativeSlice<T> collection)
+        public static Query<NativeSlice<T>.Enumerator, T> AsQuery<T>(this NativeSlice<T> collection)
             where T : unmanaged
         {
-            return new Query<T, NativeSlice<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<NativeSlice<T>.Enumerator, T>(collection.GetEnumerator());
         }
         
-        public static Query<T, NativeArray<T>.Enumerator> AsQuery<T>(this NativeList<T> collection)
+        public static Query<NativeArray<T>.Enumerator, T> AsQuery<T>(this NativeList<T> collection)
             where T : unmanaged
         {
-            return new Query<T, NativeArray<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<NativeArray<T>.Enumerator, T>(collection.GetEnumerator());
         }
 
-        public static Query<T, UnsafeList<T>.Enumerator> AsQuery<T>(this UnsafeList<T> collection)
+        public static Query<UnsafeList<T>.Enumerator, T> AsQuery<T>(this UnsafeList<T> collection)
             where T : unmanaged
         {
-            return new Query<T, UnsafeList<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<UnsafeList<T>.Enumerator, T>(collection.GetEnumerator());
         }
 
-        public static Query<T, NativeQueue<T>.Enumerator> AsQuery<T>(this NativeQueue<T> collection)
+        public static Query<NativeQueue<T>.Enumerator, T> AsQuery<T>(this NativeQueue<T> collection)
             where T : unmanaged
         {
-            return new Query<T, NativeQueue<T>.Enumerator>(collection.AsReadOnly().GetEnumerator());
+            return new Query<NativeQueue<T>.Enumerator, T>(collection.AsReadOnly().GetEnumerator());
         }
 
-        public static Query<T, NativeHashSet<T>.Enumerator> AsQuery<T>(this NativeHashSet<T> collection)
+        public static Query<NativeHashSet<T>.Enumerator, T> AsQuery<T>(this NativeHashSet<T> collection)
             where T : unmanaged, IEquatable<T>
         {
-            return new Query<T, NativeHashSet<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<NativeHashSet<T>.Enumerator, T>(collection.GetEnumerator());
         }
 
-        public static Query<T, NativeParallelHashSet<T>.Enumerator> AsQuery<T>(this NativeParallelHashSet<T> collection)
+        public static Query<NativeParallelHashSet<T>.Enumerator, T> AsQuery<T>(this NativeParallelHashSet<T> collection)
             where T : unmanaged, IEquatable<T>
         {
-            return new Query<T, NativeParallelHashSet<T>.Enumerator>(collection.GetEnumerator());
+            return new Query<NativeParallelHashSet<T>.Enumerator, T>(collection.GetEnumerator());
         }
     }
 }

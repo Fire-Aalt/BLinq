@@ -6,14 +6,14 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        public static T Min<T, TEnumerator>(this Query<T, TEnumerator> source)
+        public static T Min<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
         {
             return source.Min(new AscendingComparer<T>());
         }
 
-        public static T Max<T, TEnumerator>(this Query<T, TEnumerator> source)
+        public static T Max<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
         {
@@ -21,9 +21,9 @@ namespace FireAlt.BLinq
         }
     }
 
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
         public T Min<TComparer>(TComparer comparer)
             where TComparer : unmanaged, IComparer<T>

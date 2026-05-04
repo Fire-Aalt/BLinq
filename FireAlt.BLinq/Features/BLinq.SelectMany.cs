@@ -3,26 +3,26 @@ using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
-        public Query<TResult, SelectManyQuery<T, TResult, TEnumerator, TInnerEnumerator, TSelector>> SelectMany<TResult, TInnerEnumerator, TSelector>(
+        public Query<SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult> SelectMany<TResult, TInnerEnumerator, TSelector>(
             TSelector selector)
             where TResult : unmanaged
             where TInnerEnumerator : unmanaged, IEnumerator<TResult>
             where TSelector : unmanaged, ISelector<T, TInnerEnumerator>
         {
-            return new Query<TResult, SelectManyQuery<T, TResult, TEnumerator, TInnerEnumerator, TSelector>>(
-                new SelectManyQuery<T, TResult, TEnumerator, TInnerEnumerator, TSelector>(GetEnumerator(), selector));
+            return new Query<SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult>(
+                new SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult, TSelector>(GetEnumerator(), selector));
         }
     }
 
-    public struct SelectManyQuery<TSource, TResult, TSourceEnumerator, TInnerEnumerator, TSelector> : IEnumerator<TResult>
-        where TSource : unmanaged
-        where TResult : unmanaged
+    public struct SelectManyQuery<TSourceEnumerator, TInnerEnumerator, TSource, TResult, TSelector> : IEnumerator<TResult>
         where TSourceEnumerator : unmanaged, IEnumerator<TSource>
         where TInnerEnumerator : unmanaged, IEnumerator<TResult>
+        where TSource : unmanaged
+        where TResult : unmanaged
         where TSelector : unmanaged, ISelector<TSource, TInnerEnumerator>
     {
         private TSourceEnumerator _source;

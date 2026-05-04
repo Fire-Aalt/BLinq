@@ -6,7 +6,7 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        public static T Sum<T, TEnumerator, TAccumulator>(this Query<T, TEnumerator> source)
+        public static T Sum<T, TEnumerator, TAccumulator>(this Query<TEnumerator, T> source)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
             where TAccumulator : unmanaged, IAccumulator<T>
@@ -15,7 +15,7 @@ namespace FireAlt.BLinq
         }
 
         public static TResult Sum<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
-            this Query<TSource, TEnumerator> source, TSelector selector)
+            this Query<TEnumerator, TSource> source, TSelector selector)
             where TSource : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
@@ -28,7 +28,7 @@ namespace FireAlt.BLinq
                 default);
         }
 
-        public static T Average<T, TEnumerator, TAccumulator>(this Query<T, TEnumerator> source)
+        public static T Average<T, TEnumerator, TAccumulator>(this Query<TEnumerator, T> source)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
             where TAccumulator : unmanaged, IAccumulator<T>
@@ -37,7 +37,7 @@ namespace FireAlt.BLinq
         }
 
         public static TResult Average<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
-            this Query<TSource, TEnumerator> source, TSelector selector)
+            this Query<TEnumerator, TSource> source, TSelector selector)
             where TSource : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
@@ -53,7 +53,7 @@ namespace FireAlt.BLinq
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static TResult Sum<TSource, TResult, TEnumerator>(
-            this Query<TSource, TEnumerator> source, Func<TSource, TResult> selector, TResult _ = default)
+            this Query<TEnumerator, TSource> source, Func<TSource, TResult> selector, TResult _ = default)
             where TSource : unmanaged
             where TResult : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>

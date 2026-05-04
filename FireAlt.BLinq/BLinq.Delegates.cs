@@ -6,9 +6,9 @@ using Unity.Collections;
 
 namespace FireAlt.BLinq
 {
-    public struct DelegateWhereQuery<T, TEnumerator> : IEnumerator<T>
-        where T : unmanaged
+    public struct DelegateWhereQuery<TEnumerator, T> : IEnumerator<T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
         public T Current => Throw<T>();
 
@@ -39,10 +39,10 @@ namespace FireAlt.BLinq
         }
     }
 
-    public struct DelegateSelectQuery<TSource, TResult, TEnumerator> : IEnumerator<TResult>
+    public struct DelegateSelectQuery<TEnumerator, TSource, TResult> : IEnumerator<TResult>
+        where TEnumerator : unmanaged, IEnumerator<TSource>
         where TSource : unmanaged
         where TResult : unmanaged
-        where TEnumerator : unmanaged, IEnumerator<TSource>
     {
         public TResult Current => Throw<TResult>();
 

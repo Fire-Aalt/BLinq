@@ -1,14 +1,13 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using KrasCore;
 
 namespace FireAlt.BLinq
 {
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {

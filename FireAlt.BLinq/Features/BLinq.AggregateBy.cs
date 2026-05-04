@@ -5,12 +5,12 @@ using Unity.Collections;
 
 namespace FireAlt.BLinq
 {
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<KeyValuePair<TAccumulate, TAccumulate>, NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator>
+        public Query<NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator, KeyValuePair<TAccumulate, TAccumulate>>
             AggregateBy<TAccumulate, TKeySelector, TAggregator>(
                 TKeySelector keySelector,
                 TAccumulate seed,
@@ -24,7 +24,7 @@ namespace FireAlt.BLinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+        public Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TKey, TAccumulate, TKeySelector, TAggregator>(
                 TKeySelector keySelector,
                 TAccumulate seed,
@@ -39,7 +39,7 @@ namespace FireAlt.BLinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+        public Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TKey, TAccumulate, TKeySelector, TSeedSelector, TAggregator>(
                 TKeySelector keySelector,
                 TSeedSelector seedSelector,
@@ -103,9 +103,9 @@ namespace FireAlt.BLinq
     public static partial class BLinqExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Query<KeyValuePair<TAccumulate, TAccumulate>, NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator>
+        public static Query<NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator, KeyValuePair<TAccumulate, TAccumulate>>
             AggregateBy<TSource, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 TKeySelector keySelector,
                 TAccumulate seed,
                 TAggregator aggregator)
@@ -120,9 +120,9 @@ namespace FireAlt.BLinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+        public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 TKeySelector keySelector,
                 TAccumulate seed,
                 TAggregator aggregator)
@@ -138,9 +138,9 @@ namespace FireAlt.BLinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+        public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 TKeySelector keySelector,
                 TSeedSelector seedSelector,
                 TAggregator aggregator)
@@ -159,7 +159,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeList<KeyValuePair<TAccumulate, TAccumulate>>
             ToAggregatedBy<TSource, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 TKeySelector keySelector,
                 TAccumulate seed,
                 TAggregator aggregator,
@@ -177,7 +177,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeList<KeyValuePair<TKey, TAccumulate>>
             ToAggregatedBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 TKeySelector keySelector,
                 TAccumulate seed,
                 TAggregator aggregator,
@@ -196,7 +196,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeList<KeyValuePair<TKey, TAccumulate>>
             ToAggregatedBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 TKeySelector keySelector,
                 TSeedSelector seedSelector,
                 TAggregator aggregator,
@@ -215,9 +215,9 @@ namespace FireAlt.BLinq
         
         [NativeDelegateMethod(typeof(ISelector<,>), typeof(IAggregator<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+        public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TSource, TKey, TAccumulate, TEnumerator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 Func<TSource, TKey> keySelector,
                 TAccumulate seed,
                 Func<TAccumulate, TSource, TAccumulate> aggregator)
@@ -226,14 +226,14 @@ namespace FireAlt.BLinq
             where TAccumulate : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return Throw<Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>>();
+            return Throw<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
         }
 
         [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>), typeof(IAggregator<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>
+        public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TSource, TKey, TAccumulate, TEnumerator>(
-                this Query<TSource, TEnumerator> source,
+                this Query<TEnumerator, TSource> source,
                 Func<TSource, TKey> keySelector,
                 Func<TKey, TAccumulate> seedSelector,
                 Func<TAccumulate, TSource, TAccumulate> aggregator)
@@ -242,7 +242,7 @@ namespace FireAlt.BLinq
             where TAccumulate : unmanaged
             where TEnumerator : unmanaged, IEnumerator<TSource>
         {
-            return Throw<Query<KeyValuePair<TKey, TAccumulate>, NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator>>();
+            return Throw<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
         }
     }
 

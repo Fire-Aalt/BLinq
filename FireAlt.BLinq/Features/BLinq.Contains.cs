@@ -7,7 +7,7 @@ namespace FireAlt.BLinq
     public static partial class BLinqExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Contains<T, TEnumerator>(this Query<T, TEnumerator> source, T value)
+        public static bool Contains<T, TEnumerator>(this Query<TEnumerator, T> source, T value)
             where T : unmanaged, IEquatable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
         {
@@ -15,9 +15,9 @@ namespace FireAlt.BLinq
         }
     }
 
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains<TEqualityComparer>(T value, TEqualityComparer comparer)

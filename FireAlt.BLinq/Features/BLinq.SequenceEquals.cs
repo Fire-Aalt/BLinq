@@ -7,8 +7,8 @@ namespace FireAlt.BLinq
     public static partial class BLinqExtensions
     {
         public static bool SequenceEquals<T, TEnumerator, TOtherEnumerator>(
-            this Query<T, TEnumerator> source,
-            Query<T, TOtherEnumerator> other)
+            this Query<TEnumerator, T> source,
+            Query<TOtherEnumerator, T> other)
             where T : unmanaged, IEquatable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
             where TOtherEnumerator : unmanaged, IEnumerator<T>
@@ -17,9 +17,9 @@ namespace FireAlt.BLinq
         }
     }
 
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
         public bool SequenceEquals<TOtherEnumerator, TEqualityComparer>(TOtherEnumerator other, TEqualityComparer comparer)
             where TOtherEnumerator : unmanaged, IEnumerator<T>

@@ -7,36 +7,36 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        public static OrderedQuery<T, TEnumerator, AscendingComparer<T>> OrderBy<T, TEnumerator>(this Query<T, TEnumerator> source)
+        public static OrderedQuery<TEnumerator, T, AscendingComparer<T>> OrderBy<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
         {
             return source.OrderBy(new AscendingComparer<T>());
         }
 
-        public static OrderedQuery<T, TEnumerator, DescendingComparer<T>> OrderByDescending<T, TEnumerator>(this Query<T, TEnumerator> source)
+        public static OrderedQuery<TEnumerator, T, DescendingComparer<T>> OrderByDescending<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
         {
             return source.OrderBy(new DescendingComparer<T>());
         }
 
-        public static NativeList<T> ToOrderedBy<T, TEnumerator>(this Query<T, TEnumerator> source, AllocatorManager.AllocatorHandle allocator)
+        public static NativeList<T> ToOrderedBy<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
         {
             return source.ToOrderedBy(new AscendingComparer<T>(), allocator);
         }
 
-        public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(this Query<T, TEnumerator> source, AllocatorManager.AllocatorHandle allocator)
+        public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
         {
             return source.ToOrderedBy(new DescendingComparer<T>(), allocator);
         }
 
-        public static OrderedQuery<T, TEnumerator, ThenByComparer<T, TComparer, AscendingComparer<T>>> ThenBy<T, TEnumerator, TComparer>(
-            this OrderedQuery<T, TEnumerator, TComparer> source)
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, AscendingComparer<T>>> ThenBy<T, TEnumerator, TComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
@@ -44,8 +44,8 @@ namespace FireAlt.BLinq
             return source.ThenBy(new AscendingComparer<T>());
         }
 
-        public static OrderedQuery<T, TEnumerator, ThenByComparer<T, TComparer, DescendingComparer<T>>> ThenByDescending<T, TEnumerator, TComparer>(
-            this OrderedQuery<T, TEnumerator, TComparer> source)
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, DescendingComparer<T>>> ThenByDescending<T, TEnumerator, TComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
@@ -54,20 +54,20 @@ namespace FireAlt.BLinq
         }
     }
 
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
-        public OrderedQuery<T, TEnumerator, TComparer> OrderBy<TComparer>(TComparer comparer)
+        public OrderedQuery<TEnumerator, T, TComparer> OrderBy<TComparer>(TComparer comparer)
             where TComparer : unmanaged, IComparer<T>
         {
-            return new OrderedQuery<T, TEnumerator, TComparer>(this, comparer);
+            return new OrderedQuery<TEnumerator, T, TComparer>(this, comparer);
         }
 
-        public OrderedQuery<T, TEnumerator, ReverseComparer<T, TComparer>> OrderByDescending<TComparer>(TComparer comparer)
+        public OrderedQuery<TEnumerator, T, ReverseComparer<T, TComparer>> OrderByDescending<TComparer>(TComparer comparer)
             where TComparer : unmanaged, IComparer<T>
         {
-            return new OrderedQuery<T, TEnumerator, ReverseComparer<T, TComparer>>(this, new ReverseComparer<T, TComparer>(comparer));
+            return new OrderedQuery<TEnumerator, T, ReverseComparer<T, TComparer>>(this, new ReverseComparer<T, TComparer>(comparer));
         }
 
         public NativeList<T> ToOrderedBy<TComparer>(TComparer comparer, AllocatorManager.AllocatorHandle allocator)

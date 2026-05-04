@@ -115,7 +115,7 @@ namespace FireAlt.BLinq.Generators
             source.Block("public static partial class BLinqExtensions", classWriter =>
             {
                 AppendAggressiveInlining(classWriter);
-                classWriter.Line($"public static {accumulator.FullTypeName} Sum<TEnumerator>(this global::FireAlt.BLinq.Query<{accumulator.FullTypeName}, TEnumerator> source)");
+                classWriter.Line($"public static {accumulator.FullTypeName} Sum<TEnumerator>(this global::FireAlt.BLinq.Query<TEnumerator, {accumulator.FullTypeName}> source)");
                 classWriter.Indent();
                 classWriter.Line($"where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<{accumulator.FullTypeName}>");
                 classWriter.Unindent();
@@ -126,7 +126,7 @@ namespace FireAlt.BLinq.Generators
 
                 classWriter.Blank();
                 AppendAggressiveInlining(classWriter);
-                classWriter.Line($"public static {accumulator.FullTypeName} Sum<TSource, TEnumerator, TSelector>(this global::FireAlt.BLinq.Query<TSource, TEnumerator> source, TSelector selector, {accumulator.FullTypeName} _ = default)");
+                classWriter.Line($"public static {accumulator.FullTypeName} Sum<TSource, TEnumerator, TSelector>(this global::FireAlt.BLinq.Query<TEnumerator, TSource> source, TSelector selector, {accumulator.FullTypeName} _ = default)");
                 classWriter.Indent();
                 classWriter.Line("where TSource : unmanaged");
                 classWriter.Line("where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<TSource>");
@@ -139,7 +139,7 @@ namespace FireAlt.BLinq.Generators
 
                 classWriter.Blank();
                 AppendAggressiveInlining(classWriter);
-                classWriter.Line($"public static {accumulator.FullTypeName} Average<TEnumerator>(this global::FireAlt.BLinq.Query<{accumulator.FullTypeName}, TEnumerator> source)");
+                classWriter.Line($"public static {accumulator.FullTypeName} Average<TEnumerator>(this global::FireAlt.BLinq.Query<TEnumerator, {accumulator.FullTypeName}> source)");
                 classWriter.Indent();
                 classWriter.Line($"where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<{accumulator.FullTypeName}>");
                 classWriter.Unindent();
@@ -150,7 +150,7 @@ namespace FireAlt.BLinq.Generators
 
                 classWriter.Blank();
                 AppendAggressiveInlining(classWriter);
-                classWriter.Line($"public static {accumulator.FullTypeName} Average<TSource, TEnumerator, TSelector>(this global::FireAlt.BLinq.Query<TSource, TEnumerator> source, TSelector selector, {accumulator.FullTypeName} _ = default)");
+                classWriter.Line($"public static {accumulator.FullTypeName} Average<TSource, TEnumerator, TSelector>(this global::FireAlt.BLinq.Query<TEnumerator, TSource> source, TSelector selector, {accumulator.FullTypeName} _ = default)");
                 classWriter.Indent();
                 classWriter.Line("where TSource : unmanaged");
                 classWriter.Line("where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<TSource>");

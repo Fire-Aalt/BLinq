@@ -6,31 +6,31 @@ using KrasCore;
 
 namespace FireAlt.BLinq
 {
-    public struct OrderedQuery<T, TEnumerator, TComparer>
-        where T : unmanaged
+    public struct OrderedQuery<TEnumerator, T, TComparer>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
         where TComparer : unmanaged, IComparer<T>
     {
-        private Query<T, TEnumerator> _source;
+        private Query<TEnumerator, T> _source;
         private TComparer _comparer;
 
-        public OrderedQuery(Query<T, TEnumerator> source, TComparer comparer)
+        public OrderedQuery(Query<TEnumerator, T> source, TComparer comparer)
         {
             _source = source;
             _comparer = comparer;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public OrderedQuery<T, TEnumerator, ThenByComparer<T, TComparer, TThenComparer>> ThenBy<TThenComparer>(TThenComparer comparer)
+        public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>> ThenBy<TThenComparer>(TThenComparer comparer)
             where TThenComparer : unmanaged, IComparer<T>
         {
-            return new OrderedQuery<T, TEnumerator, ThenByComparer<T, TComparer, TThenComparer>>(
+            return new OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>>(
                 _source,
                 new ThenByComparer<T, TComparer, TThenComparer>(_comparer, comparer));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public OrderedQuery<T, TEnumerator, ThenByComparer<T, TComparer, ReverseComparer<T, TThenComparer>>> ThenByDescending<TThenComparer>(TThenComparer comparer)
+        public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, ReverseComparer<T, TThenComparer>>> ThenByDescending<TThenComparer>(TThenComparer comparer)
             where TThenComparer : unmanaged, IComparer<T>
         {
             return ThenBy(new ReverseComparer<T, TThenComparer>(comparer));
@@ -94,13 +94,13 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where TComparer : unmanaged, IComparer<T>
     {
-        private Query<T, TEnumerator> _source;
+        private Query<TEnumerator, T> _source;
         private TComparer _comparer;
         private NativeList<T> _list;
         private int _index;
         private bool _initialized;
 
-        public OrderedQueryEnumerator(Query<T, TEnumerator> source, TComparer comparer)
+        public OrderedQueryEnumerator(Query<TEnumerator, T> source, TComparer comparer)
         {
             _source = source;
             _comparer = comparer;

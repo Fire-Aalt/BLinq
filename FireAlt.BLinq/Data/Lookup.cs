@@ -56,7 +56,7 @@ namespace FireAlt.BLinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<T, NativeArray<T>.Enumerator> AsQuery()
+        public Query<NativeArray<T>.Enumerator, T> AsQuery()
         {
             return _values.AsQuery();
         }
@@ -95,9 +95,9 @@ namespace FireAlt.BLinq
         public Group<TKey, T> this[int index] => _groups[index];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<Group<TKey, T>, LookupEnumerator<TKey, T>> AsQuery()
+        public Query<LookupEnumerator<TKey, T>, Group<TKey, T>> AsQuery()
         {
-            return new Query<Group<TKey, T>, LookupEnumerator<TKey, T>>(GetEnumerator());
+            return new Query<LookupEnumerator<TKey, T>, Group<TKey, T>>(GetEnumerator());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

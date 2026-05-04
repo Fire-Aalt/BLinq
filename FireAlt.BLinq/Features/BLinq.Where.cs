@@ -4,22 +4,22 @@ using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
-        public Query<T, WhereQuery<T, TEnumerator, TPredicate>> Where<TPredicate>(TPredicate predicate)
+        public Query<WhereQuery<TEnumerator, T, TPredicate>, T> Where<TPredicate>(TPredicate predicate)
             where TPredicate : unmanaged, IPredicate<T>
         {
-            return new Query<T, WhereQuery<T, TEnumerator, TPredicate>>(
-                new WhereQuery<T, TEnumerator, TPredicate>(GetEnumerator(), predicate));
+            return new Query<WhereQuery<TEnumerator, T, TPredicate>, T>(
+                new WhereQuery<TEnumerator, T, TPredicate>(GetEnumerator(), predicate));
         }
     }
 
     public static partial class BLinqExtensions
     {
-        public static Query<T, WhereQuery<T, TEnumerator, TPredicate>> Where<T, TEnumerator, TPredicate>(
-            this Query<T, TEnumerator> source, TPredicate predicate)
+        public static Query<WhereQuery<TEnumerator, T, TPredicate>, T> Where<T, TEnumerator, TPredicate>(
+            this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
@@ -29,18 +29,18 @@ namespace FireAlt.BLinq
         
         [NativeDelegateMethod(typeof(IPredicate<>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<T, DelegateWhereQuery<T, TEnumerator>> Where<T, TEnumerator>(
-            this Query<T, TEnumerator> source, Func<T, bool> predicate)
+        public static Query<DelegateWhereQuery<TEnumerator, T>, T> Where<T, TEnumerator>(
+            this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            return Throw<Query<T, DelegateWhereQuery<T, TEnumerator>>>();
+            return Throw<Query<DelegateWhereQuery<TEnumerator, T>, T>>();
         }
     }
 
-    public struct WhereQuery<T, TEnumerator, TPredicate> : IEnumerator<T>
-        where T : unmanaged
+    public struct WhereQuery<TEnumerator, T, TPredicate> : IEnumerator<T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
         where TPredicate : unmanaged, IPredicate<T>
     {
         private TEnumerator _source;

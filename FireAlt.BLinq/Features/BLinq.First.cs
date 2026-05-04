@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
         private bool TryFirst(out T value)
         {
@@ -41,7 +41,7 @@ namespace FireAlt.BLinq
     
     public static partial class BLinqExtensions
     {
-        private static bool TryFirst<T, TEnumerator, TPredicate>(this Query<T, TEnumerator> source, TPredicate predicate, out T value)
+        private static bool TryFirst<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate, out T value)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
@@ -62,7 +62,7 @@ namespace FireAlt.BLinq
             return false;
         }
         
-        public static T First<T, TEnumerator, TPredicate>(this Query<T, TEnumerator> source, TPredicate predicate)
+        public static T First<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
@@ -76,7 +76,7 @@ namespace FireAlt.BLinq
         }
 
         
-        public static T FirstOrDefault<T, TEnumerator, TPredicate>(this Query<T, TEnumerator> source, TPredicate predicate)
+        public static T FirstOrDefault<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
@@ -86,7 +86,7 @@ namespace FireAlt.BLinq
         
         [NativeDelegateMethod(typeof(IPredicate<>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static T First<T, TEnumerator>(this Query<T, TEnumerator> source, Func<T, bool> predicate)
+        public static T First<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
@@ -95,7 +95,7 @@ namespace FireAlt.BLinq
         
         [NativeDelegateMethod(typeof(IPredicate<>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static T FirstOrDefault<T, TEnumerator>(this Query<T, TEnumerator> source, Func<T, bool> predicate)
+        public static T FirstOrDefault<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {

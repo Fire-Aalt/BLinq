@@ -7,7 +7,7 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        public static Query<Group<T, T>, LookupEnumerator<T, T>> GroupBy<T, TEnumerator, TKeySelector>(this Query<T, TEnumerator> source,
+        public static Query<LookupEnumerator<T, T>, Group<T, T>> GroupBy<T, TEnumerator, TKeySelector>(this Query<TEnumerator, T> source,
             TKeySelector keySelector)
             where T : unmanaged, IEquatable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -19,7 +19,7 @@ namespace FireAlt.BLinq
                 Allocator.Temp).AsQuery();
         }
 
-        public static Lookup<T, T> ToLookup<T, TEnumerator, TKeySelector>(this Query<T, TEnumerator> source,
+        public static Lookup<T, T> ToLookup<T, TEnumerator, TKeySelector>(this Query<TEnumerator, T> source,
             TKeySelector keySelector,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IEquatable<T>
@@ -33,11 +33,11 @@ namespace FireAlt.BLinq
         }
     }
 
-    public partial struct Query<T, TEnumerator>
-        where T : unmanaged
+    public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
+        where T : unmanaged
     {
-        public Query<Group<TKey, T>, LookupEnumerator<TKey, T>> GroupBy<TKey, TKeySelector>(
+        public Query<LookupEnumerator<TKey, T>, Group<TKey, T>> GroupBy<TKey, TKeySelector>(
             TKeySelector keySelector)
             where TKey : unmanaged, IEquatable<TKey>
             where TKeySelector : unmanaged, ISelector<T, TKey>
