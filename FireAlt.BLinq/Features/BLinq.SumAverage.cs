@@ -60,6 +60,17 @@ namespace FireAlt.BLinq
         {
             return ThrowCodeGen<TResult>();
         }
+
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static TResult Average<TSource, TResult, TEnumerator>(
+            this Query<TEnumerator, TSource> source, Func<TSource, TResult> selector, TResult _ = default)
+            where TSource : unmanaged
+            where TResult : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<TSource>
+        {
+            return ThrowCodeGen<TResult>();
+        }
     }
 
     internal static partial class BLinqUtilities

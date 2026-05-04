@@ -232,6 +232,40 @@ namespace FireAlt.BLinq
         {
             return ThrowCodeGen<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
         }
+
+        [NativeDelegateMethod(typeof(ISelector<,>), typeof(IAggregator<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static NativeList<KeyValuePair<TKey, TAccumulate>>
+            ToAggregatedBy<TSource, TKey, TAccumulate, TEnumerator>(
+                this Query<TEnumerator, TSource> source,
+                Func<TSource, TKey> keySelector,
+                TAccumulate seed,
+                Func<TAccumulate, TSource, TAccumulate> aggregator,
+                AllocatorManager.AllocatorHandle allocator)
+            where TSource : unmanaged
+            where TKey : unmanaged, IEquatable<TKey>
+            where TAccumulate : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<TSource>
+        {
+            return ThrowCodeGen<NativeList<KeyValuePair<TKey, TAccumulate>>>();
+        }
+
+        [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>), typeof(IAggregator<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static NativeList<KeyValuePair<TKey, TAccumulate>>
+            ToAggregatedBy<TSource, TKey, TAccumulate, TEnumerator>(
+                this Query<TEnumerator, TSource> source,
+                Func<TSource, TKey> keySelector,
+                Func<TKey, TAccumulate> seedSelector,
+                Func<TAccumulate, TSource, TAccumulate> aggregator,
+                AllocatorManager.AllocatorHandle allocator)
+            where TSource : unmanaged
+            where TKey : unmanaged, IEquatable<TKey>
+            where TAccumulate : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<TSource>
+        {
+            return ThrowCodeGen<NativeList<KeyValuePair<TKey, TAccumulate>>>();
+        }
     }
 
     internal static partial class BLinqUtilities
