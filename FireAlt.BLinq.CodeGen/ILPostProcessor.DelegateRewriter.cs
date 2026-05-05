@@ -77,7 +77,7 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             callInstruction.Operand = target.Call;
-            MapRewrittenEnumerator(
+            MapRewrittenReturnType(
                 CloseMethodGenericType(module, placeholderCall.ReturnType, placeholderCall),
                 target.ReturnType);
 
@@ -642,8 +642,10 @@ namespace FireAlt.BLinq.CodeGen
                 module.ImportReference);
         }
 
-        private void MapRewrittenEnumerator(TypeReference placeholderReturnType, TypeReference realReturnType)
+        private void MapRewrittenReturnType(TypeReference placeholderReturnType, TypeReference realReturnType)
         {
+            MapRewrittenType(placeholderReturnType, realReturnType);
+
             if (placeholderReturnType is not GenericInstanceType placeholderQueryType ||
                 placeholderQueryType.GenericArguments.Count != 2 ||
                 realReturnType is not GenericInstanceType realQueryType ||
@@ -653,6 +655,26 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             _rewrittenEnumeratorTypes[placeholderQueryType.GenericArguments[0].FullName] = realQueryType.GenericArguments[0];
+        }
+
+        private void MapRewrittenType(TypeReference placeholderType, TypeReference realType)
+        {
+            if (!TypeReferencesMatch(placeholderType, realType))
+            {
+                _rewrittenEnumeratorTypes[placeholderType.FullName] = realType;
+            }
+
+            if (placeholderType is not GenericInstanceType placeholderGeneric ||
+                realType is not GenericInstanceType realGeneric ||
+                placeholderGeneric.GenericArguments.Count != realGeneric.GenericArguments.Count)
+            {
+                return;
+            }
+
+            for (var i = 0; i < placeholderGeneric.GenericArguments.Count; i++)
+            {
+                MapRewrittenType(placeholderGeneric.GenericArguments[i], realGeneric.GenericArguments[i]);
+            }
         }
 
         private bool TryRewriteMethodReference(

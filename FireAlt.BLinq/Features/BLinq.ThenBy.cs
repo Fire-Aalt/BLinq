@@ -7,102 +7,179 @@ namespace FireAlt.BLinq
     public static partial class BLinqExtensions
     {
         /// <summary>
-        /// Adds a secondary ascending ordering to an already ordered query.
+        /// Adds a secondary ascending ordering using the element as the key.
         /// </summary>
-        /// <param name="source">The ordered source query.</param>
-        /// <returns>An ordered query with secondary ascending ordering.</returns>
-        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, AscendingComparer<T>>> ThenBy<T, TEnumerator, TComparer>(
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, T, IdentitySelector<T>, AscendingComparer<T>>>> ThenBy<T, TEnumerator, TComparer>(
             this OrderedQuery<TEnumerator, T, TComparer> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
-            return source.ThenBy(new AscendingComparer<T>());
+            return ThenBy<T, T, TEnumerator, TComparer, IdentitySelector<T>>(
+                source,
+                new IdentitySelector<T>());
         }
 
         /// <summary>
-        /// Adds a secondary descending ordering to an already ordered query.
+        /// Adds a secondary descending ordering using the element as the key.
         /// </summary>
-        /// <param name="source">The ordered source query.</param>
-        /// <returns>An ordered query with secondary descending ordering.</returns>
-        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, DescendingComparer<T>>> ThenByDescending<T, TEnumerator, TComparer>(
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, T, IdentitySelector<T>, DescendingComparer<T>>>> ThenByDescending<T, TEnumerator, TComparer>(
             this OrderedQuery<TEnumerator, T, TComparer> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
-            return source.ThenBy(new DescendingComparer<T>());
+            return ThenByDescending<T, T, TEnumerator, TComparer, IdentitySelector<T>>(
+                source,
+                new IdentitySelector<T>());
         }
-        
-                /// <summary>
-        /// Adds a secondary ascending ordering to the query.
+
+        /// <summary>
+        /// Adds a secondary ascending ordering using a key selector and the default key comparer.
         /// </summary>
-        /// <param name="source">The ordered source query.</param>
-        /// <param name="comparer">Comparer used for the secondary ordering.</param>
-        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
-        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>> ThenBy<TEnumerator, T, TComparer, TThenComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source, TThenComparer comparer)
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>>> ThenBy<T, TKey, TEnumerator, TComparer, TKeySelector>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            TKeySelector keySelector)
+            where T : unmanaged
+            where TKey : unmanaged, IComparable<TKey>
             where TEnumerator : unmanaged, IEnumerator<T>
-            where T : unmanaged, IComparable<T>
             where TComparer : unmanaged, IComparer<T>
-            where TThenComparer : unmanaged, IComparer<T>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
         {
-            return new OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>>(
+            return ThenBy<T, TKey, TEnumerator, TComparer, TKeySelector, AscendingComparer<TKey>>(
+                source,
+                keySelector,
+                new AscendingComparer<TKey>());
+        }
+
+        /// <summary>
+        /// Adds a secondary ascending ordering using a key selector and comparer.
+        /// </summary>
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>> ThenBy<T, TKey, TEnumerator, TComparer, TKeySelector, TKeyComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            TKeySelector keySelector,
+            TKeyComparer comparer)
+            where T : unmanaged
+            where TKey : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, IComparer<T>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TKeyComparer : unmanaged, IComparer<TKey>
+        {
+            return new OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>>(
                 source._source,
-                new ThenByComparer<T, TComparer, TThenComparer>(source._comparer, comparer));
+                new ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>(
+                    source._comparer,
+                    new KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>(keySelector, comparer)));
         }
 
         /// <summary>
-        /// Adds a secondary descending ordering to the query.
+        /// Adds a secondary descending ordering using a key selector and the default key comparer.
         /// </summary>
-        /// <param name="source">The ordered source query.</param>
-        /// <param name="comparer">Comparer used for the secondary ordering.</param>
-        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
-        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, ReverseComparer<T, TThenComparer>>> ThenByDescending<TEnumerator, T, TComparer, TThenComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source, TThenComparer comparer)
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>>> ThenByDescending<T, TKey, TEnumerator, TComparer, TKeySelector>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            TKeySelector keySelector)
+            where T : unmanaged
+            where TKey : unmanaged, IComparable<TKey>
             where TEnumerator : unmanaged, IEnumerator<T>
-            where T : unmanaged, IComparable<T>
             where TComparer : unmanaged, IComparer<T>
-            where TThenComparer : unmanaged, IComparer<T>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
         {
-            return source.ThenBy(new ReverseComparer<T, TThenComparer>(comparer));
+            return ThenBy<T, TKey, TEnumerator, TComparer, TKeySelector, DescendingComparer<TKey>>(
+                source,
+                keySelector,
+                new DescendingComparer<TKey>());
         }
-        
+
         /// <summary>
-        /// Adds a secondary ascending ordering to the query.
+        /// Adds a secondary descending ordering using a key selector and comparer.
         /// </summary>
-        /// <param name="source">The ordered source query.</param>
-        /// <param name="comparer">Comparer used for the secondary ordering.</param>
-        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
-        [NativeDelegateMethod(typeof(IComparer<>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer>> ThenBy<TEnumerator, T, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source, Func<T, T, int> comparer)
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>>> ThenByDescending<T, TKey, TEnumerator, TComparer, TKeySelector, TKeyComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            TKeySelector keySelector,
+            TKeyComparer comparer)
+            where T : unmanaged
+            where TKey : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
-            where T : unmanaged, IComparable<T>
             where TComparer : unmanaged, IComparer<T>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TKeyComparer : unmanaged, IComparer<TKey>
         {
-            return ThrowCodeGen<OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer>>>();
+            return ThenBy<T, TKey, TEnumerator, TComparer, TKeySelector, ReverseComparer<TKey, TKeyComparer>>(
+                source,
+                keySelector,
+                new ReverseComparer<TKey, TKeyComparer>(comparer));
         }
-        
+
         /// <summary>
-        /// Adds a secondary descending ordering to the query.
+        /// Adds a secondary ascending ordering using a delegate key selector and the default key comparer.
         /// </summary>
-        /// <param name="source">The ordered source query.</param>
-        /// <param name="comparer">Comparer used for the secondary ordering.</param>
-        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
-        [NativeDelegateMethod(typeof(IComparer<>))]
+        [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, ReverseComparer<T>>> ThenByDescending<TEnumerator, T, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source, Func<T, T, int> comparer)
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>>> ThenBy<T, TKey, TEnumerator, TComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            Func<T, TKey> keySelector)
+            where T : unmanaged
+            where TKey : unmanaged, IComparable<TKey>
             where TEnumerator : unmanaged, IEnumerator<T>
-            where T : unmanaged, IComparable<T>
             where TComparer : unmanaged, IComparer<T>
         {
-            return ThrowCodeGen<OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, ReverseComparer<T>>>>();
+            return ThrowCodeGen<OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>>>>();
+        }
+
+        /// <summary>
+        /// Adds a secondary ascending ordering using a delegate key selector and comparer.
+        /// </summary>
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeyComparer>>> ThenBy<T, TKey, TEnumerator, TComparer, TKeyComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            Func<T, TKey> keySelector,
+            TKeyComparer comparer)
+            where T : unmanaged
+            where TKey : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, IComparer<T>
+            where TKeyComparer : unmanaged, IComparer<TKey>
+        {
+            return ThrowCodeGen<OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeyComparer>>>>();
+        }
+
+        /// <summary>
+        /// Adds a secondary descending ordering using a delegate key selector and the default key comparer.
+        /// </summary>
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>>> ThenByDescending<T, TKey, TEnumerator, TComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            Func<T, TKey> keySelector)
+            where T : unmanaged
+            where TKey : unmanaged, IComparable<TKey>
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, IComparer<T>
+        {
+            return ThrowCodeGen<OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>>>>();
+        }
+
+        /// <summary>
+        /// Adds a secondary descending ordering using a delegate key selector and comparer.
+        /// </summary>
+        [NativeDelegateMethod(typeof(ISelector<,>))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>> ThenByDescending<T, TKey, TEnumerator, TComparer, TKeyComparer>(
+            this OrderedQuery<TEnumerator, T, TComparer> source,
+            Func<T, TKey> keySelector,
+            TKeyComparer comparer)
+            where T : unmanaged
+            where TKey : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, IComparer<T>
+            where TKeyComparer : unmanaged, IComparer<TKey>
+        {
+            return ThrowCodeGen<OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>>>();
         }
     }
-    
+
     public struct ThenByComparer<T, TPrimaryComparer, TSecondaryComparer> : IComparer<T>
         where T : unmanaged
         where TPrimaryComparer : unmanaged, IComparer<T>
@@ -125,20 +202,6 @@ namespace FireAlt.BLinq
         }
     }
 
-    public struct ThenByComparer<T, TPrimaryComparer> : IComparer<T>
-        where T : unmanaged
-        where TPrimaryComparer : unmanaged, IComparer<T>
-    {
-        public ThenByComparer(TPrimaryComparer primaryComparer)
-        {
-        }
-
-        public int Compare(T x, T y)
-        {
-            return BLinqExtensions.ThrowCodeGen<int>();
-        }
-    }
-    
     public struct ReverseComparer<T, TComparer> : IComparer<T>
         where T : unmanaged
         where TComparer : unmanaged, IComparer<T>
@@ -154,15 +217,6 @@ namespace FireAlt.BLinq
         public int Compare(T x, T y)
         {
             return _comparer.Compare(y, x);
-        }
-    }
-    
-    public struct ReverseComparer<T> : IComparer<T>
-        where T : unmanaged
-    {
-        public int Compare(T x, T y)
-        {
-            return BLinqExtensions.ThrowCodeGen<int>();
         }
     }
 }

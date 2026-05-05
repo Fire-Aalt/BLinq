@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
@@ -16,7 +15,7 @@ namespace FireAlt.BLinq.Tests
             var expected = input.OrderBy(value => value).ToArray();
             var ordered = input
                 .AsQuery()
-                .OrderBy()
+                .OrderBy(value => value)
                 .ToNativeList(Allocator.Temp);
 
             AssertSequence(ordered.AsArray(), expected);
@@ -29,14 +28,14 @@ namespace FireAlt.BLinq.Tests
             var expected = input.OrderByDescending(value => value).ToArray();
             var ordered = input
                 .AsQuery()
-                .OrderByDescending()
+                .OrderByDescending(value => value)
                 .ToNativeList(Allocator.Temp);
 
             AssertSequence(ordered.AsArray(), expected);
         }
 
         [Test]
-        public void ThenBy_UsesDelegateComparer()
+        public void ThenBy_UsesDelegateKeySelector()
         {
             var input = new NativeArray<SortRecord>(
                 new[]
@@ -50,11 +49,8 @@ namespace FireAlt.BLinq.Tests
 
             var ordered = input
                 .AsQuery()
-                .OrderBy(new PrimaryComparer())
-                .ThenBy((x, y) =>
-                {
-                    return x.Secondary.CompareTo(y.Secondary);
-                })
+                .OrderBy(value => value.Primary)
+                .ThenBy(value => value.Secondary)
                 .ToNativeList(Allocator.Temp);
             var expected = input
                 .OrderBy(value => value.Primary)
@@ -65,7 +61,7 @@ namespace FireAlt.BLinq.Tests
         }
 
         [Test]
-        public void ThenByDescending_UsesDelegateComparer()
+        public void ThenByDescending_UsesDelegateKeySelector()
         {
             var input = new NativeArray<SortRecord>(
                 new[]
@@ -79,11 +75,8 @@ namespace FireAlt.BLinq.Tests
 
             var ordered = input
                 .AsQuery()
-                .OrderBy(new PrimaryComparer())
-                .ThenByDescending((x, y) =>
-                {
-                    return x.Secondary.CompareTo(y.Secondary);
-                })
+                .OrderBy(value => value.Primary)
+                .ThenByDescending(value => value.Secondary)
                 .ToNativeList(Allocator.Temp);
             var expected = input
                 .OrderBy(value => value.Primary)
@@ -108,7 +101,7 @@ namespace FireAlt.BLinq.Tests
 
             var ordered = input
                 .AsQuery()
-                .OrderBy(new PrimaryComparer())
+                .OrderBy(value => value.Primary)
                 .ThenBy()
                 .ToNativeList(Allocator.Temp);
             var expected = input
@@ -134,7 +127,7 @@ namespace FireAlt.BLinq.Tests
 
             var ordered = input
                 .AsQuery()
-                .OrderBy(new PrimaryComparer())
+                .OrderBy(value => value.Primary)
                 .ThenByDescending()
                 .ToNativeList(Allocator.Temp);
             var expected = input
@@ -153,14 +146,6 @@ namespace FireAlt.BLinq.Tests
             public int CompareTo(SortRecord other)
             {
                 return Secondary.CompareTo(other.Secondary);
-            }
-        }
-
-        private struct PrimaryComparer : IComparer<SortRecord>
-        {
-            public int Compare(SortRecord x, SortRecord y)
-            {
-                return x.Primary.CompareTo(y.Primary);
             }
         }
     }
