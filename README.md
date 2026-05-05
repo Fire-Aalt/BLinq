@@ -1,12 +1,13 @@
 # BLinq
-Blazingly fast, fully Burst compatible Unity LINQ library. Utilizes ILPostProcessors to allow LINQ syntax in Bursted methods.
+Perform any query in a *blink* with this blazingly fast, fully Burst compatible Unity LINQ library. 
+Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, making it as accessible as possible.
 
 ## TO-DO:
 * Convert source generators to use T4 text.
 * Add documentation to all methods. (only generated Sum/Average remain).
 * Materialization should be streamlined.
 * Optimize ILPP.
-* Create a SKILL.md to how to create a "lift" a feature.
+* Create a SKILL.md to describe how to create a "lift" a feature.
 
 ## Missing Core Operators:
 - [x] Select
@@ -36,8 +37,8 @@ Blazingly fast, fully Burst compatible Unity LINQ library. Utilizes ILPostProces
 - [ ] Single
 - [ ] SingleOrDefault
 - [ ] DefaultIfEmpty
-- [ ] Cast
-- [ ] OfType
+- [ ] Cast                // Impossible in Unmanaged C#
+- [ ] OfType              // Impossible in Unmanaged C#
 - [ ] Distinct
 - [ ] DistinctBy
 - [ ] Union
