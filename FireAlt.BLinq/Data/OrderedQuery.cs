@@ -20,6 +20,11 @@ namespace FireAlt.BLinq
             _comparer = comparer;
         }
 
+        /// <summary>
+        /// Adds a secondary ascending ordering to the query.
+        /// </summary>
+        /// <param name="comparer">Comparer used for the secondary ordering.</param>
+        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
         public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>> ThenBy<TThenComparer>(TThenComparer comparer)
             where TThenComparer : unmanaged, IComparer<T>
         {
@@ -28,6 +33,11 @@ namespace FireAlt.BLinq
                 new ThenByComparer<T, TComparer, TThenComparer>(_comparer, comparer));
         }
 
+        /// <summary>
+        /// Adds a secondary descending ordering to the query.
+        /// </summary>
+        /// <param name="comparer">Comparer used for the secondary ordering.</param>
+        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
         public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, ReverseComparer<T, TThenComparer>>> ThenByDescending<TThenComparer>(TThenComparer comparer)
             where TThenComparer : unmanaged, IComparer<T>
         {

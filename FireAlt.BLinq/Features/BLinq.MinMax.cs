@@ -4,27 +4,15 @@ using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
-    public static partial class BLinqExtensions
-    {
-        public static T Min<T, TEnumerator>(this Query<TEnumerator, T> source)
-            where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
-        {
-            return source.Min(new AscendingComparer<T>());
-        }
-
-        public static T Max<T, TEnumerator>(this Query<TEnumerator, T> source)
-            where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
-        {
-            return source.Max(new AscendingComparer<T>());
-        }
-    }
-
     public partial struct Query<TEnumerator, T>
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
+        /// <summary>
+        /// Returns the smallest element in the query according to <paramref name="comparer"/>.
+        /// </summary>
+        /// <param name="comparer">The comparer used to order values.</param>
+        /// <returns>The minimum element in the sequence.</returns>
         public T Min<TComparer>(TComparer comparer)
             where TComparer : unmanaged, IComparer<T>
         {
@@ -49,6 +37,11 @@ namespace FireAlt.BLinq
             return best;
         }
 
+        /// <summary>
+        /// Returns the largest element in the query according to <paramref name="comparer"/>.
+        /// </summary>
+        /// <param name="comparer">The comparer used to order values.</param>
+        /// <returns>The maximum element in the sequence.</returns>
         public T Max<TComparer>(TComparer comparer)
             where TComparer : unmanaged, IComparer<T>
         {
@@ -71,6 +64,33 @@ namespace FireAlt.BLinq
 
             enumerator.Dispose();
             return best;
+        }
+    }
+    
+    public static partial class BLinqExtensions
+    {
+        /// <summary>
+        /// Returns the smallest element in the query according to the default comparer.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <returns>The minimum element in the sequence.</returns>
+        public static T Min<TEnumerator, T>(this Query<TEnumerator, T> source)
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where T : unmanaged, IComparable<T>
+        {
+            return source.Min(new AscendingComparer<T>());
+        }
+
+        /// <summary>
+        /// Returns the largest element in the query according to the default comparer.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <returns>The maximum element in the sequence.</returns>
+        public static T Max<TEnumerator, T>(this Query<TEnumerator, T> source)
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where T : unmanaged, IComparable<T>
+        {
+            return source.Max(new AscendingComparer<T>());
         }
     }
 }

@@ -9,6 +9,13 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
+        /// <summary>
+        /// Filters the query so that only elements matching <paramref name="predicate"/> are yielded.
+        /// </summary>
+        /// <param name="predicate">The predicate used to decide whether each element should be kept.</param>
+        /// <returns>
+        /// A new query that streams only the elements for which <paramref name="predicate"/> returns <c>true</c>.
+        /// </returns>
         public Query<Where<TEnumerator, T, TPredicate>, T> Where<TPredicate>(TPredicate predicate)
             where TPredicate : unmanaged, IPredicate<T>
         {
@@ -19,6 +26,14 @@ namespace FireAlt.BLinq
 
     public static partial class BLinqExtensions
     {
+        /// <summary>
+        /// Filters the query so that only elements matching <paramref name="predicate"/> are yielded.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="predicate">The predicate used to decide whether each element should be kept.</param>
+        /// <returns>
+        /// A new query that streams only the elements for which <paramref name="predicate"/> returns <c>true</c>.
+        /// </returns>
         public static Query<Where<TEnumerator, T, TPredicate>, T> Where<T, TEnumerator, TPredicate>(
             this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
@@ -28,6 +43,14 @@ namespace FireAlt.BLinq
             return source.Where(predicate);
         }
         
+        /// <summary>
+        /// Filters the query so that only elements matching <paramref name="predicate"/> are yielded.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="predicate">The predicate used to decide whether each element should be kept.</param>
+        /// <returns>
+        /// A new query that streams only the elements for which <paramref name="predicate"/> returns <c>true</c>.
+        /// </returns>
         [NativeDelegateMethod(typeof(IPredicate<>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<Where<TEnumerator, T>, T> Where<T, TEnumerator>(

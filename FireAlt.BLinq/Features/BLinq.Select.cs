@@ -9,6 +9,13 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
+        /// <summary>
+        /// Projects each element of the query into a new form using <paramref name="selector"/>.
+        /// </summary>
+        /// <param name="selector">The transformation applied to every element.</param>
+        /// <returns>
+        /// A new query that yields the projected values in the same order as the source elements.
+        /// </returns>
         public Query<Select<TEnumerator, T, T, TSelector>, T> Select<TSelector>(TSelector selector)
             where TSelector : unmanaged, ISelector<T, T>
         {
@@ -16,6 +23,13 @@ namespace FireAlt.BLinq
                 new Select<TEnumerator, T, T, TSelector>(GetEnumerator(), selector));
         }
 
+        /// <summary>
+        /// Projects each element of the query into a new form using <paramref name="selector"/>.
+        /// </summary>
+        /// <param name="selector">The transformation applied to every element.</param>
+        /// <returns>
+        /// A new query that yields the projected values in the same order as the source elements.
+        /// </returns>
         public Query<Select<TEnumerator, T, TResult, TSelector>, TResult> Select<TResult, TSelector>(TSelector selector)
             where TResult : unmanaged
             where TSelector : unmanaged, ISelector<T, TResult>
@@ -27,6 +41,14 @@ namespace FireAlt.BLinq
 
     public static partial class BLinqExtensions
     {
+        /// <summary>
+        /// Projects each element of the query into a new form using <paramref name="selector"/>.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">The transformation applied to every element.</param>
+        /// <returns>
+        /// A new query that yields the projected values in the same order as the source elements.
+        /// </returns>
         public static Query<Select<TEnumerator, T, TResult, TSelector>, TResult> Select<T, TResult, TEnumerator, TSelector>(
             this Query<TEnumerator, T> source, TSelector selector)
             where T : unmanaged
@@ -36,7 +58,15 @@ namespace FireAlt.BLinq
         {
             return source.Select<TResult, TSelector>(selector);
         }
-        
+
+        /// <summary>
+        /// Projects each element of the query into a new form using <paramref name="selector"/>.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">The transformation applied to every element.</param>
+        /// <returns>
+        /// A new query that yields the projected values in the same order as the source elements.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<Select<TEnumerator, T, TResult>, TResult> Select<T, TResult, TEnumerator>(

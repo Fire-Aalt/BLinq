@@ -9,6 +9,14 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <returns>
+        /// A new query whose elements are groups keyed by the selected value, preserving the order in which
+        /// each key first appears and the order of elements inside each group.
+        /// </returns>
         public Query<LookupEnumerator<TKey, T>, Group<TKey, T>> GroupBy<TKey, TKeySelector>(
             TKeySelector keySelector)
             where TKey : unmanaged, IEquatable<TKey>
@@ -20,6 +28,15 @@ namespace FireAlt.BLinq
                 Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="allocator">Allocator used for the lookup storage.</param>
+        /// <returns>
+        /// A lookup containing groups keyed by the selected value, preserving the order in which each key first
+        /// appears and the order of elements inside each group.
+        /// </returns>
         public Lookup<TKey, T> ToLookup<TKey, TKeySelector>(
             TKeySelector keySelector,
             AllocatorManager.AllocatorHandle allocator)
@@ -35,6 +52,15 @@ namespace FireAlt.BLinq
     
     public static partial class BLinqExtensions
     {
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <returns>
+        /// A new query whose elements are groups keyed by the selected value, preserving the order in which
+        /// each key first appears and the order of elements inside each group.
+        /// </returns>
         public static Query<LookupEnumerator<TKey, T>, Group<TKey, T>> GroupBy<T, TKey, TEnumerator, TKeySelector>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector)
@@ -49,6 +75,15 @@ namespace FireAlt.BLinq
                 Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <returns>
+        /// A new query whose elements are groups keyed by the selected value, preserving the order in which
+        /// each key first appears and the order of elements inside each group.
+        /// </returns>
         public static Query<LookupEnumerator<T, T>, Group<T, T>> GroupBy<T, TEnumerator, TKeySelector>(this Query<TEnumerator, T> source,
             TKeySelector keySelector)
             where T : unmanaged, IEquatable<T>
@@ -61,6 +96,16 @@ namespace FireAlt.BLinq
                 Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="allocator">Allocator used for the lookup storage.</param>
+        /// <returns>
+        /// A lookup containing groups keyed by the selected value, preserving the order in which each key first
+        /// appears and the order of elements inside each group.
+        /// </returns>
         public static Lookup<TKey, T> ToLookup<T, TKey, TEnumerator, TKeySelector>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector,
@@ -76,6 +121,16 @@ namespace FireAlt.BLinq
                 allocator);
         }
 
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="allocator">Allocator used for the lookup storage.</param>
+        /// <returns>
+        /// A lookup containing groups keyed by the selected value, preserving the order in which each key first
+        /// appears and the order of elements inside each group.
+        /// </returns>
         public static Lookup<T, T> ToLookup<T, TEnumerator, TKeySelector>(this Query<TEnumerator, T> source,
             TKeySelector keySelector,
             AllocatorManager.AllocatorHandle allocator)
@@ -89,6 +144,15 @@ namespace FireAlt.BLinq
                 allocator);
         }
         
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <returns>
+        /// A new query whose elements are groups keyed by the selected value, preserving the order in which
+        /// each key first appears and the order of elements inside each group.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<LookupEnumerator<TKey, T>, Group<TKey, T>> GroupBy<T, TKey, TEnumerator>(
@@ -100,6 +164,16 @@ namespace FireAlt.BLinq
             return ThrowCodeGen<Query<LookupEnumerator<TKey, T>, Group<TKey, T>>>();
         }
         
+        /// <summary>
+        /// Groups the elements of the query by key and returns the grouped results.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="allocator">Allocator used for the lookup storage.</param>
+        /// <returns>
+        /// A lookup containing groups keyed by the selected value, preserving the order in which each key first
+        /// appears and the order of elements inside each group.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Lookup<TKey, T> ToLookup<T, TKey, TEnumerator>(

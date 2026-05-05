@@ -6,6 +6,11 @@ namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
+        /// <summary>
+        /// Returns the sum of the query using the default accumulator.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <returns>The sum of all elements.</returns>
         public static T Sum<T, TEnumerator, TAccumulator>(this Query<TEnumerator, T> source)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -14,6 +19,12 @@ namespace FireAlt.BLinq
             return BLinqUtilities.Sum<T, TEnumerator, TAccumulator>(source.GetEnumerator(), default);
         }
 
+        /// <summary>
+        /// Returns the sum of the projected values using the default accumulator.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">Selector used to project each element before summing.</param>
+        /// <returns>The sum of the projected values.</returns>
         public static TResult Sum<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
             this Query<TEnumerator, TSource> source, TSelector selector)
             where TSource : unmanaged
@@ -28,6 +39,11 @@ namespace FireAlt.BLinq
                 default);
         }
 
+        /// <summary>
+        /// Returns the average of the query using the default accumulator.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <returns>The average of all elements.</returns>
         public static T Average<T, TEnumerator, TAccumulator>(this Query<TEnumerator, T> source)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
@@ -36,6 +52,12 @@ namespace FireAlt.BLinq
             return BLinqUtilities.Average<T, TEnumerator, TAccumulator>(source.GetEnumerator(), default);
         }
 
+        /// <summary>
+        /// Returns the average of the projected values using the default accumulator.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">Selector used to project each element before averaging.</param>
+        /// <returns>The average of the projected values.</returns>
         public static TResult Average<TSource, TResult, TEnumerator, TSelector, TAccumulator>(
             this Query<TEnumerator, TSource> source, TSelector selector)
             where TSource : unmanaged
@@ -50,6 +72,13 @@ namespace FireAlt.BLinq
                 default);
         }
         
+        /// <summary>
+        /// Returns the sum of the projected values using a managed selector.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">Selector used to project each element before summing.</param>
+        /// <param name="_">Unused default parameter used to guide overload resolution.</param>
+        /// <returns>The sum of the projected values.</returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static TResult Sum<TSource, TResult, TEnumerator>(
@@ -61,6 +90,13 @@ namespace FireAlt.BLinq
             return ThrowCodeGen<TResult>();
         }
 
+        /// <summary>
+        /// Returns the average of the projected values using a managed selector.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">Selector used to project each element before averaging.</param>
+        /// <param name="_">Unused default parameter used to guide overload resolution.</param>
+        /// <returns>The average of the projected values.</returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static TResult Average<TSource, TResult, TEnumerator>(

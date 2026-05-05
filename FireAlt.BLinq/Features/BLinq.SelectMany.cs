@@ -9,20 +9,35 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
-        public Query<SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult> SelectMany<TResult, TInnerEnumerator, TSelector>(
+        /// <summary>
+        /// Projects each source element to an inner sequence and flattens the results into one query.
+        /// </summary>
+        /// <param name="selector">The function used to produce the inner enumerator for each source element.</param>
+        /// <returns>
+        /// A new query that yields all inner elements in source order, preserving the order within each inner sequence.
+        /// </returns>
+        public Query<SelectMany<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult> SelectMany<TResult, TInnerEnumerator, TSelector>(
             TSelector selector)
             where TResult : unmanaged
             where TInnerEnumerator : unmanaged, IEnumerator<TResult>
             where TSelector : unmanaged, ISelector<T, TInnerEnumerator>
         {
-            return new Query<SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult>(
-                new SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult, TSelector>(GetEnumerator(), selector));
+            return new Query<SelectMany<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult>(
+                new SelectMany<TEnumerator, TInnerEnumerator, T, TResult, TSelector>(GetEnumerator(), selector));
         }
     }
 
     public static partial class BLinqExtensions
     {
-        public static Query<SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult> SelectMany<T, TResult, TEnumerator, TInnerEnumerator, TSelector>(
+        /// <summary>
+        /// Projects each source element to an inner sequence and flattens the results into one query.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">The function used to produce the inner enumerator for each source element.</param>
+        /// <returns>
+        /// A new query that yields all inner elements in source order, preserving the order within each inner sequence.
+        /// </returns>
+        public static Query<SelectMany<TEnumerator, TInnerEnumerator, T, TResult, TSelector>, TResult> SelectMany<T, TResult, TEnumerator, TInnerEnumerator, TSelector>(
             this Query<TEnumerator, T> source,
             TSelector selector)
             where T : unmanaged
@@ -34,9 +49,17 @@ namespace FireAlt.BLinq
             return source.SelectMany<TResult, TInnerEnumerator, TSelector>(selector);
         }
 
+        /// <summary>
+        /// Projects each source element to an inner sequence and flattens the results into one query.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="selector">The function used to produce the inner enumerator for each source element.</param>
+        /// <returns>
+        /// A new query that yields all inner elements in source order, preserving the order within each inner sequence.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Query<SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult>, TResult> SelectMany<T, TResult, TEnumerator, TInnerEnumerator>(
+        public static Query<SelectMany<TEnumerator, TInnerEnumerator, T, TResult>, TResult> SelectMany<T, TResult, TEnumerator, TInnerEnumerator>(
             this Query<TEnumerator, T> source,
             Func<T, TInnerEnumerator> selector)
             where T : unmanaged
@@ -44,11 +67,11 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TInnerEnumerator : unmanaged, IEnumerator<TResult>
         {
-            return ThrowCodeGen<Query<SelectManyQuery<TEnumerator, TInnerEnumerator, T, TResult>, TResult>>();
+            return ThrowCodeGen<Query<SelectMany<TEnumerator, TInnerEnumerator, T, TResult>, TResult>>();
         }
     }
 
-    public struct SelectManyQuery<TSourceEnumerator, TInnerEnumerator, TSource, TResult, TSelector> : IEnumerator<TResult>
+    public struct SelectMany<TSourceEnumerator, TInnerEnumerator, TSource, TResult, TSelector> : IEnumerator<TResult>
         where TSourceEnumerator : unmanaged, IEnumerator<TSource>
         where TInnerEnumerator : unmanaged, IEnumerator<TResult>
         where TSource : unmanaged
@@ -61,7 +84,7 @@ namespace FireAlt.BLinq
         private TResult _current;
         private bool _hasInner;
 
-        public SelectManyQuery(TSourceEnumerator source, TSelector selector)
+        public SelectMany(TSourceEnumerator source, TSelector selector)
         {
             _source = source;
             _inner = default;
@@ -76,7 +99,7 @@ namespace FireAlt.BLinq
             get => _current;
         }
 
-        object System.Collections.IEnumerator.Current => Current;
+        object IEnumerator.Current => Current;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
@@ -130,7 +153,7 @@ namespace FireAlt.BLinq
         }
     }
 
-    public struct SelectManyQuery<TSourceEnumerator, TInnerEnumerator, TSource, TResult> : IEnumerator<TResult>
+    public struct SelectMany<TSourceEnumerator, TInnerEnumerator, TSource, TResult> : IEnumerator<TResult>
         where TSourceEnumerator : unmanaged, IEnumerator<TSource>
         where TInnerEnumerator : unmanaged, IEnumerator<TResult>
         where TSource : unmanaged

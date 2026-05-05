@@ -9,6 +9,15 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public Query<NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator, KeyValuePair<TAccumulate, TAccumulate>>
             AggregateBy<TAccumulate, TKeySelector, TAggregator>(
                 TKeySelector keySelector,
@@ -22,6 +31,15 @@ namespace FireAlt.BLinq
                 GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TKey, TAccumulate, TKeySelector, TAggregator>(
                 TKeySelector keySelector,
@@ -36,6 +54,15 @@ namespace FireAlt.BLinq
                 GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a per-key seed selector.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seedSelector">The function used to compute the seed for a key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TKey, TAccumulate, TKeySelector, TSeedSelector, TAggregator>(
                 TKeySelector keySelector,
@@ -51,6 +78,16 @@ namespace FireAlt.BLinq
                 GetEnumerator(), keySelector, seedSelector, aggregator, Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public NativeList<KeyValuePair<TAccumulate, TAccumulate>> ToAggregatedBy<TAccumulate, TKeySelector, TAggregator>(
             TKeySelector keySelector,
             TAccumulate seed,
@@ -64,6 +101,16 @@ namespace FireAlt.BLinq
                 GetEnumerator(), keySelector, seed, aggregator, allocator);
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public NativeList<KeyValuePair<TKey, TAccumulate>> ToAggregatedBy<TKey, TAccumulate, TKeySelector, TAggregator>(
             TKeySelector keySelector,
             TAccumulate seed,
@@ -78,6 +125,16 @@ namespace FireAlt.BLinq
                 GetEnumerator(), keySelector, seed, aggregator, allocator);
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a per-key seed selector.
+        /// </summary>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seedSelector">The function used to compute the seed for a key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public NativeList<KeyValuePair<TKey, TAccumulate>> ToAggregatedBy<TKey, TAccumulate, TKeySelector, TSeedSelector, TAggregator>(
             TKeySelector keySelector,
             TSeedSelector seedSelector,
@@ -96,6 +153,16 @@ namespace FireAlt.BLinq
     
     public static partial class BLinqExtensions
     {
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public static Query<NativeArray<KeyValuePair<TAccumulate, TAccumulate>>.Enumerator, KeyValuePair<TAccumulate, TAccumulate>>
             AggregateBy<TSource, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
                 this Query<TEnumerator, TSource> source,
@@ -112,6 +179,16 @@ namespace FireAlt.BLinq
                 source.GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
                 this Query<TEnumerator, TSource> source,
@@ -129,6 +206,16 @@ namespace FireAlt.BLinq
                 source.GetEnumerator(), keySelector, seed, aggregator, Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a per-key seed selector.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seedSelector">The function used to compute the seed for a key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
             AggregateBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
                 this Query<TEnumerator, TSource> source,
@@ -147,6 +234,17 @@ namespace FireAlt.BLinq
                 source.GetEnumerator(), keySelector, seedSelector, aggregator, Allocator.Temp).AsQuery();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public static NativeList<KeyValuePair<TAccumulate, TAccumulate>>
             ToAggregatedBy<TSource, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
                 this Query<TEnumerator, TSource> source,
@@ -164,6 +262,17 @@ namespace FireAlt.BLinq
                 source.GetEnumerator(), keySelector, seed, aggregator, allocator);
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public static NativeList<KeyValuePair<TKey, TAccumulate>>
             ToAggregatedBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TAggregator>(
                 this Query<TEnumerator, TSource> source,
@@ -182,6 +291,17 @@ namespace FireAlt.BLinq
                 source.GetEnumerator(), keySelector, seed, aggregator, allocator);
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a per-key seed selector.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seedSelector">The function used to compute the seed for a key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         public static NativeList<KeyValuePair<TKey, TAccumulate>>
             ToAggregatedBy<TSource, TKey, TAccumulate, TEnumerator, TKeySelector, TSeedSelector, TAggregator>(
                 this Query<TEnumerator, TSource> source,
@@ -201,6 +321,16 @@ namespace FireAlt.BLinq
                 source.GetEnumerator(), keySelector, seedSelector, aggregator, allocator);
         }
         
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>), typeof(IAggregator<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
@@ -217,6 +347,16 @@ namespace FireAlt.BLinq
             return ThrowCodeGen<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a per-key seed selector.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seedSelector">The function used to compute the seed for a key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <returns>
+        /// A query of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>), typeof(IAggregator<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>
@@ -233,6 +373,17 @@ namespace FireAlt.BLinq
             return ThrowCodeGen<Query<NativeArray<KeyValuePair<TKey, TAccumulate>>.Enumerator, KeyValuePair<TKey, TAccumulate>>>();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a shared seed value for each key.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seed">The initial aggregate value for each new key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>), typeof(IAggregator<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static NativeList<KeyValuePair<TKey, TAccumulate>>
@@ -250,6 +401,17 @@ namespace FireAlt.BLinq
             return ThrowCodeGen<NativeList<KeyValuePair<TKey, TAccumulate>>>();
         }
 
+        /// <summary>
+        /// Aggregates elements by key using a per-key seed selector.
+        /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">The function used to compute a key for each element.</param>
+        /// <param name="seedSelector">The function used to compute the seed for a key.</param>
+        /// <param name="aggregator">The function used to combine the current aggregate with each element.</param>
+        /// <param name="allocator">Allocator used for the result storage.</param>
+        /// <returns>
+        /// A list of key and aggregate pairs. Keys appear in the order they are first encountered.
+        /// </returns>
         [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>), typeof(IAggregator<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static NativeList<KeyValuePair<TKey, TAccumulate>>

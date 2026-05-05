@@ -2,13 +2,28 @@
 Blazingly fast, fully Burst compatible Unity LINQ library. Utilizes ILPostProcessors to allow LINQ syntax in Bursted methods.
 
 ## TO-DO:
-* Materialization should be streamlined.
-* Add documentation to all methods.
-* Optimize ILPP.
 * Convert source generators to use T4 text.
-* Create a SKILL.md to how to create a "lift" a feature
+* Add documentation to all methods. (only generated Sum/Average remain).
+* Materialization should be streamlined.
+* Optimize ILPP.
+* Create a SKILL.md to how to create a "lift" a feature.
 
 ## Missing Core Operators:
+- [x] Select
+- [x] SelectMany
+- [x] Where
+- [x] AggregateBy
+- [x] Contains
+- [x] First
+- [x] FirstOrDefault
+- [x] GroupBy
+- [x] Min
+- [x] Max
+- [x] OrderBy
+- [x] ThenBy
+- [x] Sum
+- [x] Average
+- [x] SequenceEqual
 - [ ] Any
 - [ ] All
 - [ ] Count
