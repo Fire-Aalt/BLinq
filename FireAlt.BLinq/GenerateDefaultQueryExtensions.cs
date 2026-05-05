@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 [assembly: GenerateQueryExtensionFor(typeof(NativeArray<>), typeof(NativeArray<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(NativeArray<>.ReadOnly), typeof(NativeArray<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeArray<>.ReadOnly), typeof(NativeArray<>.ReadOnly.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeSlice<>), typeof(NativeSlice<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeList<>), typeof(NativeArray<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>), typeof(UnsafeList<>.Enumerator))]
