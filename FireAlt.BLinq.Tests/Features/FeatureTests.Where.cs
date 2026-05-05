@@ -26,7 +26,7 @@ namespace FireAlt.BLinq.Tests
         {
             var input = new NativeArray<int>(new[] { 0, 1, 2, 3 }, Allocator.Temp);
             var expected = input.Where(value => value > 1).Sum();
-
+            
             var sum = 0;
             foreach (var value in input.AsQuery().Where(value => value > 1))
             {

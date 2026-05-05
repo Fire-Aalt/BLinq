@@ -62,10 +62,7 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [ ] MaxBy
 
 ## Missing Overloads:
-- [ ] Select/Where/SelectMany indexed and result-selector overloads
-- [ ] OrderBy/ThenBy key-selector overloads
-- [ ] GroupBy/ToLookup overloads with element selectors, result selectors, and comparers
-- [ ] Contains comparer overloads
+- [ ] ThenBy key-selector overloads
 
 ## Missing Materializers:
 - [ ] ToManagedDictionary
