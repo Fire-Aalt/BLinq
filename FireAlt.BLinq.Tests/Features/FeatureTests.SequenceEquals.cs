@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -13,9 +14,11 @@ namespace FireAlt.BLinq.Tests
             var left = new NativeArray<int>(new[] { 1, 2, 3 }, Allocator.Temp);
             var right = new NativeArray<int>(new[] { 1, 2, 3 }, Allocator.Temp);
             var different = new NativeArray<int>(new[] { 1, 3, 2 }, Allocator.Temp);
+            var expectedEqual = left.SequenceEqual(right);
+            var expectedDifferent = left.SequenceEqual(different);
 
-            Assert.That(left.AsQuery().SequenceEquals(right.AsQuery()), Is.True);
-            Assert.That(left.AsQuery().SequenceEquals(different.AsQuery()), Is.False);
+            Assert.That(left.AsQuery().SequenceEquals(right.AsQuery()), Is.EqualTo(expectedEqual));
+            Assert.That(left.AsQuery().SequenceEquals(different.AsQuery()), Is.EqualTo(expectedDifferent));
         }
     }
 }

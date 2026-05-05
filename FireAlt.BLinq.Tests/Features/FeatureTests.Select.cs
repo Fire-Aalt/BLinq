@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -11,15 +12,13 @@ namespace FireAlt.BLinq.Tests
         public void Select_ProjectsValues()
         {
             var input = new NativeArray<int>(new[] { 1, 2, 3 }, Allocator.Temp);
+            var expected = input.Select(value => value * 2).ToArray();
             var mapped = input
                 .AsQuery()
                 .Select(value => value * 2)
                 .ToNativeList(Allocator.Temp);
 
-            Assert.That(mapped.Length, Is.EqualTo(3));
-            Assert.That(mapped[0], Is.EqualTo(2));
-            Assert.That(mapped[1], Is.EqualTo(4));
-            Assert.That(mapped[2], Is.EqualTo(6));
+            AssertSequence(mapped.AsArray(), expected);
         }
     }
 }

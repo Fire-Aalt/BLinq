@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -11,25 +12,29 @@ namespace FireAlt.BLinq.Tests
         public void First_ReturnsFirstElement()
         {
             var input = new NativeArray<int>(new[] { 9, 10 }, Allocator.Temp);
+            var expected = input.First();
 
-            Assert.That(input.AsQuery().First(), Is.EqualTo(9));
+            Assert.That(input.AsQuery().First(), Is.EqualTo(expected));
         }
 
         [Test]
         public void FirstOrDefault_ReturnsDefaultForEmptySource()
         {
             var input = new NativeArray<int>(0, Allocator.Temp);
+            var expected = input.FirstOrDefault();
 
-            Assert.That(input.AsQuery().FirstOrDefault(), Is.EqualTo(0));
+            Assert.That(input.AsQuery().FirstOrDefault(), Is.EqualTo(expected));
         }
 
         [Test]
         public void FirstOrDefault_WithPredicate_ReturnsFirstMatch()
         {
             var input = new NativeArray<int>(new[] { 1, 2, 3 }, Allocator.Temp);
+            var expectedMatch = input.FirstOrDefault(value => value > 1);
+            var expectedNoMatch = input.FirstOrDefault(value => value > 10);
 
-            Assert.That(input.AsQuery().FirstOrDefault(value => value > 1), Is.EqualTo(2));
-            Assert.That(input.AsQuery().FirstOrDefault(value => value > 10), Is.EqualTo(0));
+            Assert.That(input.AsQuery().FirstOrDefault(value => value > 1), Is.EqualTo(expectedMatch));
+            Assert.That(input.AsQuery().FirstOrDefault(value => value > 10), Is.EqualTo(expectedNoMatch));
         }
     }
 }

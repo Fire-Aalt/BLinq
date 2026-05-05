@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -11,20 +12,20 @@ namespace FireAlt.BLinq.Tests
         public void Where_ToNativeList_FiltersValues()
         {
             var input = new NativeArray<int>(new[] { 0, 1, 2, 3 }, Allocator.Temp);
+            var expected = input.Where(value => value > 1).ToArray();
             var filtered = input
                 .AsQuery()
                 .Where(value => value > 1)
                 .ToNativeList(Allocator.Temp);
 
-            Assert.That(filtered.Length, Is.EqualTo(2));
-            Assert.That(filtered[0], Is.EqualTo(2));
-            Assert.That(filtered[1], Is.EqualTo(3));
+            AssertSequence(filtered.AsArray(), expected);
         }
 
         [Test]
         public void Where_EnumeratesFilteredValuesInOrder()
         {
             var input = new NativeArray<int>(new[] { 0, 1, 2, 3 }, Allocator.Temp);
+            var expected = input.Where(value => value > 1).Sum();
 
             var sum = 0;
             foreach (var value in input.AsQuery().Where(value => value > 1))
@@ -32,7 +33,7 @@ namespace FireAlt.BLinq.Tests
                 sum += value;
             }
 
-            Assert.That(sum, Is.EqualTo(5));
+            Assert.That(sum, Is.EqualTo(expected));
         }
     }
 }

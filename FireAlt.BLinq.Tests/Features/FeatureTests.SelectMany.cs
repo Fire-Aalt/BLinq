@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -11,6 +12,9 @@ namespace FireAlt.BLinq.Tests
         public void SelectMany_FlattensEnumerators()
         {
             var input = new NativeArray<int>(new[] { 1, 3 }, Allocator.Temp);
+            var expected = input
+                .SelectMany(value => new[] { value, value + 10 })
+                .ToArray();
             var flattened = input
                 .AsQuery()
                 .SelectMany<int, int, NativeArray<int>.Enumerator, FixedList32Bytes<int>.Enumerator>(value =>
@@ -22,11 +26,7 @@ namespace FireAlt.BLinq.Tests
                 })
                 .ToNativeList(Allocator.Temp);
 
-            Assert.That(flattened.Length, Is.EqualTo(4));
-            Assert.That(flattened[0], Is.EqualTo(1));
-            Assert.That(flattened[1], Is.EqualTo(11));
-            Assert.That(flattened[2], Is.EqualTo(3));
-            Assert.That(flattened[3], Is.EqualTo(13));
+            AssertSequence(flattened.AsArray(), expected);
         }
     }
 }

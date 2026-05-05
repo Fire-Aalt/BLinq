@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -20,6 +22,10 @@ namespace FireAlt.BLinq.Tests
                     new GroupRecord { Group = 3, Value = 50 },
                 },
                 Allocator.Temp);
+            var expected = input
+                .GroupBy(value => value.Group)
+                .Select(group => new KeyValuePair<int, int>(group.Key, group.Sum(value => value.Value)))
+                .ToArray();
 
             var aggregates = input
                 .AsQuery()
@@ -29,13 +35,7 @@ namespace FireAlt.BLinq.Tests
                     (aggregate, value) => aggregate + value.Value)
                 .ToNativeList(Allocator.Temp);
 
-            Assert.That(aggregates.Length, Is.EqualTo(3));
-            Assert.That(aggregates[0].Key, Is.EqualTo(2));
-            Assert.That(aggregates[0].Value, Is.EqualTo(40));
-            Assert.That(aggregates[1].Key, Is.EqualTo(1));
-            Assert.That(aggregates[1].Value, Is.EqualTo(60));
-            Assert.That(aggregates[2].Key, Is.EqualTo(3));
-            Assert.That(aggregates[2].Value, Is.EqualTo(50));
+            AssertSequence(aggregates.AsArray(), expected);
         }
 
         [Test]
@@ -49,7 +49,11 @@ namespace FireAlt.BLinq.Tests
                     new GroupRecord { Group = 2, Value = 3 },
                 },
                 Allocator.Temp);
-
+            var expected = input
+                .GroupBy(value => value.Group)
+                .Select(group => new KeyValuePair<int, int>(group.Key, (group.Key * 10) + group.Sum(value => value.Value)))
+                .ToArray();
+            
             var aggregates = input
                 .AsQuery()
                 .ToAggregatedBy(
@@ -58,11 +62,7 @@ namespace FireAlt.BLinq.Tests
                     (aggregate, value) => aggregate + value.Value,
                     Allocator.Temp);
 
-            Assert.That(aggregates.Length, Is.EqualTo(2));
-            Assert.That(aggregates[0].Key, Is.EqualTo(2));
-            Assert.That(aggregates[0].Value, Is.EqualTo(24));
-            Assert.That(aggregates[1].Key, Is.EqualTo(1));
-            Assert.That(aggregates[1].Value, Is.EqualTo(14));
+            AssertSequence(aggregates.AsArray(), expected);
         }
 
         [Test]
@@ -73,6 +73,10 @@ namespace FireAlt.BLinq.Tests
             {
                 input[i] = i;
             }
+            var expected = input
+                .GroupBy(value => new BadHashKey { Value = value % 80 })
+                .Select(group => new KeyValuePair<BadHashKey, int>(group.Key, group.Sum(value => value)))
+                .ToArray();
 
             var aggregates = input
                 .AsQuery()
@@ -82,13 +86,7 @@ namespace FireAlt.BLinq.Tests
                     (aggregate, value) => aggregate + value,
                     Allocator.Temp);
 
-            Assert.That(aggregates.Length, Is.EqualTo(80));
-
-            for (var i = 0; i < aggregates.Length; i++)
-            {
-                Assert.That(aggregates[i].Key.Value, Is.EqualTo(i));
-                Assert.That(aggregates[i].Value, Is.EqualTo(i + i + 80));
-            }
+            AssertSequence(aggregates.AsArray(), expected);
         }
     }
 }

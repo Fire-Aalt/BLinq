@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -20,33 +21,20 @@ namespace FireAlt.BLinq.Tests
                     new GroupRecord { Group = 3, Value = 50 },
                 },
                 Allocator.Temp);
+            var expected = input.GroupBy(value => value.Group).ToArray();
 
             var grouped = input
                 .AsQuery()
                 .ToLookup(value => value.Group, Allocator.Temp);
 
-            Assert.That(grouped.GroupCount, Is.EqualTo(3));
-            Assert.That(grouped.ValueCount, Is.EqualTo(5));
-
-            Assert.That(grouped[0].Key, Is.EqualTo(2));
-            Assert.That(grouped[0].Length, Is.EqualTo(2));
-            Assert.That(grouped[0][0].Value, Is.EqualTo(10));
-            Assert.That(grouped[0][1].Value, Is.EqualTo(30));
-
-            Assert.That(grouped[1].Key, Is.EqualTo(1));
-            Assert.That(grouped[1].Length, Is.EqualTo(2));
-            Assert.That(grouped[1][0].Value, Is.EqualTo(20));
-            Assert.That(grouped[1][1].Value, Is.EqualTo(40));
-
-            Assert.That(grouped[2].Key, Is.EqualTo(3));
-            Assert.That(grouped[2].Length, Is.EqualTo(1));
-            Assert.That(grouped[2][0].Value, Is.EqualTo(50));
+            AssertLookup(grouped, expected);
         }
 
         [Test]
         public void GroupBy_GroupsCanBeEnumeratedAndMaterialized()
         {
             var input = new NativeArray<int>(new[] { 1, 2, 3, 4, 5 }, Allocator.Temp);
+            var expected = input.GroupBy(value => value % 2).ToArray();
             var grouped = input
                 .AsQuery()
                 .ToLookup(value => value % 2, Allocator.Temp);
@@ -69,11 +57,13 @@ namespace FireAlt.BLinq.Tests
                 }
             }
 
-            Assert.That(oddSum, Is.EqualTo(9));
-            Assert.That(even.Length, Is.EqualTo(2));
-            Assert.That(even[0], Is.EqualTo(2));
-            Assert.That(even[1], Is.EqualTo(4));
-            Assert.That(grouped.AsQuery().Select(group => group.Length).Sum(), Is.EqualTo(5));
+            var expectedOddSum = expected.Single(group => group.Key == 1).Sum();
+            var expectedEven = expected.Single(group => group.Key == 0).ToArray();
+            var expectedValueCount = expected.Sum(group => group.Count());
+
+            Assert.That(oddSum, Is.EqualTo(expectedOddSum));
+            AssertSequence(even.AsArray(), expectedEven);
+            Assert.That(grouped.ValueCount, Is.EqualTo(expectedValueCount));
         }
 
         [Test]
@@ -84,21 +74,13 @@ namespace FireAlt.BLinq.Tests
             {
                 input[i] = i;
             }
+            var expected = input.GroupBy(value => new BadHashKey { Value = value % 80 }).ToArray();
 
             var grouped = input
                 .AsQuery()
                 .ToLookup(value => new BadHashKey { Value = value % 80 }, Allocator.Temp);
 
-            Assert.That(grouped.GroupCount, Is.EqualTo(80));
-            Assert.That(grouped.ValueCount, Is.EqualTo(160));
-
-            for (var i = 0; i < grouped.GroupCount; i++)
-            {
-                Assert.That(grouped[i].Key.Value, Is.EqualTo(i));
-                Assert.That(grouped[i].Length, Is.EqualTo(2));
-                Assert.That(grouped[i][0], Is.EqualTo(i));
-                Assert.That(grouped[i][1], Is.EqualTo(i + 80));
-            }
+            AssertLookup(grouped, expected);
         }
 
         private struct GroupRecord

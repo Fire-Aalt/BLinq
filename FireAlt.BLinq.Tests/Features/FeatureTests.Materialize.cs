@@ -1,5 +1,10 @@
+using System.Linq;
 using NUnit.Framework;
+using FireAlt.BLinq;
+using KrasCore;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+
 // ReSharper disable Unity.BurstFunctionSignatureContainsManagedTypes
 
 namespace FireAlt.BLinq.Tests
@@ -10,41 +15,78 @@ namespace FireAlt.BLinq.Tests
         public void Materialize_ReturnsRequestedCollectionTypes()
         {
             var input = new NativeArray<int>(new[] { 0, 1, 2, 3 }, Allocator.Temp);
+            var expected = input.Select(value => value).ToArray();
             var array = input.AsQuery().ToNativeArray(Allocator.Temp);
             var unsafeArray = input.AsQuery().ToUnsafeArray(Allocator.Temp);
             var unsafeList = input.AsQuery().ToUnsafeList(Allocator.Temp);
             var managedArray = input.AsQuery().ToManagedArray();
             var managedList = input.AsQuery().ToManagedList();
 
-            Assert.That(array.Length, Is.EqualTo(4));
-            Assert.That(array[0], Is.EqualTo(0));
-            Assert.That(array[1], Is.EqualTo(1));
-            Assert.That(array[2], Is.EqualTo(2));
-            Assert.That(array[3], Is.EqualTo(3));
+            AssertSequence(array, expected);
+            AssertSequence(unsafeArray, expected);
+            AssertSequence(unsafeList, expected);
+            CollectionAssert.AreEqual(expected, managedArray);
+            CollectionAssert.AreEqual(expected, managedList);
+        }
 
-            Assert.That(unsafeArray.Length, Is.EqualTo(4));
-            Assert.That(unsafeArray[0], Is.EqualTo(0));
-            Assert.That(unsafeArray[1], Is.EqualTo(1));
-            Assert.That(unsafeArray[2], Is.EqualTo(2));
-            Assert.That(unsafeArray[3], Is.EqualTo(3));
+        private static void AssertSequence<T>(NativeArray<T> actual, T[] expected)
+            where T : unmanaged
+        {
+            Assert.That(actual.Length, Is.EqualTo(expected.Length));
 
-            Assert.That(unsafeList.Length, Is.EqualTo(4));
-            Assert.That(unsafeList[0], Is.EqualTo(0));
-            Assert.That(unsafeList[1], Is.EqualTo(1));
-            Assert.That(unsafeList[2], Is.EqualTo(2));
-            Assert.That(unsafeList[3], Is.EqualTo(3));
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.That(actual[i], Is.EqualTo(expected[i]));
+            }
+        }
 
-            Assert.That(managedArray.Length, Is.EqualTo(4));
-            Assert.That(managedArray[0], Is.EqualTo(0));
-            Assert.That(managedArray[1], Is.EqualTo(1));
-            Assert.That(managedArray[2], Is.EqualTo(2));
-            Assert.That(managedArray[3], Is.EqualTo(3));
+        private static void AssertSequence<T>(NativeList<T> actual, T[] expected)
+            where T : unmanaged
+        {
+            AssertSequence(actual.AsArray(), expected);
+        }
 
-            Assert.That(managedList.Count, Is.EqualTo(4));
-            Assert.That(managedList[0], Is.EqualTo(0));
-            Assert.That(managedList[1], Is.EqualTo(1));
-            Assert.That(managedList[2], Is.EqualTo(2));
-            Assert.That(managedList[3], Is.EqualTo(3));
+        private static void AssertSequence<T>(UnsafeArray<T> actual, T[] expected)
+            where T : unmanaged
+        {
+            Assert.That(actual.Length, Is.EqualTo(expected.Length));
+
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.That(actual[i], Is.EqualTo(expected[i]));
+            }
+        }
+
+        private static void AssertSequence<T>(UnsafeList<T> actual, T[] expected)
+            where T : unmanaged
+        {
+            Assert.That(actual.Length, Is.EqualTo(expected.Length));
+
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.That(actual[i], Is.EqualTo(expected[i]));
+            }
+        }
+
+        private static void AssertLookup<TKey, T>(Lookup<TKey, T> actual, System.Linq.IGrouping<TKey, T>[] expected)
+            where TKey : unmanaged, System.IEquatable<TKey>
+            where T : unmanaged
+        {
+            var expectedValueCount = expected.Sum(group => group.Count());
+            Assert.That(actual.GroupCount, Is.EqualTo(expected.Length));
+            Assert.That(actual.ValueCount, Is.EqualTo(expectedValueCount));
+
+            for (var i = 0; i < expected.Length; i++)
+            {
+                var expectedGroup = expected[i].ToArray();
+                Assert.That(actual[i].Key, Is.EqualTo(expected[i].Key));
+                Assert.That(actual[i].Length, Is.EqualTo(expectedGroup.Length));
+
+                for (var j = 0; j < expectedGroup.Length; j++)
+                {
+                    Assert.That(actual[i][j], Is.EqualTo(expectedGroup[j]));
+                }
+            }
         }
     }
 }

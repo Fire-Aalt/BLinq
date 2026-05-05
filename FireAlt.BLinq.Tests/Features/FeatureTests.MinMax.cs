@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 
@@ -11,9 +12,11 @@ namespace FireAlt.BLinq.Tests
         public void MinAndMax_ReturnExtremes()
         {
             var input = new NativeArray<int>(new[] { 3, 1, 2 }, Allocator.Temp);
+            var expectedMin = input.Min();
+            var expectedMax = input.Max();
 
-            Assert.That(input.AsQuery().Min(), Is.EqualTo(1));
-            Assert.That(input.AsQuery().Max(), Is.EqualTo(3));
+            Assert.That(input.AsQuery().Min(), Is.EqualTo(expectedMin));
+            Assert.That(input.AsQuery().Max(), Is.EqualTo(expectedMax));
         }
     }
 }
