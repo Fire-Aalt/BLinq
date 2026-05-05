@@ -1,18 +1,19 @@
 using FireAlt.BLinq;
-using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
-[assembly: GenerateAccumulatorFor(typeof(sbyte), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(byte), DivisorType.UInt)]
+[assembly: GenerateAccumulatorFor(typeof(sbyte), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(short), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(ushort), DivisorType.UInt)]
+[assembly: GenerateAccumulatorFor(typeof(char), DivisorType.UInt)]
 [assembly: GenerateAccumulatorFor(typeof(int), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(uint), DivisorType.UInt)]
 [assembly: GenerateAccumulatorFor(typeof(long), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(ulong), DivisorType.UInt)]
 [assembly: GenerateAccumulatorFor(typeof(float), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(double), DivisorType.Int)]
+[assembly: GenerateAccumulatorFor(typeof(decimal), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(int2), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(int3), DivisorType.Int)]
 [assembly: GenerateAccumulatorFor(typeof(int4), DivisorType.Int)]

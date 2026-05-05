@@ -1,10 +1,20 @@
+using System;
+using System.Buffers;
 using FireAlt.BLinq;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
+// System
+[assembly: GenerateQueryExtensionFor(typeof(Span<>), typeof(Span<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(ReadOnlySpan<>), typeof(ReadOnlySpan<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(ReadOnlySequence<>), typeof(ReadOnlySequence<>.Enumerator))]
+
+// UnityEngine.CoreModule
 [assembly: GenerateQueryExtensionFor(typeof(NativeArray<>), typeof(NativeArray<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeArray<>.ReadOnly), typeof(NativeArray<>.ReadOnly.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeSlice<>), typeof(NativeSlice<>.Enumerator))]
+
+// Unity.Collections
 [assembly: GenerateQueryExtensionFor(typeof(NativeList<>), typeof(NativeArray<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>), typeof(UnsafeList<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>.ReadOnly), typeof(UnsafeList<>.Enumerator))]

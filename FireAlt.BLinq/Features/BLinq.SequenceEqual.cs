@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
     public static partial class BLinqExtensions
     {
-        public static bool SequenceEquals<T, TEnumerator, TOtherEnumerator>(
+        public static bool SequenceEqual<T, TEnumerator, TOtherEnumerator>(
             this Query<TEnumerator, T> source,
             Query<TOtherEnumerator, T> other)
             where T : unmanaged, IEquatable<T>
             where TEnumerator : unmanaged, IEnumerator<T>
             where TOtherEnumerator : unmanaged, IEnumerator<T>
         {
-            return source.SequenceEquals(other.GetEnumerator(), new NativeEqualityComparer<T>());
+            return source.SequenceEqual(other.GetEnumerator(), new NativeEqualityComparer<T>());
         }
     }
 
@@ -21,7 +20,7 @@ namespace FireAlt.BLinq
         where TEnumerator : unmanaged, IEnumerator<T>
         where T : unmanaged
     {
-        public bool SequenceEquals<TOtherEnumerator, TEqualityComparer>(TOtherEnumerator other, TEqualityComparer comparer)
+        public bool SequenceEqual<TOtherEnumerator, TEqualityComparer>(TOtherEnumerator other, TEqualityComparer comparer)
             where TOtherEnumerator : unmanaged, IEnumerator<T>
             where TEqualityComparer : unmanaged, INativeEqualityComparer<T>
         {

@@ -17,8 +17,8 @@ namespace FireAlt.BLinq.Tests
             var expectedEqual = left.SequenceEqual(right);
             var expectedDifferent = left.SequenceEqual(different);
 
-            Assert.That(left.AsQuery().SequenceEquals(right.AsQuery()), Is.EqualTo(expectedEqual));
-            Assert.That(left.AsQuery().SequenceEquals(different.AsQuery()), Is.EqualTo(expectedDifferent));
+            Assert.That(left.AsQuery().SequenceEqual(right.AsQuery()), Is.EqualTo(expectedEqual));
+            Assert.That(left.AsQuery().SequenceEqual(different.AsQuery()), Is.EqualTo(expectedDifferent));
         }
     }
 }
