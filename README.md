@@ -3,8 +3,6 @@ Perform any query in a *blink* with this blazingly fast, fully Burst compatible 
 Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, making it as accessible as possible.
 
 ## TO-DO:
-* Convert source generators to use T4 text.
-* Add documentation to all methods. (only generated Sum/Average remain).
 * Materialization should be streamlined.
 * Optimize ILPP.
 * Create a SKILL.md to describe how to create a "lift" a feature.
@@ -62,7 +60,7 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [ ] MaxBy
 
 ## Missing Overloads:
-- [ ] ThenBy key-selector overloads
+- [x] ThenBy key-selector overloads
 
 ## Missing Materializers:
 - [ ] ToManagedDictionary
