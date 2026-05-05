@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
@@ -12,39 +11,15 @@ namespace FireAlt.BLinq
         where T : unmanaged
         where TComparer : unmanaged, IComparer<T>
     {
-        private Query<TEnumerator, T> _source;
-        private TComparer _comparer;
+        internal Query<TEnumerator, T> _source;
+        internal TComparer _comparer;
 
         public OrderedQuery(Query<TEnumerator, T> source, TComparer comparer)
         {
             _source = source;
             _comparer = comparer;
         }
-
-        /// <summary>
-        /// Adds a secondary ascending ordering to the query.
-        /// </summary>
-        /// <param name="comparer">Comparer used for the secondary ordering.</param>
-        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
-        public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>> ThenBy<TThenComparer>(TThenComparer comparer)
-            where TThenComparer : unmanaged, IComparer<T>
-        {
-            return new OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, TThenComparer>>(
-                _source,
-                new ThenByComparer<T, TComparer, TThenComparer>(_comparer, comparer));
-        }
-
-        /// <summary>
-        /// Adds a secondary descending ordering to the query.
-        /// </summary>
-        /// <param name="comparer">Comparer used for the secondary ordering.</param>
-        /// <returns>An ordered query that sorts by the existing ordering first and the new comparer second.</returns>
-        public OrderedQuery<TEnumerator, T, ThenByComparer<T, TComparer, ReverseComparer<T, TThenComparer>>> ThenByDescending<TThenComparer>(TThenComparer comparer)
-            where TThenComparer : unmanaged, IComparer<T>
-        {
-            return ThenBy(new ReverseComparer<T, TThenComparer>(comparer));
-        }
-
+        
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {
             var array = _source.ToNativeArray(allocator);
