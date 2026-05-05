@@ -4,7 +4,6 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 
 ## TO-DO:
 * Materialization should be streamlined.
-* Optimize ILPP.
 * Create a SKILL.md to describe how to create a "lift" a feature.
 
 ## Missing Core Operators:

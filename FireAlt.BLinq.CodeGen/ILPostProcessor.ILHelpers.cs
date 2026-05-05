@@ -231,10 +231,9 @@ namespace FireAlt.BLinq.CodeGen
                 return false;
             }
 
-            var resolvedField = fieldReference.Resolve();
             foreach (var pair in captureLocals)
             {
-                if (pair.Key == resolvedField || pair.Key.FullName == resolvedField?.FullName)
+                if (pair.Key.FullName == fieldReference.FullName)
                 {
                     capturedField = pair.Key;
                     local = pair.Value;

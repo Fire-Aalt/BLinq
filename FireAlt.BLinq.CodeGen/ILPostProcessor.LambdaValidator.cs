@@ -9,7 +9,7 @@ namespace FireAlt.BLinq.CodeGen
 {
     internal sealed partial class ILPostProcessor
     {
-        private static IReadOnlyList<FieldDefinition> GetCapturedFields(
+        private IReadOnlyList<FieldDefinition> GetCapturedFields(
             MethodDefinition lambda,
             List<DiagnosticMessage> diagnostics,
             MethodDefinition owner,
@@ -53,7 +53,7 @@ namespace FireAlt.BLinq.CodeGen
             return type.Name.StartsWith("<>c", StringComparison.Ordinal);
         }
 
-        private static bool ValidateLambdaBodyUsesOnlyUnmanagedTypes(
+        private bool ValidateLambdaBodyUsesOnlyUnmanagedTypes(
             MethodDefinition lambda,
             IReadOnlyList<FieldDefinition> capturedFields,
             List<DiagnosticMessage> diagnostics,
@@ -107,7 +107,7 @@ namespace FireAlt.BLinq.CodeGen
             return true;
         }
 
-        private static bool TryGetManagedTypeUsage(
+        private bool TryGetManagedTypeUsage(
             Instruction instruction,
             ISet<string> capturedFieldNames,
             out string message)
@@ -146,7 +146,7 @@ namespace FireAlt.BLinq.CodeGen
             if (instruction.OpCode == OpCodes.Newobj &&
                 instruction.Operand is MethodReference constructor)
             {
-                if (IsDelegateType(constructor.DeclaringType))
+                if (IsFuncOrActionDelegateType(constructor.DeclaringType))
                 {
                     return false;
                 }
@@ -160,9 +160,8 @@ namespace FireAlt.BLinq.CodeGen
 
             if (instruction.Operand is FieldReference fieldReference)
             {
-                var resolvedField = fieldReference.Resolve();
-                var fieldName = resolvedField?.FullName ?? fieldReference.FullName;
-                if (IsDelegateType(fieldReference.FieldType))
+                var fieldName = fieldReference.FullName;
+                if (IsFuncOrActionDelegateType(fieldReference.FieldType))
                 {
                     return false;
                 }
@@ -185,7 +184,8 @@ namespace FireAlt.BLinq.CodeGen
 
             if (instruction.Operand is MethodReference methodReference)
             {
-                var isNativeDelegateMethod = HasNativeDelegateMethodAttribute(methodReference.Resolve());
+                var isNativeDelegateMethod = IsPotentialNativeDelegateMethodReference(methodReference) &&
+                    HasNativeDelegateMethodAttribute(methodReference.Resolve());
                 if (methodReference.HasThis && !IsUnmanaged(methodReference.DeclaringType))
                 {
                     message = $"BLinq delegate body cannot call instance method on managed type '{methodReference.DeclaringType.FullName}'.";
@@ -203,7 +203,7 @@ namespace FireAlt.BLinq.CodeGen
                 foreach (var parameter in methodReference.Parameters)
                 {
                     var parameterType = CloseMethodReferenceType(parameter.ParameterType, methodReference);
-                    if (isNativeDelegateMethod && IsDelegateType(parameterType))
+                    if (isNativeDelegateMethod && IsFuncOrActionDelegateType(parameterType))
                     {
                         continue;
                     }
@@ -267,7 +267,7 @@ namespace FireAlt.BLinq.CodeGen
             return false;
         }
 
-        private static bool IsManagedTypeOperand(Code opcode, TypeReference typeReference)
+        private bool IsManagedTypeOperand(Code opcode, TypeReference typeReference)
         {
             switch (opcode)
             {
@@ -287,7 +287,7 @@ namespace FireAlt.BLinq.CodeGen
             }
         }
 
-        private static bool TryGetManagedGenericArgument(TypeReference type, out TypeReference managedType)
+        private bool TryGetManagedGenericArgument(TypeReference type, out TypeReference managedType)
         {
             managedType = null;
             switch (type)
@@ -323,12 +323,24 @@ namespace FireAlt.BLinq.CodeGen
             }
         }
 
-        private static bool IsUnmanaged(TypeReference type)
+        private bool IsUnmanaged(TypeReference type)
         {
-            return IsUnmanaged(type, new HashSet<string>());
+            if (type == null)
+            {
+                return false;
+            }
+
+            if (_unmanagedTypeCache.TryGetValue(type.FullName, out var cached))
+            {
+                return cached;
+            }
+
+            var unmanaged = IsUnmanaged(type, new HashSet<string>());
+            _unmanagedTypeCache[type.FullName] = unmanaged;
+            return unmanaged;
         }
 
-        private static bool IsUnmanaged(TypeReference type, ISet<string> visited)
+        private bool IsUnmanaged(TypeReference type, ISet<string> visited)
         {
             switch (type)
             {

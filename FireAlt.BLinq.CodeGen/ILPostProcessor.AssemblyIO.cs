@@ -18,7 +18,7 @@ namespace FireAlt.BLinq.CodeGen
                 SymbolReaderProvider = new PortablePdbReaderProvider(),
                 AssemblyResolver = resolver,
                 ReflectionImporterProvider = new PostProcessorReflectionImporterProvider(),
-                ReadingMode = ReadingMode.Immediate,
+                ReadingMode = ReadingMode.Deferred,
             };
 
             var peStream = new MemoryStream(compiledAssembly.InMemoryAssembly.PeData);
@@ -31,6 +31,7 @@ namespace FireAlt.BLinq.CodeGen
             private readonly ICompiledAssembly _compiledAssembly;
             private readonly Dictionary<string, HashSet<string>> _referenceToPathMap = new();
             private readonly Dictionary<string, AssemblyDefinition> _cache = new();
+            private readonly Dictionary<string, string> _assemblyFullNameCache = new();
             private readonly string[] _referenceDirectories;
             private AssemblyDefinition _selfAssembly;
 
@@ -109,7 +110,13 @@ namespace FireAlt.BLinq.CodeGen
 
                     foreach (var path in paths)
                     {
-                        if (System.Reflection.AssemblyName.GetAssemblyName(path).FullName == name.FullName)
+                        if (!_assemblyFullNameCache.TryGetValue(path, out var fullName))
+                        {
+                            fullName = System.Reflection.AssemblyName.GetAssemblyName(path).FullName;
+                            _assemblyFullNameCache.Add(path, fullName);
+                        }
+
+                        if (fullName == name.FullName)
                         {
                             return path;
                         }

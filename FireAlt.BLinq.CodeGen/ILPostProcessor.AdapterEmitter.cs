@@ -257,11 +257,11 @@ namespace FireAlt.BLinq.CodeGen
             List<DiagnosticMessage> diagnostics,
             Instruction diagnosticInstruction)
         {
-            foreach (var instruction in owner.Body.Instructions.ToArray())
+            foreach (var instruction in owner.Body.Instructions)
             {
                 if (instruction.OpCode == OpCodes.Newobj &&
                     instruction.Operand is MethodReference { Name: ".ctor" } ctor &&
-                    SameType(ctor.DeclaringType.Resolve(), closureType))
+                    SameType(ctor.DeclaringType, closureType))
                 {
                     var store = NextMeaningful(instruction);
                     if (store != null && IsStoreLocal(owner, store, closureLocal))
@@ -626,10 +626,15 @@ namespace FireAlt.BLinq.CodeGen
                 case MethodReference method:
                     return module.ImportReference(method);
                 case FieldReference field:
-                    var resolvedField = field.Resolve();
-                    return resolvedField != null && fieldMap.TryGetValue(resolvedField, out var adapterField)
-                        ? adapterField
-                        : module.ImportReference(field);
+                    foreach (var pair in fieldMap)
+                    {
+                        if (pair.Key.FullName == field.FullName)
+                        {
+                            return pair.Value;
+                        }
+                    }
+
+                    return module.ImportReference(field);
                 case VariableDefinition variable:
                     return variableMap[variable];
                 case ParameterDefinition parameter:

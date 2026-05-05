@@ -15,26 +15,31 @@ namespace FireAlt.BLinq.CodeGen
             GenericInstanceMethod placeholderCall,
             List<DiagnosticMessage> diagnostics)
         {
+            if (!IsPotentialNativeDelegateMethodReference(placeholderCall))
+            {
+                return false;
+            }
+
             var placeholder = placeholderCall.Resolve();
             if (placeholder == null)
             {
                 return false;
             }
 
-            var interfaceDefinitions = GetNativeDelegateInterfaceDefinitions(placeholder).ToArray();
-            if (interfaceDefinitions.Length == 0)
+            var interfaceDefinitions = GetNativeDelegateInterfaceDefinitions(placeholder);
+            if (interfaceDefinitions.Count == 0)
             {
                 return false;
             }
 
             var module = owner.Module;
             var delegateParameters = placeholder.Parameters
-                .Where(parameter => IsDelegateType(CloseMethodGenericType(module, parameter.ParameterType, placeholderCall)))
+                .Where(parameter => IsFuncOrActionDelegateType(CloseMethodGenericType(module, parameter.ParameterType, placeholderCall)))
                 .ToArray();
 
-            if (delegateParameters.Length != interfaceDefinitions.Length)
+            if (delegateParameters.Length != interfaceDefinitions.Count)
             {
-                AddError(diagnostics, owner, callInstruction, $"BLinq delegate method '{placeholder.FullName}' has {interfaceDefinitions.Length} delegate attributes but {delegateParameters.Length} delegate parameters.");
+                AddError(diagnostics, owner, callInstruction, $"BLinq delegate method '{placeholder.FullName}' has {interfaceDefinitions.Count} delegate attributes but {delegateParameters.Length} delegate parameters.");
                 return false;
             }
 
@@ -84,8 +89,14 @@ namespace FireAlt.BLinq.CodeGen
             return true;
         }
 
-        private static IEnumerable<TypeReference> GetNativeDelegateInterfaceDefinitions(MethodDefinition method)
+        private IReadOnlyList<TypeReference> GetNativeDelegateInterfaceDefinitions(MethodDefinition method)
         {
+            if (_nativeDelegateInterfaceCache.TryGetValue(method.FullName, out var cached))
+            {
+                return cached;
+            }
+
+            var interfaceDefinitions = new List<TypeReference>();
             foreach (var attribute in method.CustomAttributes)
             {
                 if (attribute.AttributeType.FullName != NativeDelegateMethodAttributeTypeName ||
@@ -97,7 +108,7 @@ namespace FireAlt.BLinq.CodeGen
                 var argumentValue = attribute.ConstructorArguments[0].Value;
                 if (argumentValue is TypeReference interfaceType)
                 {
-                    yield return interfaceType;
+                    interfaceDefinitions.Add(interfaceType);
                 }
                 else if (argumentValue is CustomAttributeArgument[] interfaceTypes)
                 {
@@ -105,33 +116,32 @@ namespace FireAlt.BLinq.CodeGen
                     {
                         if (interfaceTypeArgument.Value is TypeReference arrayInterfaceType)
                         {
-                            yield return arrayInterfaceType;
+                            interfaceDefinitions.Add(arrayInterfaceType);
                         }
                     }
                 }
             }
+
+            _nativeDelegateInterfaceCache.Add(method.FullName, interfaceDefinitions);
+            return interfaceDefinitions;
         }
 
-        private static bool HasNativeDelegateMethodAttribute(MethodDefinition method)
+        private bool HasNativeDelegateMethodAttribute(MethodDefinition method)
         {
-            return method.CustomAttributes.Any(attribute =>
-                attribute.AttributeType.FullName == NativeDelegateMethodAttributeTypeName);
-        }
-
-        private static bool IsDelegateType(TypeReference type)
-        {
-            var definition = type.Resolve();
-            while (definition != null)
+            if (method == null)
             {
-                if (definition.FullName == "System.MulticastDelegate")
-                {
-                    return true;
-                }
-
-                definition = definition.BaseType?.Resolve();
+                return false;
             }
 
-            return false;
+            if (_nativeDelegateMethodCache.TryGetValue(method.FullName, out var cached))
+            {
+                return cached;
+            }
+
+            var hasAttribute = method.CustomAttributes.Any(attribute =>
+                attribute.AttributeType.FullName == NativeDelegateMethodAttributeTypeName);
+            _nativeDelegateMethodCache.Add(method.FullName, hasAttribute);
+            return hasAttribute;
         }
 
         private static IReadOnlyList<Instruction> MoveTrailingArgumentsAfterDelegate(
@@ -255,19 +265,13 @@ namespace FireAlt.BLinq.CodeGen
                 return funcSignature;
             }
 
-            var delegateDefinition = delegateType.Resolve();
-            var invoke = delegateDefinition?.Methods.FirstOrDefault(method => method.Name == "Invoke");
-            if (invoke == null)
+            if (TryResolveActionSignature(module, delegateType, out var actionSignature))
             {
-                AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate type '{delegateType.FullName}' does not have an Invoke method.");
-                return null;
+                return actionSignature;
             }
 
-            return new DelegateSignature(
-                invoke.Parameters
-                    .Select(parameter => CloseDelegateType(module, parameter.ParameterType, delegateType))
-                    .ToArray(),
-                CloseDelegateType(module, invoke.ReturnType, delegateType));
+            AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate type '{delegateType.FullName}' is not a supported Func or Action delegate.");
+            return null;
         }
 
         private static bool TryResolveFuncSignature(ModuleDefinition module, TypeReference delegateType, out DelegateSignature signature)
@@ -292,15 +296,32 @@ namespace FireAlt.BLinq.CodeGen
             return true;
         }
 
-        private static TypeReference CloseDelegateType(ModuleDefinition module, TypeReference type, TypeReference delegateType)
+        private static bool TryResolveActionSignature(ModuleDefinition module, TypeReference delegateType, out DelegateSignature signature)
         {
-            var delegateInstance = delegateType as GenericInstanceType;
-            return RewriteTypeReference(
-                type,
-                genericParameter => genericParameter.Type == GenericParameterType.Type && delegateInstance != null
-                    ? module.ImportReference(delegateInstance.GenericArguments[genericParameter.Position])
-                    : null,
-                module.ImportReference);
+            signature = null;
+            if (delegateType.Namespace != "System" || delegateType.Name == "Func")
+            {
+                return false;
+            }
+
+            if (delegateType.Name == "Action")
+            {
+                signature = new DelegateSignature(Array.Empty<TypeReference>(), module.TypeSystem.Void);
+                return true;
+            }
+
+            if (delegateType is not GenericInstanceType genericDelegate ||
+                !delegateType.Name.StartsWith("Action`"))
+            {
+                return false;
+            }
+
+            var parameterTypes = genericDelegate.GenericArguments
+                .Select(module.ImportReference)
+                .ToArray();
+
+            signature = new DelegateSignature(parameterTypes, module.TypeSystem.Void);
+            return true;
         }
 
         private static TypeReference CreateNativeDelegateInterfaceType(
@@ -374,12 +395,7 @@ namespace FireAlt.BLinq.CodeGen
                     ResolveRewrittenType(module, placeholderCall.GenericArguments[i]);
             }
 
-            var candidates = placeholder.DeclaringType.Resolve().Methods
-                .Where(method =>
-                    method.Name == placeholder.Name &&
-                    !HasNativeDelegateMethodAttribute(method) &&
-                    method.Parameters.Count == placeholder.Parameters.Count)
-                .ToArray();
+            var candidates = GetTargetCandidates(placeholder);
 
             foreach (var candidate in candidates)
             {
@@ -391,6 +407,29 @@ namespace FireAlt.BLinq.CodeGen
 
             AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate weaving could not find unmanaged overload for '{placeholder.FullName}'.");
             return null;
+        }
+
+        private IReadOnlyList<MethodDefinition> GetTargetCandidates(MethodDefinition placeholder)
+        {
+            var key = $"{placeholder.DeclaringType.FullName}|{placeholder.Name}|{placeholder.Parameters.Count}";
+            if (_targetCandidateCache.TryGetValue(key, out var cached))
+            {
+                return cached;
+            }
+
+            var candidates = new List<MethodDefinition>();
+            foreach (var method in placeholder.DeclaringType.Methods)
+            {
+                if (method.Name == placeholder.Name &&
+                    method.Parameters.Count == placeholder.Parameters.Count &&
+                    !HasNativeDelegateMethodAttribute(method))
+                {
+                    candidates.Add(method);
+                }
+            }
+
+            _targetCandidateCache.Add(key, candidates);
+            return candidates;
         }
 
         private bool TryCreateTargetMethod(
@@ -421,12 +460,22 @@ namespace FireAlt.BLinq.CodeGen
                 }
 
                 var genericParameter = candidate.GenericParameters[i];
-                var matchingAdapters = adapters.Values
-                    .Where(value => GenericParameterAcceptsInterface(genericParameter, value.InterfaceType))
-                    .ToArray();
-                if (matchingAdapters.Length == 1)
+                AdapterInfo matchingAdapter = null;
+                var matchingAdapterCount = 0;
+                foreach (var adapter in adapters.Values)
                 {
-                    targetGenericArguments[i] = matchingAdapters[0].AdapterType;
+                    if (!GenericParameterAcceptsInterface(genericParameter, adapter.InterfaceType))
+                    {
+                        continue;
+                    }
+
+                    matchingAdapter = adapter;
+                    matchingAdapterCount++;
+                }
+
+                if (matchingAdapterCount == 1)
+                {
+                    targetGenericArguments[i] = matchingAdapter.AdapterType;
                 }
                 else if (placeholderGenericArguments.TryGetValue(genericParameter.Name, out var argument))
                 {
@@ -687,6 +736,11 @@ namespace FireAlt.BLinq.CodeGen
                 return false;
             }
 
+            if (!ContainsRewrittenType(call))
+            {
+                return false;
+            }
+
             var rewrittenCall = RewriteMethodReference(module, call, out var modified);
             if (!modified)
             {
@@ -705,6 +759,11 @@ namespace FireAlt.BLinq.CodeGen
 
             foreach (var variable in variables)
             {
+                if (!ContainsRewrittenType(variable.VariableType))
+                {
+                    continue;
+                }
+
                 var rewrittenType = ResolveRewrittenType(module, variable.VariableType);
                 if (TypeReferencesMatch(variable.VariableType, rewrittenType))
                 {
@@ -716,6 +775,75 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return modified;
+        }
+
+        private bool ContainsRewrittenType(MethodReference method)
+        {
+            if (ContainsRewrittenType(method.DeclaringType) ||
+                ContainsRewrittenType(method.ReturnType))
+            {
+                return true;
+            }
+
+            foreach (var parameter in method.Parameters)
+            {
+                if (ContainsRewrittenType(parameter.ParameterType))
+                {
+                    return true;
+                }
+            }
+
+            if (method is GenericInstanceMethod genericMethod)
+            {
+                foreach (var argument in genericMethod.GenericArguments)
+                {
+                    if (ContainsRewrittenType(argument))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool ContainsRewrittenType(TypeReference type)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            if (_rewrittenEnumeratorTypes.ContainsKey(type.FullName))
+            {
+                return true;
+            }
+
+            switch (type)
+            {
+                case GenericInstanceType genericInstance:
+                    foreach (var argument in genericInstance.GenericArguments)
+                    {
+                        if (ContainsRewrittenType(argument))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return ContainsRewrittenType(genericInstance.ElementType);
+                case ByReferenceType byReference:
+                    return ContainsRewrittenType(byReference.ElementType);
+                case PointerType pointer:
+                    return ContainsRewrittenType(pointer.ElementType);
+                case RequiredModifierType requiredModifier:
+                    return ContainsRewrittenType(requiredModifier.ModifierType) ||
+                        ContainsRewrittenType(requiredModifier.ElementType);
+                case OptionalModifierType optionalModifier:
+                    return ContainsRewrittenType(optionalModifier.ModifierType) ||
+                        ContainsRewrittenType(optionalModifier.ElementType);
+                default:
+                    return false;
+            }
         }
 
         private MethodReference RewriteMethodReference(

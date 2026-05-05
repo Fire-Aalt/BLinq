@@ -17,6 +17,10 @@ namespace FireAlt.BLinq.CodeGen
         private int _adapterIndex;
         private readonly Dictionary<string, TypeReference> _rewrittenEnumeratorTypes = new();
         private readonly Dictionary<string, IReadOnlyDictionary<FieldDefinition, VariableDefinition>> _rewrittenCaptureLocals = new();
+        private readonly Dictionary<string, bool> _nativeDelegateMethodCache = new();
+        private readonly Dictionary<string, IReadOnlyList<TypeReference>> _nativeDelegateInterfaceCache = new();
+        private readonly Dictionary<string, IReadOnlyList<MethodDefinition>> _targetCandidateCache = new();
+        private readonly Dictionary<string, bool> _unmanagedTypeCache = new();
 
         public override Unity.CompilationPipeline.Common.ILPostProcessing.ILPostProcessor GetInstance()
         {
@@ -32,10 +36,21 @@ namespace FireAlt.BLinq.CodeGen
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
             var diagnostics = new List<DiagnosticMessage>();
+            if (!MightContainNativeDelegateCall(compiledAssembly))
+            {
+                return new ILPostProcessResult(null, diagnostics);
+            }
+
+            ClearProcessCaches();
             var assembly = AssemblyDefinitionFor(compiledAssembly);
+            if (!HasCandidateNativeDelegateMemberReference(assembly.MainModule))
+            {
+                return new ILPostProcessResult(null, diagnostics);
+            }
+
             var modified = false;
 
-            foreach (var type in assembly.MainModule.Types.ToArray())
+            foreach (var type in assembly.MainModule.Types)
             {
                 modified |= ProcessType(type, diagnostics);
             }
@@ -79,6 +94,11 @@ namespace FireAlt.BLinq.CodeGen
 
         private bool ProcessMethod(MethodDefinition method, List<DiagnosticMessage> diagnostics)
         {
+            if (!ContainsCandidateNativeDelegateCall(method))
+            {
+                return false;
+            }
+
             var modified = false;
             _rewrittenEnumeratorTypes.Clear();
             _rewrittenCaptureLocals.Clear();
@@ -93,6 +113,7 @@ namespace FireAlt.BLinq.CodeGen
                 }
 
                 if (call is GenericInstanceMethod genericCall &&
+                    IsPotentialNativeDelegateMethodReference(genericCall) &&
                     TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics))
                 {
                     modified = true;
@@ -113,6 +134,119 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return modified;
+        }
+
+        private void ClearProcessCaches()
+        {
+            _nativeDelegateMethodCache.Clear();
+            _nativeDelegateInterfaceCache.Clear();
+            _targetCandidateCache.Clear();
+            _unmanagedTypeCache.Clear();
+        }
+
+        private static bool MightContainNativeDelegateCall(ICompiledAssembly compiledAssembly)
+        {
+            var peData = compiledAssembly.InMemoryAssembly.PeData;
+            return ContainsAscii(peData, "BLinqExtensions") &&
+                (ContainsAscii(peData, "Func`") || ContainsAscii(peData, "Action"));
+        }
+
+        private static bool ContainsAscii(byte[] data, string value)
+        {
+            if (data == null || data.Length < value.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i <= data.Length - value.Length; i++)
+            {
+                var matched = true;
+                for (var j = 0; j < value.Length; j++)
+                {
+                    if (data[i + j] != (byte)value[j])
+                    {
+                        matched = false;
+                        break;
+                    }
+                }
+
+                if (matched)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasCandidateNativeDelegateMemberReference(ModuleDefinition module)
+        {
+            foreach (var memberReference in module.GetMemberReferences())
+            {
+                if (memberReference is MethodReference methodReference &&
+                    IsPotentialNativeDelegateMethodReference(methodReference))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ContainsCandidateNativeDelegateCall(MethodDefinition method)
+        {
+            if (!method.HasBody)
+            {
+                return false;
+            }
+
+            foreach (var instruction in method.Body.Instructions)
+            {
+                if (instruction.OpCode == OpCodes.Call &&
+                    instruction.Operand is MethodReference methodReference &&
+                    IsPotentialNativeDelegateMethodReference(methodReference))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsPotentialNativeDelegateMethodReference(MethodReference methodReference)
+        {
+            if (methodReference.DeclaringType.FullName != "FireAlt.BLinq.BLinqExtensions")
+            {
+                return false;
+            }
+
+            foreach (var parameter in methodReference.Parameters)
+            {
+                if (IsFuncOrActionDelegateType(parameter.ParameterType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsFuncOrActionDelegateType(TypeReference type)
+        {
+            switch (type)
+            {
+                case GenericInstanceType genericInstance:
+                    return IsFuncOrActionDelegateType(genericInstance.ElementType);
+                case RequiredModifierType requiredModifier:
+                    return IsFuncOrActionDelegateType(requiredModifier.ElementType);
+                case OptionalModifierType optionalModifier:
+                    return IsFuncOrActionDelegateType(optionalModifier.ElementType);
+                default:
+                    return type.Namespace == "System" &&
+                        (type.Name == "Action" ||
+                            type.Name.StartsWith("Action`") ||
+                            type.Name.StartsWith("Func`"));
+            }
         }
     }
 }
