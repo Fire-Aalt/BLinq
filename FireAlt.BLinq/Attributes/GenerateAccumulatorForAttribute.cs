@@ -21,28 +21,4 @@ namespace FireAlt.BLinq
         Int,
         UInt,
     }
-
-    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    public sealed class GenerateQueryExtensionForAttribute : Attribute
-    {
-        public GenerateQueryExtensionForAttribute(Type collectionType, Type enumeratorType,
-            QueryExtensionEnumeratorSource enumeratorSource = QueryExtensionEnumeratorSource.Collection)
-        {
-            CollectionType = collectionType;
-            EnumeratorType = enumeratorType;
-            EnumeratorSource = enumeratorSource;
-        }
-
-        public Type CollectionType { get; }
-
-        public Type EnumeratorType { get; }
-
-        public QueryExtensionEnumeratorSource EnumeratorSource { get; }
-    }
-
-    public enum QueryExtensionEnumeratorSource
-    {
-        Collection,
-        AsReadOnly,
-    }
 }

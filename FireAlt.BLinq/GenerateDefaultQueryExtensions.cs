@@ -3,15 +3,22 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 [assembly: GenerateQueryExtensionFor(typeof(NativeArray<>), typeof(NativeArray<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeArray<>.ReadOnly), typeof(NativeArray<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeSlice<>), typeof(NativeSlice<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeList<>), typeof(NativeArray<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>), typeof(UnsafeList<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(NativeQueue<>), typeof(NativeQueue<>.Enumerator), QueryExtensionEnumeratorSource.AsReadOnly)]
+[assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>.ReadOnly), typeof(UnsafeList<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeQueue<>.ReadOnly), typeof(NativeQueue<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeHashSet<>), typeof(NativeHashSet<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeHashSet<>.ReadOnly), typeof(NativeHashSet<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeHashMap<,>), typeof(NativeHashMap<,>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeHashMap<,>.ReadOnly), typeof(NativeHashMap<,>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeParallelHashSet<>), typeof(NativeParallelHashSet<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeParallelHashSet<>.ReadOnly), typeof(NativeParallelHashSet<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeParallelHashMap<,>), typeof(NativeParallelHashMap<,>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeParallelHashMap<,>.ReadOnly), typeof(NativeParallelHashMap<,>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeParallelMultiHashMap<,>), typeof(NativeParallelMultiHashMap<,>.KeyValueEnumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(NativeParallelMultiHashMap<,>.ReadOnly), typeof(NativeParallelMultiHashMap<,>.KeyValueEnumerator))]
 
 #if ENTITIES
 [assembly: GenerateQueryExtensionFor(typeof(Unity.Entities.DynamicBuffer<>), typeof(NativeArray<>.Enumerator))]

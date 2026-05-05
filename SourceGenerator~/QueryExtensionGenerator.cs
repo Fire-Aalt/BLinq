@@ -81,7 +81,7 @@ namespace FireAlt.BLinq.Generators
                     collectionTypeName,
                     enumeratorTypeName,
                     GetTypeName(itemType),
-                    GetEnumeratorExpression(attribute),
+                    "collection.GetEnumerator()",
                     typeParameterNames,
                     constraintClauses));
             }
@@ -290,20 +290,6 @@ namespace FireAlt.BLinq.Generators
             return constraints.Count == 0
                 ? string.Empty
                 : $"where {typeParameter.Name} : {string.Join(", ", constraints)}";
-        }
-
-        private static string GetEnumeratorExpression(AttributeData attribute)
-        {
-            if (attribute.ConstructorArguments.Length < 3 ||
-                attribute.ConstructorArguments[2].Value is not int enumeratorSource ||
-                enumeratorSource == 0)
-            {
-                return "collection.GetEnumerator()";
-            }
-
-            return enumeratorSource == 1
-                ? "collection.AsReadOnly().GetEnumerator()"
-                : "collection.GetEnumerator()";
         }
 
         private static string GetTypeName(ITypeSymbol type)
