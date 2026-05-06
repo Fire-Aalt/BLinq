@@ -28,20 +28,20 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Where(Left).Union(values).Sum(Select);
+            return values.Where(Left).Union(values.Where(Right)).Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
             return values.AsValueEnumerable().Where(Left)
-                .Union(values.AsValueEnumerable())
+                .Union(values.AsValueEnumerable().Where(Right))
                 .Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
             return values.AsQuery().Where(Left)
-                .Union(values.AsQuery())
+                .Union(values.AsQuery().Where(Right))
                 .Sum(Select);
         }
 
@@ -54,6 +54,11 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         private static bool Left(int value)
         {
             return (value & 1) == 0;
+        }
+
+        private static bool Right(int value)
+        {
+            return (value & 2) == 0;
         }
 
         private static int Select(int value)

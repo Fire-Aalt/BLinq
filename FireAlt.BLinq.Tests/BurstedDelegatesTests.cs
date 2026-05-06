@@ -35,6 +35,53 @@ namespace FireAlt.BLinq.Tests
 
             return result;
         }
+
+        [Test]
+        public void DelegatePipeline_PreservesDistinctSameShapeAdapters()
+        {
+            var input = new NativeArray<int>(new[] { 0, 1, 2, 3, 4, 5, 6, 7 }, Allocator.Temp);
+            var output = new NativeArray<int>(3, Allocator.Temp);
+
+            BurstDelegatePipeline_PreservesDistinctSameShapeAdapters(input, ref output);
+
+            Assert.That(output[0], Is.EqualTo(13));
+            Assert.That(output[1], Is.EqualTo(0));
+            Assert.That(output[2], Is.EqualTo(2));
+        }
+
+        [BurstCompile(CompileSynchronously = true)]
+        private static void BurstDelegatePipeline_PreservesDistinctSameShapeAdapters(
+            in NativeArray<int> input,
+            ref NativeArray<int> output)
+        {
+            var left = input.AsQuery().Where(Left);
+            var right = input.AsQuery().Where(Right);
+            var rightKeys = right.Select(Key);
+
+            output[0] = left.Union(right).Sum(Identity);
+            output[1] = left.IntersectBy(rightKeys, Key).Sum(Identity);
+            output[2] = left.ExceptBy(rightKeys, Key).Sum(Identity);
+        }
+
+        private static bool Left(int value)
+        {
+            return (value & 1) == 0;
+        }
+
+        private static bool Right(int value)
+        {
+            return value == 1;
+        }
+
+        private static int Key(int value)
+        {
+            return value & 3;
+        }
+
+        private static int Identity(int value)
+        {
+            return value;
+        }
         
         [Test]
         public void DelegateAggregateBy_UsesMultipleNonAdjacentDelegates()

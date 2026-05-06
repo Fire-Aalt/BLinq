@@ -28,7 +28,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            var keys = values.ToHashSet();
+            var keys = values.Where(Right).Select(Key).ToHashSet();
             return values.Where(Left)
                 .GroupBy(Key)
                 .Select(group => group.First())
@@ -38,7 +38,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int ZLinq(in NativeArray<int> values)
         {
-            var keys = values.ToHashSet();
+            var keys = values.Where(Right).Select(Key).ToHashSet();
             return values.AsValueEnumerable().Where(Left)
                 .GroupBy(Key)
                 .Select(group => group.First())
@@ -49,7 +49,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         public static int BLinq(in NativeArray<int> values)
         {
             return values.AsQuery().Where(Left)
-                .IntersectBy(values.AsQuery(), Key)
+                .IntersectBy(values.AsQuery().Where(Right).Select(Key), Key)
                 .Sum(Select);
         }
 
@@ -62,6 +62,11 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         private static bool Left(int value)
         {
             return (value & 1) == 0;
+        }
+
+        private static bool Right(int value)
+        {
+            return (value & 2) == 0;
         }
 
         private static int Key(int value)

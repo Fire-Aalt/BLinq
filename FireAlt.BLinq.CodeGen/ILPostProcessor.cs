@@ -16,6 +16,9 @@ namespace FireAlt.BLinq.CodeGen
 
         private int _adapterIndex;
         private readonly Dictionary<string, TypeReference> _rewrittenEnumeratorTypes = new();
+        private readonly HashSet<string> _ambiguousRewrittenEnumeratorTypes = new();
+        private readonly Dictionary<VariableDefinition, TypeReference> _rewrittenLocalTypes = new();
+        private readonly HashSet<VariableDefinition> _ambiguousRewrittenLocalTypes = new();
         private readonly Dictionary<string, IReadOnlyDictionary<FieldDefinition, VariableDefinition>> _rewrittenCaptureLocals = new();
         private readonly Dictionary<string, bool> _nativeDelegateMethodCache = new();
         private readonly Dictionary<string, IReadOnlyList<TypeReference>> _nativeDelegateInterfaceCache = new();
@@ -74,6 +77,11 @@ namespace FireAlt.BLinq.CodeGen
 
         private bool ProcessType(TypeDefinition type, List<DiagnosticMessage> diagnostics)
         {
+            if (IsGeneratedAdapterType(type))
+            {
+                return false;
+            }
+
             var modified = false;
 
             foreach (var method in type.Methods)
@@ -101,6 +109,9 @@ namespace FireAlt.BLinq.CodeGen
 
             var modified = false;
             _rewrittenEnumeratorTypes.Clear();
+            _ambiguousRewrittenEnumeratorTypes.Clear();
+            _rewrittenLocalTypes.Clear();
+            _ambiguousRewrittenLocalTypes.Clear();
             _rewrittenCaptureLocals.Clear();
             var instructions = method.Body.Instructions;
 
@@ -113,17 +124,21 @@ namespace FireAlt.BLinq.CodeGen
                 }
 
                 if (call is GenericInstanceMethod genericCall &&
-                    IsPotentialNativeDelegateMethodReference(genericCall) &&
-                    TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics))
+                    IsPotentialNativeDelegateMethodReference(genericCall))
                 {
-                    modified = true;
+                    if (TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics))
+                    {
+                        modified = true;
+                    }
+
                     continue;
                 }
 
-                modified |= TryRewriteMethodReference(method.Module, instruction, call);
+                modified |= TryRewriteMethodReference(method.Module, method, instruction, call);
             }
 
-            if (_rewrittenEnumeratorTypes.Count != 0)
+            if (_rewrittenEnumeratorTypes.Count != 0 ||
+                _rewrittenLocalTypes.Count != 0)
             {
                 modified |= TryRewriteVariableTypes(method.Module, method.Body.Variables);
             }
@@ -134,6 +149,58 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return modified;
+        }
+
+        private static bool IsGeneratedAdapterType(TypeDefinition type)
+        {
+            return type.Namespace == "FireAlt.BLinq.Generated" ||
+                type.Name.StartsWith("__BLinqDelegateAdapter_");
+        }
+
+        private bool ProcessMethodPreservingRewriteState(MethodDefinition method, List<DiagnosticMessage> diagnostics)
+        {
+            var rewrittenEnumeratorTypes = new Dictionary<string, TypeReference>(_rewrittenEnumeratorTypes);
+            var ambiguousRewrittenEnumeratorTypes = new HashSet<string>(_ambiguousRewrittenEnumeratorTypes);
+            var rewrittenLocalTypes = new Dictionary<VariableDefinition, TypeReference>(_rewrittenLocalTypes);
+            var ambiguousRewrittenLocalTypes = new HashSet<VariableDefinition>(_ambiguousRewrittenLocalTypes);
+            var rewrittenCaptureLocals = new Dictionary<string, IReadOnlyDictionary<FieldDefinition, VariableDefinition>>(_rewrittenCaptureLocals);
+
+            try
+            {
+                return ProcessMethod(method, diagnostics);
+            }
+            finally
+            {
+                _rewrittenEnumeratorTypes.Clear();
+                foreach (var pair in rewrittenEnumeratorTypes)
+                {
+                    _rewrittenEnumeratorTypes.Add(pair.Key, pair.Value);
+                }
+
+                _ambiguousRewrittenEnumeratorTypes.Clear();
+                foreach (var value in ambiguousRewrittenEnumeratorTypes)
+                {
+                    _ambiguousRewrittenEnumeratorTypes.Add(value);
+                }
+
+                _rewrittenLocalTypes.Clear();
+                foreach (var pair in rewrittenLocalTypes)
+                {
+                    _rewrittenLocalTypes.Add(pair.Key, pair.Value);
+                }
+
+                _ambiguousRewrittenLocalTypes.Clear();
+                foreach (var value in ambiguousRewrittenLocalTypes)
+                {
+                    _ambiguousRewrittenLocalTypes.Add(value);
+                }
+
+                _rewrittenCaptureLocals.Clear();
+                foreach (var pair in rewrittenCaptureLocals)
+                {
+                    _rewrittenCaptureLocals.Add(pair.Key, pair.Value);
+                }
+            }
         }
 
         private void ClearProcessCaches()

@@ -84,6 +84,11 @@ namespace FireAlt.BLinq.CodeGen
                 return null;
             }
 
+            if (!ReferenceEquals(lambda, owner))
+            {
+                ProcessMethodPreservingRewriteState(lambda, diagnostics);
+            }
+
             IReadOnlyDictionary<FieldDefinition, VariableDefinition> captureLocals = null;
             if (capturedFields.Count != 0 &&
                 !TryRewriteClosureCaptures(owner, lambda.DeclaringType, targetInstruction, capturedFields, diagnostics, callInstruction, out captureLocals))

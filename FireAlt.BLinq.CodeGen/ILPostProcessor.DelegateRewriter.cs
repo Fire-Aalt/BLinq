@@ -43,6 +43,76 @@ namespace FireAlt.BLinq.CodeGen
                 return false;
             }
 
+            var originalInstructions = owner.Body.Instructions.ToArray();
+            var originalInstructionState = originalInstructions.ToDictionary(
+                instruction => instruction,
+                instruction => (instruction.OpCode, instruction.Operand));
+            var originalVariableCount = owner.Body.Variables.Count;
+            var originalNestedTypeCount = owner.DeclaringType.NestedTypes.Count;
+            var originalAdapterIndex = _adapterIndex;
+            var originalRewrittenEnumeratorTypes = new Dictionary<string, TypeReference>(_rewrittenEnumeratorTypes);
+            var originalAmbiguousRewrittenEnumeratorTypes = new HashSet<string>(_ambiguousRewrittenEnumeratorTypes);
+            var originalRewrittenLocalTypes = new Dictionary<VariableDefinition, TypeReference>(_rewrittenLocalTypes);
+            var originalAmbiguousRewrittenLocalTypes = new HashSet<VariableDefinition>(_ambiguousRewrittenLocalTypes);
+            var originalRewrittenCaptureLocals = new Dictionary<string, IReadOnlyDictionary<FieldDefinition, VariableDefinition>>(_rewrittenCaptureLocals);
+
+            bool Fail()
+            {
+                foreach (var instruction in owner.Body.Instructions.Where(instruction => !originalInstructionState.ContainsKey(instruction)).ToArray())
+                {
+                    owner.Body.Instructions.Remove(instruction);
+                }
+
+                foreach (var pair in originalInstructionState)
+                {
+                    pair.Key.OpCode = pair.Value.OpCode;
+                    pair.Key.Operand = pair.Value.Operand;
+                }
+
+                while (owner.Body.Variables.Count > originalVariableCount)
+                {
+                    owner.Body.Variables.RemoveAt(owner.Body.Variables.Count - 1);
+                }
+
+                while (owner.DeclaringType.NestedTypes.Count > originalNestedTypeCount)
+                {
+                    owner.DeclaringType.NestedTypes.RemoveAt(owner.DeclaringType.NestedTypes.Count - 1);
+                }
+
+                _adapterIndex = originalAdapterIndex;
+                _rewrittenEnumeratorTypes.Clear();
+                foreach (var pair in originalRewrittenEnumeratorTypes)
+                {
+                    _rewrittenEnumeratorTypes.Add(pair.Key, pair.Value);
+                }
+
+                _ambiguousRewrittenEnumeratorTypes.Clear();
+                foreach (var value in originalAmbiguousRewrittenEnumeratorTypes)
+                {
+                    _ambiguousRewrittenEnumeratorTypes.Add(value);
+                }
+
+                _rewrittenLocalTypes.Clear();
+                foreach (var pair in originalRewrittenLocalTypes)
+                {
+                    _rewrittenLocalTypes.Add(pair.Key, pair.Value);
+                }
+
+                _ambiguousRewrittenLocalTypes.Clear();
+                foreach (var value in originalAmbiguousRewrittenLocalTypes)
+                {
+                    _ambiguousRewrittenLocalTypes.Add(value);
+                }
+
+                _rewrittenCaptureLocals.Clear();
+                foreach (var pair in originalRewrittenCaptureLocals)
+                {
+                    _rewrittenCaptureLocals.Add(pair.Key, pair.Value);
+                }
+
+                return false;
+            }
+
             var adapters = new Dictionary<int, AdapterInfo>();
             for (var i = delegateParameters.Length - 1; i >= 0; i--)
             {
@@ -50,21 +120,21 @@ namespace FireAlt.BLinq.CodeGen
                 var trailingArguments = MoveTrailingArgumentsAfterDelegate(owner, callInstruction, placeholder, parameter, diagnostics);
                 if (trailingArguments == null)
                 {
-                    return false;
+                    return Fail();
                 }
 
                 var delegateType = CloseMethodGenericType(module, parameter.ParameterType, placeholderCall);
                 var signature = ResolveDelegateSignature(module, delegateType, diagnostics, owner, callInstruction);
                 if (signature == null)
                 {
-                    return false;
+                    return Fail();
                 }
 
                 var interfaceType = CreateNativeDelegateInterfaceType(module, interfaceDefinitions[i], signature);
                 var adapter = CreateAdapter(owner, callInstruction, signature, interfaceType, diagnostics);
                 if (adapter == null)
                 {
-                    return false;
+                    return Fail();
                 }
 
                 foreach (var trailingArgument in trailingArguments)
@@ -78,13 +148,13 @@ namespace FireAlt.BLinq.CodeGen
             var target = FindTargetMethod(module, placeholderCall, placeholder, adapters, diagnostics, owner, callInstruction);
             if (target == null)
             {
-                return false;
+                return Fail();
             }
 
             callInstruction.Operand = target.Call;
-            MapRewrittenReturnType(
-                CloseMethodGenericType(module, placeholderCall.ReturnType, placeholderCall),
-                target.ReturnType);
+            var placeholderReturnType = CloseMethodGenericType(module, placeholderCall.ReturnType, placeholderCall);
+            MapRewrittenReturnType(placeholderReturnType, target.ReturnType);
+            MapRewrittenStoredLocal(owner, callInstruction, placeholderReturnType, target.ReturnType);
 
             return true;
         }
@@ -388,12 +458,12 @@ namespace FireAlt.BLinq.CodeGen
             MethodDefinition owner,
             Instruction diagnosticInstruction)
         {
-            var placeholderGenericArguments = new Dictionary<string, TypeReference>();
-            for (var i = 0; i < placeholder.GenericParameters.Count; i++)
-            {
-                placeholderGenericArguments[placeholder.GenericParameters[i].Name] =
-                    ResolveRewrittenType(module, placeholderCall.GenericArguments[i]);
-            }
+            var placeholderGenericArguments = CreatePlaceholderGenericArguments(
+                module,
+                owner,
+                diagnosticInstruction,
+                placeholderCall,
+                placeholder);
 
             var candidates = GetTargetCandidates(placeholder);
 
@@ -508,9 +578,10 @@ namespace FireAlt.BLinq.CodeGen
                 }
 
                 var parameterType = SubstituteMethodGenericArguments(module, candidate.Parameters[i].ParameterType, candidate, targetGenericArguments);
-                var placeholderParameterType = ResolveRewrittenType(
+                var placeholderParameterType = SubstitutePlaceholderGenericArguments(
                     module,
-                    CloseMethodGenericType(module, placeholder.Parameters[i].ParameterType, placeholderCall));
+                    placeholder.Parameters[i].ParameterType,
+                    placeholderGenericArguments);
                 if (parameterType.ContainsGenericParameter ||
                     !TypeReferencesMatch(parameterType, placeholderParameterType))
                 {
@@ -601,6 +672,9 @@ namespace FireAlt.BLinq.CodeGen
 
         private static bool TypeReferencesMatch(TypeReference left, TypeReference right)
         {
+            left = UnwrapComparableType(left);
+            right = UnwrapComparableType(right);
+
             if (left is GenericInstanceType leftGeneric && right is GenericInstanceType rightGeneric)
             {
                 return leftGeneric.ElementType.FullName == rightGeneric.ElementType.FullName &&
@@ -609,6 +683,24 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return left.FullName == right.FullName;
+        }
+
+        private static TypeReference UnwrapComparableType(TypeReference type)
+        {
+            while (true)
+            {
+                switch (type)
+                {
+                    case RequiredModifierType requiredModifier:
+                        type = requiredModifier.ElementType;
+                        continue;
+                    case OptionalModifierType optionalModifier:
+                        type = optionalModifier.ElementType;
+                        continue;
+                    default:
+                        return type;
+                }
+            }
         }
 
         private static bool GenericParameterAcceptsInterface(GenericParameter genericParameter, TypeReference interfaceType)
@@ -703,14 +795,35 @@ namespace FireAlt.BLinq.CodeGen
                 return;
             }
 
-            _rewrittenEnumeratorTypes[placeholderQueryType.GenericArguments[0].FullName] = realQueryType.GenericArguments[0];
+            AddRewrittenTypeMapping(placeholderQueryType.GenericArguments[0].FullName, realQueryType.GenericArguments[0]);
+        }
+
+        private void MapRewrittenStoredLocal(
+            MethodDefinition owner,
+            Instruction callInstruction,
+            TypeReference placeholderReturnType,
+            TypeReference realReturnType)
+        {
+            if (TypeReferencesMatch(placeholderReturnType, realReturnType))
+            {
+                return;
+            }
+
+            var store = NextMeaningful(callInstruction);
+            if (store == null ||
+                !TryGetStoredLocal(owner, store, out var local))
+            {
+                return;
+            }
+
+            AddRewrittenLocalTypeMapping(local, realReturnType);
         }
 
         private void MapRewrittenType(TypeReference placeholderType, TypeReference realType)
         {
             if (!TypeReferencesMatch(placeholderType, realType))
             {
-                _rewrittenEnumeratorTypes[placeholderType.FullName] = realType;
+                AddRewrittenTypeMapping(placeholderType.FullName, realType);
             }
 
             if (placeholderType is not GenericInstanceType placeholderGeneric ||
@@ -726,28 +839,81 @@ namespace FireAlt.BLinq.CodeGen
             }
         }
 
+        private void AddRewrittenTypeMapping(string placeholderTypeName, TypeReference realType)
+        {
+            if (_ambiguousRewrittenEnumeratorTypes.Contains(placeholderTypeName))
+            {
+                return;
+            }
+
+            if (_rewrittenEnumeratorTypes.TryGetValue(placeholderTypeName, out var existing))
+            {
+                if (TypeReferencesMatch(existing, realType))
+                {
+                    return;
+                }
+
+                _rewrittenEnumeratorTypes.Remove(placeholderTypeName);
+                _ambiguousRewrittenEnumeratorTypes.Add(placeholderTypeName);
+                return;
+            }
+
+            _rewrittenEnumeratorTypes.Add(placeholderTypeName, realType);
+        }
+
+        private void AddRewrittenLocalTypeMapping(VariableDefinition local, TypeReference realType)
+        {
+            if (_ambiguousRewrittenLocalTypes.Contains(local))
+            {
+                return;
+            }
+
+            if (_rewrittenLocalTypes.TryGetValue(local, out var existing))
+            {
+                if (TypeReferencesMatch(existing, realType))
+                {
+                    return;
+                }
+
+                _rewrittenLocalTypes.Remove(local);
+                _ambiguousRewrittenLocalTypes.Add(local);
+                return;
+            }
+
+            _rewrittenLocalTypes.Add(local, realType);
+        }
+
         private bool TryRewriteMethodReference(
             ModuleDefinition module,
+            MethodDefinition owner,
             Instruction callInstruction,
             MethodReference call)
         {
-            if (_rewrittenEnumeratorTypes.Count == 0)
+            if (_rewrittenEnumeratorTypes.Count == 0 &&
+                _ambiguousRewrittenEnumeratorTypes.Count == 0 &&
+                _rewrittenLocalTypes.Count == 0)
             {
                 return false;
             }
 
-            if (!ContainsRewrittenType(call))
+            if (!ContainsRewrittenType(call) &&
+                call is not GenericInstanceMethod &&
+                !call.HasThis)
             {
                 return false;
             }
 
-            var rewrittenCall = RewriteMethodReference(module, call, out var modified);
+            var placeholderReturnType = CloseMethodReturnType(module, call, call.DeclaringType);
+            var rewrittenCall = RewriteMethodReference(module, owner, callInstruction, call, out var modified);
             if (!modified)
             {
                 return false;
             }
 
             callInstruction.Operand = rewrittenCall;
+            var rewrittenReturnType = CloseMethodReturnType(module, rewrittenCall, rewrittenCall.DeclaringType);
+            MapRewrittenReturnType(placeholderReturnType, rewrittenReturnType);
+            MapRewrittenStoredLocal(owner, callInstruction, placeholderReturnType, rewrittenReturnType);
             return true;
         }
 
@@ -759,12 +925,19 @@ namespace FireAlt.BLinq.CodeGen
 
             foreach (var variable in variables)
             {
-                if (!ContainsRewrittenType(variable.VariableType))
+                var hasLocalRewrite = _rewrittenLocalTypes.ContainsKey(variable);
+                if (!hasLocalRewrite &&
+                    !ContainsRewrittenType(variable.VariableType))
                 {
                     continue;
                 }
 
                 var rewrittenType = ResolveRewrittenType(module, variable.VariableType);
+                if (_rewrittenLocalTypes.TryGetValue(variable, out var localType))
+                {
+                    rewrittenType = module.ImportReference(localType);
+                }
+
                 if (TypeReferencesMatch(variable.VariableType, rewrittenType))
                 {
                     continue;
@@ -848,17 +1021,30 @@ namespace FireAlt.BLinq.CodeGen
 
         private MethodReference RewriteMethodReference(
             ModuleDefinition module,
+            MethodDefinition owner,
+            Instruction callInstruction,
             MethodReference method,
             out bool modified)
         {
+            var inferredDeclaringType = InferDeclaringTypeFromStack(module, owner, callInstruction, method);
             if (method is GenericInstanceMethod genericMethod)
             {
-                var rewrittenElementMethod = RewriteOpenMethodReference(module, genericMethod.ElementMethod, out modified);
+                var rewrittenElementMethod = RewriteOpenMethodReference(
+                    module,
+                    genericMethod.ElementMethod,
+                    inferredDeclaringType,
+                    out modified);
                 var rewrittenGenericMethod = new GenericInstanceMethod(rewrittenElementMethod);
+                var inferredArguments = InferMethodGenericArgumentsFromStack(module, owner, callInstruction, genericMethod);
 
                 foreach (var genericArgument in genericMethod.GenericArguments)
                 {
                     var rewrittenArgument = ResolveRewrittenType(module, genericArgument);
+                    if (inferredArguments.TryGetValue(rewrittenGenericMethod.GenericArguments.Count, out var inferredArgument))
+                    {
+                        rewrittenArgument = inferredArgument;
+                    }
+
                     modified |= !TypeReferencesMatch(genericArgument, rewrittenArgument);
                     rewrittenGenericMethod.GenericArguments.Add(module.ImportReference(rewrittenArgument));
                 }
@@ -866,15 +1052,18 @@ namespace FireAlt.BLinq.CodeGen
                 return rewrittenGenericMethod;
             }
 
-            return RewriteOpenMethodReference(module, method, out modified);
+            return RewriteOpenMethodReference(module, method, inferredDeclaringType, out modified);
         }
 
         private MethodReference RewriteOpenMethodReference(
             ModuleDefinition module,
             MethodReference method,
+            TypeReference inferredDeclaringType,
             out bool modified)
         {
-            var declaringType = ResolveRewrittenType(module, method.DeclaringType);
+            var declaringType = inferredDeclaringType == null
+                ? ResolveRewrittenType(module, method.DeclaringType)
+                : module.ImportReference(inferredDeclaringType);
             modified = !TypeReferencesMatch(method.DeclaringType, declaringType);
 
             var methodReference = new MethodReference(
@@ -892,11 +1081,23 @@ namespace FireAlt.BLinq.CodeGen
                 methodReference.GenericParameters.Add(new GenericParameter(genericParameter.Name, methodReference));
             }
 
-            methodReference.ReturnType = RewriteMethodReferenceSignatureType(module, method.ReturnType, method, methodReference, ref modified);
+            methodReference.ReturnType = RewriteMethodReferenceSignatureType(
+                module,
+                method.ReturnType,
+                method,
+                methodReference,
+                declaringType,
+                ref modified);
             foreach (var parameter in method.Parameters)
             {
                 methodReference.Parameters.Add(new ParameterDefinition(
-                    RewriteMethodReferenceSignatureType(module, parameter.ParameterType, method, methodReference, ref modified)));
+                    RewriteMethodReferenceSignatureType(
+                        module,
+                        parameter.ParameterType,
+                        method,
+                        methodReference,
+                        declaringType,
+                        ref modified)));
             }
 
             return methodReference;
@@ -907,6 +1108,7 @@ namespace FireAlt.BLinq.CodeGen
             TypeReference type,
             MethodReference originalMethod,
             MethodReference rewrittenMethod,
+            TypeReference rewrittenDeclaringType,
             ref bool modified)
         {
             var rewritten = RewriteTypeReference(
@@ -926,8 +1128,25 @@ namespace FireAlt.BLinq.CodeGen
             return rewritten;
         }
 
+        private static TypeReference ResolveDeclaringTypeGenericArgument(TypeReference declaringType, int position)
+        {
+            if (declaringType is GenericInstanceType genericDeclaringType &&
+                position >= 0 &&
+                position < genericDeclaringType.GenericArguments.Count)
+            {
+                return genericDeclaringType.GenericArguments[position];
+            }
+
+            return null;
+        }
+
         private TypeReference ResolveRewrittenType(ModuleDefinition module, TypeReference type)
         {
+            if (_ambiguousRewrittenEnumeratorTypes.Contains(type.FullName))
+            {
+                return module.ImportReference(type);
+            }
+
             if (_rewrittenEnumeratorTypes.TryGetValue(type.FullName, out var rewritten))
             {
                 return module.ImportReference(rewritten);
@@ -945,6 +1164,388 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return module.ImportReference(type);
+        }
+
+        private static TypeReference SubstitutePlaceholderGenericArguments(
+            ModuleDefinition module,
+            TypeReference type,
+            IReadOnlyDictionary<string, TypeReference> genericArguments)
+        {
+            return RewriteTypeReference(
+                type,
+                genericParameter =>
+                    genericParameter.Type == GenericParameterType.Method &&
+                    genericArguments.TryGetValue(genericParameter.Name, out var argument)
+                        ? module.ImportReference(argument)
+                        : null,
+                module.ImportReference);
+        }
+
+        private Dictionary<string, TypeReference> CreatePlaceholderGenericArguments(
+            ModuleDefinition module,
+            MethodDefinition owner,
+            Instruction callInstruction,
+            GenericInstanceMethod placeholderCall,
+            MethodDefinition placeholder)
+        {
+            var genericArguments = new Dictionary<string, TypeReference>();
+            var inferredArguments = InferMethodGenericArgumentsFromStack(module, owner, callInstruction, placeholderCall);
+
+            for (var i = 0; i < placeholder.GenericParameters.Count; i++)
+            {
+                genericArguments[placeholder.GenericParameters[i].Name] =
+                    inferredArguments.TryGetValue(i, out var inferredArgument)
+                        ? inferredArgument
+                        : ResolveRewrittenType(module, placeholderCall.GenericArguments[i]);
+            }
+
+            return genericArguments;
+        }
+
+        private Dictionary<int, TypeReference> InferMethodGenericArgumentsFromStack(
+            ModuleDefinition module,
+            MethodDefinition owner,
+            Instruction callInstruction,
+            GenericInstanceMethod call)
+        {
+            var inferredArguments = new Dictionary<int, TypeReference>();
+            var methodDefinition = call.Resolve();
+            if (methodDefinition == null ||
+                !TryGetArgumentProducerEnds(owner, callInstruction, call, out var producerEnds))
+            {
+                return inferredArguments;
+            }
+
+            var argumentOffset = call.HasThis ? 1 : 0;
+            if (call.HasThis &&
+                TryGetProducedType(module, owner, producerEnds[0], out var instanceType))
+            {
+                InferGenericArguments(module, methodDefinition.DeclaringType, instanceType, inferredArguments);
+            }
+
+            for (var i = 0; i < methodDefinition.Parameters.Count; i++)
+            {
+                if (!TryGetProducedType(module, owner, producerEnds[i + argumentOffset], out var actualType))
+                {
+                    continue;
+                }
+
+                InferGenericArguments(module, methodDefinition.Parameters[i].ParameterType, actualType, inferredArguments);
+            }
+
+            return inferredArguments;
+        }
+
+        private TypeReference InferDeclaringTypeFromStack(
+            ModuleDefinition module,
+            MethodDefinition owner,
+            Instruction callInstruction,
+            MethodReference call)
+        {
+            if (!call.HasThis ||
+                !TryGetArgumentProducerEnds(owner, callInstruction, call, out var producerEnds) ||
+                !TryGetProducedType(module, owner, producerEnds[0], out var actualType))
+            {
+                return null;
+            }
+
+            if (actualType is ByReferenceType byReference)
+            {
+                actualType = byReference.ElementType;
+            }
+
+            return TypeDefinitionsMatch(actualType, call.DeclaringType)
+                ? module.ImportReference(actualType)
+                : null;
+        }
+
+        private static bool TryGetArgumentProducerEnds(
+            MethodDefinition owner,
+            Instruction callInstruction,
+            MethodReference call,
+            out Instruction[] producerEnds)
+        {
+            var argumentCount = call.Parameters.Count + (call.HasThis ? 1 : 0);
+            producerEnds = new Instruction[argumentCount];
+            var current = PreviousMeaningful(callInstruction);
+
+            for (var i = argumentCount - 1; i >= 0; i--)
+            {
+                if (current == null)
+                {
+                    return false;
+                }
+
+                var producerStart = FindStackProducerStart(current, 1);
+                if (producerStart == null)
+                {
+                    return false;
+                }
+
+                producerEnds[i] = current;
+                current = PreviousMeaningful(producerStart);
+            }
+
+            return true;
+        }
+
+        private bool TryGetProducedType(
+            ModuleDefinition module,
+            MethodDefinition owner,
+            Instruction instruction,
+            out TypeReference type)
+        {
+            type = null;
+            switch (instruction.OpCode.Code)
+            {
+                case Code.Call:
+                case Code.Callvirt:
+                    if (instruction.Operand is MethodReference method)
+                    {
+                        type = CloseMethodReturnType(
+                            module,
+                            method,
+                            InferDeclaringTypeFromStack(module, owner, instruction, method));
+                        return type.MetadataType != MetadataType.Void;
+                    }
+
+                    return false;
+                case Code.Newobj:
+                    if (instruction.Operand is MethodReference constructor)
+                    {
+                        type = module.ImportReference(constructor.DeclaringType);
+                        return true;
+                    }
+
+                    return false;
+                case Code.Ldloc:
+                case Code.Ldloc_S:
+                case Code.Ldloc_0:
+                case Code.Ldloc_1:
+                case Code.Ldloc_2:
+                case Code.Ldloc_3:
+                    if (TryGetLoadedLocal(owner, instruction, out var local))
+                    {
+                        type = GetLocalType(module, local);
+                        return true;
+                    }
+
+                    return false;
+                case Code.Ldloca:
+                case Code.Ldloca_S:
+                    if (instruction.Operand is VariableDefinition addressLocal)
+                    {
+                        type = new ByReferenceType(GetLocalType(module, addressLocal));
+                        return true;
+                    }
+
+                    return false;
+                case Code.Ldarg:
+                case Code.Ldarg_S:
+                case Code.Ldarg_0:
+                case Code.Ldarg_1:
+                case Code.Ldarg_2:
+                case Code.Ldarg_3:
+                    return TryGetLoadedArgumentType(module, owner, instruction, out type);
+                case Code.Ldarga:
+                case Code.Ldarga_S:
+                    if (instruction.Operand is ParameterDefinition addressParameter)
+                    {
+                        type = new ByReferenceType(module.ImportReference(addressParameter.ParameterType));
+                        return true;
+                    }
+
+                    return false;
+                case Code.Ldfld:
+                case Code.Ldsfld:
+                    if (instruction.Operand is FieldReference field)
+                    {
+                        type = module.ImportReference(field.FieldType);
+                        return true;
+                    }
+
+                    return false;
+                default:
+                    return false;
+            }
+        }
+
+        private TypeReference GetLocalType(ModuleDefinition module, VariableDefinition local)
+        {
+            return _rewrittenLocalTypes.TryGetValue(local, out var localType)
+                ? module.ImportReference(localType)
+                : module.ImportReference(local.VariableType);
+        }
+
+        private static bool TryGetLoadedArgumentType(
+            ModuleDefinition module,
+            MethodDefinition owner,
+            Instruction instruction,
+            out TypeReference type)
+        {
+            type = null;
+            if (!TryGetArgumentIndex(instruction, out var argumentIndex, out var parameter))
+            {
+                return false;
+            }
+
+            if (parameter != null)
+            {
+                type = module.ImportReference(parameter.ParameterType);
+                return true;
+            }
+
+            if (owner.HasThis)
+            {
+                if (argumentIndex == 0)
+                {
+                    type = module.ImportReference(owner.DeclaringType);
+                    return true;
+                }
+
+                argumentIndex--;
+            }
+
+            if (argumentIndex < 0 || argumentIndex >= owner.Parameters.Count)
+            {
+                return false;
+            }
+
+            type = module.ImportReference(owner.Parameters[argumentIndex].ParameterType);
+            return true;
+        }
+
+        private static bool TryGetArgumentIndex(
+            Instruction instruction,
+            out int argumentIndex,
+            out ParameterDefinition parameter)
+        {
+            parameter = instruction.Operand as ParameterDefinition;
+            if (parameter != null)
+            {
+                argumentIndex = parameter.Index;
+                return true;
+            }
+
+            switch (instruction.OpCode.Code)
+            {
+                case Code.Ldarg_0:
+                    argumentIndex = 0;
+                    return true;
+                case Code.Ldarg_1:
+                    argumentIndex = 1;
+                    return true;
+                case Code.Ldarg_2:
+                    argumentIndex = 2;
+                    return true;
+                case Code.Ldarg_3:
+                    argumentIndex = 3;
+                    return true;
+                default:
+                    argumentIndex = -1;
+                    return false;
+            }
+        }
+
+        private static TypeReference CloseMethodReturnType(ModuleDefinition module, MethodReference method)
+        {
+            return CloseMethodReturnType(module, method, null);
+        }
+
+        private static TypeReference CloseMethodReturnType(
+            ModuleDefinition module,
+            MethodReference method,
+            TypeReference declaringType)
+        {
+            if (method is GenericInstanceMethod genericMethod)
+            {
+                return CloseDeclaringTypeGenericType(
+                    module,
+                    CloseMethodGenericType(module, genericMethod.ElementMethod.ReturnType, genericMethod),
+                    declaringType);
+            }
+
+            return CloseDeclaringTypeGenericType(module, method.ReturnType, declaringType);
+        }
+
+        private static TypeReference CloseDeclaringTypeGenericType(
+            ModuleDefinition module,
+            TypeReference type,
+            TypeReference declaringType)
+        {
+            if (declaringType == null)
+            {
+                return module.ImportReference(type);
+            }
+
+            return RewriteTypeReference(
+                type,
+                genericParameter =>
+                    genericParameter.Type == GenericParameterType.Type
+                        ? ResolveDeclaringTypeGenericArgument(declaringType, genericParameter.Position)
+                        : null,
+                module.ImportReference);
+        }
+
+        private static void InferGenericArguments(
+            ModuleDefinition module,
+            TypeReference pattern,
+            TypeReference actual,
+            IDictionary<int, TypeReference> inferredArguments)
+        {
+            switch (pattern)
+            {
+                case GenericParameter genericParameter
+                    when genericParameter.Type == GenericParameterType.Method:
+                    AddInferredGenericArgument(module, genericParameter.Position, actual, inferredArguments);
+                    return;
+                case GenericInstanceType patternGeneric
+                    when actual is ByReferenceType actualByReferenceGeneric:
+                    InferGenericArguments(module, patternGeneric, actualByReferenceGeneric.ElementType, inferredArguments);
+                    return;
+                case GenericInstanceType patternGeneric
+                    when actual is GenericInstanceType actualGeneric &&
+                        patternGeneric.ElementType.FullName == actualGeneric.ElementType.FullName &&
+                        patternGeneric.GenericArguments.Count == actualGeneric.GenericArguments.Count:
+                    for (var i = 0; i < patternGeneric.GenericArguments.Count; i++)
+                    {
+                        InferGenericArguments(module, patternGeneric.GenericArguments[i], actualGeneric.GenericArguments[i], inferredArguments);
+                    }
+
+                    return;
+                case ByReferenceType patternByReference:
+                    if (actual is ByReferenceType actualByReference)
+                    {
+                        InferGenericArguments(module, patternByReference.ElementType, actualByReference.ElementType, inferredArguments);
+                    }
+
+                    return;
+                case RequiredModifierType patternRequiredModifier:
+                    InferGenericArguments(module, patternRequiredModifier.ElementType, actual, inferredArguments);
+                    return;
+                case OptionalModifierType patternOptionalModifier:
+                    InferGenericArguments(module, patternOptionalModifier.ElementType, actual, inferredArguments);
+                    return;
+            }
+        }
+
+        private static void AddInferredGenericArgument(
+            ModuleDefinition module,
+            int position,
+            TypeReference argument,
+            IDictionary<int, TypeReference> inferredArguments)
+        {
+            argument = module.ImportReference(argument);
+            if (argument.ContainsGenericParameter)
+            {
+                return;
+            }
+
+            if (!inferredArguments.TryGetValue(position, out var existing) ||
+                TypeReferencesMatch(existing, argument))
+            {
+                inferredArguments[position] = argument;
+            }
         }
     }
 }
