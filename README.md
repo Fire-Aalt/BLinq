@@ -54,8 +54,8 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [x] Reverse
 - [x] Join
 - [x] GroupJoin
-- [ ] MinBy
-- [ ] MaxBy
+- [x] MinBy
+- [x] MaxBy
 
 ## Missing Special operators/sequences:
 - [ ] InfiniteSequence
