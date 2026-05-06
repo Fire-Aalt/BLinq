@@ -1,67 +1,206 @@
 # BLinq
-Perform any query in a *blink* with this blazingly fast, fully Burst compatible Unity LINQ library. 
-Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, making it as accessible as possible.
 
-## TO-DO:
-* Add fast paths with known Length
+Burst-compatible LINQ for unmanaged Unity collections, built around generic query fusion, IL post-processing, Roslyn validation, and source-generated boilerplate.
 
-## Missing Core Operators:
-- [x] Select
-- [x] SelectMany
-- [x] Where
-- [x] AggregateBy
-- [x] Contains
-- [x] First
-- [x] FirstOrDefault
-- [x] GroupBy
-- [x] Min
-- [x] Max
-- [x] OrderBy
-- [x] ThenBy
-- [x] Sum
-- [x] Average
-- [x] SequenceEqual
-- [x] Any
-- [x] All
-- [x] Count
-- [x] LongCount
-- [x] Aggregate
-- [x] ElementAt
-- [x] ElementAtOrDefault
-- [x] Last
-- [x] LastOrDefault
-- [x] Single
-- [x] SingleOrDefault
-- [x] DefaultIfEmpty
-- [ ] Cast                // Impossible in Unmanaged C#
-- [ ] OfType              // Impossible in Unmanaged C#
-- [x] Distinct
-- [x] DistinctBy
-- [x] Union
-- [x] UnionBy
-- [x] Intersect
-- [x] IntersectBy 
-- [x] Except
-- [x] ExceptBy
-- [x] Concat 
-- [x] Append
-- [x] Prepend
-- [x] Skip
-- [x] SkipWhile
-- [x] Take
-- [x] TakeWhile
-- [x] TakeLast
-- [x] Reverse
-- [x] Join
-- [x] GroupJoin
-- [x] MinBy
-- [x] MaxBy
+BLinq combines practical ideas from existing LINQ libraries with an architecture designed specifically for High-Performance C# (HPC#): 
+constrained unmanaged pipelines, ILPP delegate rewriting, and source-generated boilerplate where necessary.
 
-## Missing Special operators/sequences:
-- [ ] InfiniteSequence
-- [ ] Shuffle
+Unlike regular LINQ, BLinq does not build managed iterator objects for each chained operator. 
+Queries are represented as nested generic value types: every operator wraps the previous query, 
+producing a "linked list of generics" that stores the full query shape in the type system. 
+This gives Burst a fully concrete query pipeline with no delegate dispatch, virtual calls, or operator branching in the hot path.
 
-## TO-DO when C# in Unity will get more language features:
-* CORE CLR: Revise Mono.Cecil dependency.
-* CORE CLR: Static Abstract Interface for `IAggregatable`. Remove the source generator for the current `IAggregatable` and implement the new interface.
-* FUTURE C#: Extend types with addition/devision operators so that extensions can also participate in contractual sites without owning the original type.
+```csharp
+using FireAlt.BLinq;
+
+[BurstCompile]
+private static void BurstedMethod() 
+{
+    var sum = nativeArray
+        .AsQuery()
+        .Where(x => x > 0)
+        .Select(x => x * 2)
+        .Sum();
+}
+```
+
+## Contents
+
+- [Highlights](#highlights)
+- [Burst Behavior](#burst-behavior)
+- [Supported Sources](#supported-sources)
+- [Source Generation Attributes](#source-generation-attributes)
+- [Operator Reference](#operator-reference)
+- [Materialization](#materialization)
+- [Unsupported Core LINQ Operators](#unsupported-core-linq-operators)
+- [Limitations](#limitations)
+- [TODO](#todo)
+- [Future C# / Unity TODO](#future-c--unity-todo)
+
+## Highlights
+
+- **Broad LINQ coverage**: 96% of core LINQ operators are available, with each implemented operator covered by unit tests and benchmarks.
+- **Burst-friendly query fusion**: operators compose through generics all the way down, creating one concrete mega-type that represents the complete query.
+- **Lazy by default**: query chains are initialized lazily and do not allocate intermediate collections unless materialization is explicitly requested.
+- **Ergonomic `Func` APIs**: an ILPostProcessor rewrites supported LINQ-shaped `Func` calls into unmanaged strategy structs, so common query code remains natural while staying Burst compatible.
+- **Analyzer-guarded delegates**: a Roslyn analyzer validates rewritten `Func` bodies so managed code cannot accidentally enter Burst paths, except for supported nested BLinq operations.
+- **Source-generated numeric support**: `Sum()` and `Average()` overloads are generated per numeric type with `[assembly: GenerateAccumulatorFor(typeof(float2), DivisorType.Int)]`.
+- **Manual struct path available**: the delegate-free API remains available by implementing interfaces such as `IPredicate<T>` or `ISelector<TSource,TResult>` yourself.
+
+## Burst Behavior
+
+In benchmarks, Burst can vectorize pretty complex fixed-count pipelines such as `Select()`, `Sum()`, `Average()`, and similar non-count changing queries. 
+Operators that can change the number of elements, such as `Where()`, naturally limit vectorization after that point because the resulting count is data-dependent.
+
+Comparisons against regular LINQ under Burst have shown query speedups from about 2.5x to 20x depending on query shape. 
+BLinq only targets unmanaged data and unmanaged-compatible query logic, and thus it is not intended to be a drop-in replacement for managed `IEnumerable<T>` pipelines.
+
+## Supported Sources
+
+BLinq generates `AsQuery()` extensions for the collections listed in [GenerateDefaultQueryExtensions.cs](FireAlt.BLinq/GenerateDefaultQueryExtensions.cs), 
+including Unity collections and optional Entities, KrasCore, and BovineLabs.Core sources when those packages are available.
+
+`Sum` and `Average` support the numeric accumulator types generated by [GenerateDefaultAccumulators.cs](FireAlt.BLinq/GenerateDefaultAccumulators.cs).
+
+## Source Generation Attributes
+
+BLinq exposes assembly-level attributes for extending the generated API to project-specific collection and numeric types.
+
+### GenerateQueryExtensionFor
+
+Use `GenerateQueryExtensionFor` to generate an `AsQuery()` extension for a collection type.
+
+```csharp
+using FireAlt.BLinq;
+using Unity.Collections;
+
+[assembly: GenerateQueryExtensionFor(typeof(NativeArray<>), typeof(NativeArray<>.Enumerator))]
+```
+
+The first argument is the collection type that receives `AsQuery()`, and the second argument is the enumerator type stored by `Query<TEnumerator,T>`.
+
+Requirements:
+
+- The attribute must be placed at assembly scope and can be repeated for multiple source types.
+- The enumerator type must implement `System.Collections.Generic.IEnumerator<T>` so the generator can infer the query item type.
+- The collection type must expose a compatible `GetEnumerator()` method because the generated extension constructs `new Query<TEnumerator,T>(collection.GetEnumerator())`.
+- Generic collection and enumerator types should be passed as open generic types, such as `typeof(MyCollection<>)` and `typeof(MyCollection<>.Enumerator)`.
+
+### GenerateAccumulatorFor
+
+Use `GenerateAccumulatorFor` to generate the default accumulator and typed `Sum()` / `Average()` overloads for an unmanaged numeric-like type.
+
+```csharp
+using FireAlt.BLinq;
+using Unity.Mathematics;
+
+[assembly: GenerateAccumulatorFor(typeof(float3), DivisorType.Int)]
+```
+
+The first argument is the value type to accumulate, and the second argument controls how the `uint` element count is used when generating `Average()`.
+
+Requirements:
+
+- The attribute must be placed at assembly scope and can be repeated for multiple accumulator types.
+- The value type must be unmanaged and support `total + value` and `total / count` expressions.
+- `DivisorType.Int` generates division by `(int)count`, which is appropriate for signed, floating-point, vector, and most custom numeric types.
+- `DivisorType.UInt` generates division by `count`, which is appropriate for unsigned scalar and vector types.
+- The generator emits a `{TypeName}Accumulator : IAccumulator<T>` plus overloads that allow `query.Sum()`, `query.Average()`, and selector variants without explicitly naming the accumulator type.
+
+## Operator Reference
+
+| Operator | Brief |
+| --- | --- |
+| `Aggregate` | Applies an accumulator over the query and returns the final accumulated value. |
+| `AggregateBy` | Groups elements by key and accumulates a value for each key. |
+| `All` | Determines whether all elements of a query satisfy a predicate. |
+| `Any` | Determines whether the query contains any elements or any elements matching a predicate. |
+| `Append` | Appends a value to the end of a query. |
+| `Average` | Returns the average of the query or projected query values using the default accumulator. |
+| `Concat` | Concatenates two queries. |
+| `Contains` | Determines whether the query contains a specified value. |
+| `Count` | Returns the number of elements in the query or the number matching a predicate. |
+| `DefaultIfEmpty` | Returns the query elements, or a singleton default value when the query is empty. |
+| `Distinct` | Returns distinct elements from a query using default equality. |
+| `DistinctBy` | Returns distinct elements according to a selected key. |
+| `ElementAt` | Returns the element at a zero-based index. |
+| `ElementAtOrDefault` | Returns the element at a zero-based index, or the default value when the index is out of range. |
+| `Except` | Produces the set difference of two queries using default equality. |
+| `ExceptBy` | Produces the set difference of two queries according to a selected key. |
+| `First` | Returns the first element of a query or the first element matching a predicate. |
+| `FirstOrDefault` | Returns the first element of a query or predicate match, or the default value when no element exists. |
+| `GroupBy` | Groups query elements by key and returns grouped results. |
+| `GroupJoin` | Correlates two queries by matching keys and groups inner matches for each outer element. |
+| `Intersect` | Produces the set intersection of two queries using default equality. |
+| `IntersectBy` | Produces the set intersection of two queries according to a selected key. |
+| `Join` | Correlates two queries by matching keys and yields one result for each matching outer and inner pair. |
+| `Last` | Returns the last element of a query or the last element matching a predicate. |
+| `LastOrDefault` | Returns the last element of a query or predicate match, or the default value when no element exists. |
+| `LongCount` | Returns the number of elements in the query as a `long`, or the number matching a predicate. |
+| `Max` | Returns the largest element in the query according to the default comparer or a supplied comparer. |
+| `MaxBy` | Returns the element with the maximum selected key. |
+| `Min` | Returns the smallest element in the query according to the default comparer or a supplied comparer. |
+| `MinBy` | Returns the element with the minimum selected key. |
+| `OrderBy` | Sorts the query in ascending order according to the element or a selected key. |
+| `OrderByDescending` | Sorts the query in descending order according to the element or a selected key. |
+| `Prepend` | Prepends a value to the beginning of a query. |
+| `Reverse` | Yields the elements of a query in reverse order. |
+| `Select` | Projects each element of a query into a new form. |
+| `SelectMany` | Projects each element to an inner query and flattens the resulting queries. |
+| `SequenceEqual` | Determines whether two queries contain equal elements in the same order. |
+| `Single` | Returns the only element of a query or predicate match and throws when the result is not exactly one element. |
+| `SingleOrDefault` | Returns the only element of a query or predicate match, or the default value when no element exists. |
+| `Skip` | Bypasses a specified number of elements and yields the remaining elements. |
+| `SkipWhile` | Bypasses elements while they match a predicate, then yields the remaining elements. |
+| `Sum` | Returns the sum of the query or projected query values using the default accumulator. |
+| `Take` | Yields a specified number of contiguous elements from the start of a query. |
+| `TakeLast` | Yields a specified number of contiguous elements from the end of a query. |
+| `TakeWhile` | Yields elements while they match a predicate. |
+| `ThenBy` | Adds a secondary ascending key ordering to an ordered query. |
+| `ThenByDescending` | Adds a secondary descending key ordering to an ordered query. |
+| `ToLookup` | Groups elements by key and returns a lookup stored in native containers. |
+| `Union` | Produces the set union of two queries using default equality. |
+| `UnionBy` | Produces the set union of two queries according to a selected key. |
+| `Where` | Filters a query so that only elements matching a predicate are yielded. |
+
+## Materialization
+
+| Operator | Brief |
+| --- | --- |
+| `ToManagedArray` | Materializes a query into a managed array. |
+| `ToManagedDictionary` | Materializes a query into a managed dictionary using selected keys and values. |
+| `ToManagedHashSet` | Materializes a query into a managed hash set. |
+| `ToManagedList` | Materializes a query into a managed list. |
+| `ToNativeArray` | Materializes a query into a `NativeArray<T>` using the requested allocator. |
+| `ToNativeHashMap` | Materializes a query into a `NativeHashMap<TKey,TValue>` using selected keys and values. |
+| `ToNativeHashSet` | Materializes a query into a `NativeHashSet<T>`. |
+| `ToNativeList` | Materializes a query into a `NativeList<T>` using the requested allocator. |
+| `ToOrderedBy` | Materializes a query into a sorted `NativeList<T>` in ascending order. |
+| `ToOrderedByDescending` | Materializes a query into a sorted `NativeList<T>` in descending order. |
+| `ToUnsafeList` | Materializes a query into an `UnsafeList<T>` using the requested allocator. |
+
+## Unsupported Core LINQ Operators
+
+| Operator | Reason |
+| --- | --- |
+| `Cast` | Unsupported because BLinq works with unmanaged value types and cannot safely model runtime reference casts. |
+| `OfType` | Unsupported because BLinq works with unmanaged value types and cannot safely model runtime type filtering. |
+
+## Limitations
+
+BLinq has a few intentional limitations that follow from its design. These tradeoffs keep the query pipeline Burst-friendly, allocation-conscious, and statically optimizable.
+
+- **Rider Burst analyzer warnings**: Rider's Burst analyzer can flag queries that use delegate-shaped APIs as managed code, even though BLinq rewrites supported calls through ILPP. I could not find a way to whitelist the declared `Func` method because the analyzer only evaluates the call site, so affected query blocks need local analyzer suppression comments. Disabling the analyzer globally is possible, but not recommended.
+- **Queries are temporary**: BLinq queries are meant to be built and consumed locally, not stored in fields. Some operators use temporary allocation state, such as `OrderBy`, and the nested generic query type can become complex quickly. A future analyzer should explicitly reject storing BLinq query values in fields.
+- **IL2CPP generic depth**: IL2CPP has a maximum generic nesting depth, which is `7` by default. Query chains should stay within that operation depth unless the IL2CPP generic depth limit is increased through IL2CPP compiler arguments; with a higher limit, longer query chains are supported.
+
+## TODO
+
+- Add fast paths for sources where count or indexability can be preserved through the query pipeline.
+
+## Future C# / Unity TODO
+
+- CORE CLR: revise the Mono.Cecil dependency.
+- CORE CLR: use static abstract interface members for aggregatable numeric types and remove the current accumulator source generator.
+- FUTURE C#: use extension operators for arithmetic so external types can participate in accumulator contracts without owning the original type.
+
