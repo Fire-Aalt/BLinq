@@ -1084,9 +1084,7 @@ namespace FireAlt.BLinq.CodeGen
             methodReference.ReturnType = RewriteMethodReferenceSignatureType(
                 module,
                 method.ReturnType,
-                method,
                 methodReference,
-                declaringType,
                 ref modified);
             foreach (var parameter in method.Parameters)
             {
@@ -1094,9 +1092,7 @@ namespace FireAlt.BLinq.CodeGen
                     RewriteMethodReferenceSignatureType(
                         module,
                         parameter.ParameterType,
-                        method,
                         methodReference,
-                        declaringType,
                         ref modified)));
             }
 
@@ -1106,9 +1102,7 @@ namespace FireAlt.BLinq.CodeGen
         private TypeReference RewriteMethodReferenceSignatureType(
             ModuleDefinition module,
             TypeReference type,
-            MethodReference originalMethod,
             MethodReference rewrittenMethod,
-            TypeReference rewrittenDeclaringType,
             ref bool modified)
         {
             var rewritten = RewriteTypeReference(
@@ -1445,11 +1439,6 @@ namespace FireAlt.BLinq.CodeGen
                     argumentIndex = -1;
                     return false;
             }
-        }
-
-        private static TypeReference CloseMethodReturnType(ModuleDefinition module, MethodReference method)
-        {
-            return CloseMethodReturnType(module, method, null);
         }
 
         private static TypeReference CloseMethodReturnType(
