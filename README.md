@@ -25,9 +25,9 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [x] All
 - [x] Count
 - [x] LongCount
-- [ ] Aggregate
-- [ ] ElementAt
-- [ ] ElementAtOrDefault
+- [x] Aggregate
+- [x] ElementAt
+- [x] ElementAtOrDefault
 - [ ] Last
 - [ ] LastOrDefault
 - [ ] Single
