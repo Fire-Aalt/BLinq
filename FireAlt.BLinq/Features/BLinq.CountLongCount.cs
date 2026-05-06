@@ -88,74 +88,6 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Returns the number of elements in the ordered query.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <returns>The number of elements in the sequence.</returns>
-        /// <exception cref="OverflowException">The number of elements is larger than <see cref="int.MaxValue"/>.</exception>
-        public static int Count<T, TEnumerator, TComparer>(this OrderedQuery<TEnumerator, T, TComparer> source)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return BLinqUtilities.Count<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>>(source.GetEnumerator());
-        }
-
-        /// <summary>
-        /// Returns the number of elements in the ordered query that match <paramref name="predicate"/>.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns>The number of matching elements in the sequence.</returns>
-        /// <exception cref="OverflowException">The number of matching elements is larger than <see cref="int.MaxValue"/>.</exception>
-        public static int Count<T, TEnumerator, TComparer, TPredicate>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TPredicate predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TPredicate : unmanaged, IPredicate<T>
-        {
-            return BLinqUtilities.Count<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>, TPredicate>(
-                source.GetEnumerator(),
-                predicate);
-        }
-
-        /// <summary>
-        /// Returns the number of elements in the ordered query as a 64-bit integer.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <returns>The number of elements in the sequence.</returns>
-        /// <exception cref="OverflowException">The number of elements is larger than <see cref="long.MaxValue"/>.</exception>
-        public static long LongCount<T, TEnumerator, TComparer>(this OrderedQuery<TEnumerator, T, TComparer> source)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return BLinqUtilities.LongCount<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>>(source.GetEnumerator());
-        }
-
-        /// <summary>
-        /// Returns the number of elements in the ordered query that match <paramref name="predicate"/> as a 64-bit integer.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns>The number of matching elements in the sequence.</returns>
-        /// <exception cref="OverflowException">The number of matching elements is larger than <see cref="long.MaxValue"/>.</exception>
-        public static long LongCount<T, TEnumerator, TComparer, TPredicate>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TPredicate predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TPredicate : unmanaged, IPredicate<T>
-        {
-            return BLinqUtilities.LongCount<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>, TPredicate>(
-                source.GetEnumerator(),
-                predicate);
-        }
-
-        /// <summary>
         /// Returns the number of elements in the query that match <paramref name="predicate"/>.
         /// </summary>
         /// <param name="source">Source query.</param>
@@ -183,44 +115,6 @@ namespace FireAlt.BLinq
         public static long LongCount<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
-        {
-            return ThrowCodeGen<long>();
-        }
-
-        /// <summary>
-        /// Returns the number of elements in the ordered query that match <paramref name="predicate"/>.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns>The number of matching elements in the sequence.</returns>
-        /// <exception cref="OverflowException">The number of matching elements is larger than <see cref="int.MaxValue"/>.</exception>
-        [NativeDelegateMethod(typeof(IPredicate<>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static int Count<T, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, bool> predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<int>();
-        }
-
-        /// <summary>
-        /// Returns the number of elements in the ordered query that match <paramref name="predicate"/> as a 64-bit integer.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns>The number of matching elements in the sequence.</returns>
-        /// <exception cref="OverflowException">The number of matching elements is larger than <see cref="long.MaxValue"/>.</exception>
-        [NativeDelegateMethod(typeof(IPredicate<>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static long LongCount<T, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, bool> predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<long>();
         }

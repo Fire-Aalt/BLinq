@@ -42,15 +42,5 @@ namespace FireAlt.BLinq.Tests
                 input.AsQuery().Aggregate(10, (aggregate, value) => aggregate + value, aggregate => aggregate * 2),
                 Is.EqualTo(input.Aggregate(10, (aggregate, value) => aggregate + value, aggregate => aggregate * 2)));
         }
-
-        [Test]
-        public void Aggregate_WorksOnOrderedQuery()
-        {
-            var input = new NativeArray<int>(new[] { 3, 1, 2 }, Allocator.Temp);
-
-            Assert.That(input.AsQuery().OrderBy().Aggregate((aggregate, value) => aggregate * 10 + value), Is.EqualTo(123));
-            Assert.That(input.AsQuery().OrderBy().Aggregate(0, (aggregate, value) => aggregate * 10 + value), Is.EqualTo(123));
-            Assert.That(input.AsQuery().OrderBy().Aggregate(0, (aggregate, value) => aggregate * 10 + value, aggregate => aggregate + 1), Is.EqualTo(124));
-        }
     }
 }

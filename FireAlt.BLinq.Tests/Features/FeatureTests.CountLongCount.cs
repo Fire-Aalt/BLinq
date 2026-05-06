@@ -45,17 +45,5 @@ namespace FireAlt.BLinq.Tests
             Assert.That(input.AsQuery().LongCount(value => value % 2 == 0), Is.EqualTo(input.LongCount(value => value % 2 == 0)));
             Assert.That(input.AsQuery().LongCount(value => value > 10), Is.EqualTo(input.LongCount(value => value > 10)));
         }
-
-        [Test]
-        public void CountLongCount_WorkOnOrderedQuery()
-        {
-            var input = new NativeArray<int>(new[] { 3, 1, 2, 4 }, Allocator.Temp);
-            var ordered = input.AsQuery().OrderBy();
-
-            Assert.That(ordered.Count(), Is.EqualTo(input.Count()));
-            Assert.That(ordered.Count(value => value % 2 == 0), Is.EqualTo(input.Count(value => value % 2 == 0)));
-            Assert.That(ordered.LongCount(), Is.EqualTo(input.LongCount()));
-            Assert.That(ordered.LongCount(value => value % 2 == 0), Is.EqualTo(input.LongCount(value => value % 2 == 0)));
-        }
     }
 }

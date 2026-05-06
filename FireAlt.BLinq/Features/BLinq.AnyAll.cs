@@ -61,57 +61,6 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Returns whether the ordered query contains at least one element.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <returns><c>true</c> when the sequence contains at least one element; otherwise <c>false</c>.</returns>
-        public static bool Any<T, TEnumerator, TComparer>(this OrderedQuery<TEnumerator, T, TComparer> source)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return BLinqUtilities.Any<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>>(source.GetEnumerator());
-        }
-
-        /// <summary>
-        /// Returns whether any element in the ordered query matches <paramref name="predicate"/>.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns><c>true</c> when any element matches; otherwise <c>false</c>.</returns>
-        public static bool Any<T, TEnumerator, TComparer, TPredicate>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TPredicate predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TPredicate : unmanaged, IPredicate<T>
-        {
-            return BLinqUtilities.Any<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>, TPredicate>(
-                source.GetEnumerator(),
-                predicate);
-        }
-
-        /// <summary>
-        /// Returns whether every element in the ordered query matches <paramref name="predicate"/>.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns><c>true</c> when every element matches, or when the sequence is empty; otherwise <c>false</c>.</returns>
-        public static bool All<T, TEnumerator, TComparer, TPredicate>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TPredicate predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TPredicate : unmanaged, IPredicate<T>
-        {
-            return BLinqUtilities.All<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>, TPredicate>(
-                source.GetEnumerator(),
-                predicate);
-        }
-
-        /// <summary>
         /// Returns whether any element in the query matches <paramref name="predicate"/>.
         /// </summary>
         /// <param name="source">Source query.</param>
@@ -137,42 +86,6 @@ namespace FireAlt.BLinq
         public static bool All<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
-        {
-            return ThrowCodeGen<bool>();
-        }
-
-        /// <summary>
-        /// Returns whether any element in the ordered query matches <paramref name="predicate"/>.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns><c>true</c> when any element matches; otherwise <c>false</c>.</returns>
-        [NativeDelegateMethod(typeof(IPredicate<>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static bool Any<T, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, bool> predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<bool>();
-        }
-
-        /// <summary>
-        /// Returns whether every element in the ordered query matches <paramref name="predicate"/>.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="predicate">The predicate used to test each element.</param>
-        /// <returns><c>true</c> when every element matches, or when the sequence is empty; otherwise <c>false</c>.</returns>
-        [NativeDelegateMethod(typeof(IPredicate<>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static bool All<T, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, bool> predicate)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<bool>();
         }

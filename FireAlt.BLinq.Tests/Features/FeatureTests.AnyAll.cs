@@ -37,16 +37,5 @@ namespace FireAlt.BLinq.Tests
             Assert.That(input.AsQuery().All(value => value > 3), Is.EqualTo(input.All(value => value > 3)));
             Assert.That(empty.AsQuery().All(value => value > 3), Is.EqualTo(empty.All(value => value > 3)));
         }
-
-        [Test]
-        public void AnyAll_WorkOnOrderedQuery()
-        {
-            var input = new NativeArray<int>(new[] { 3, 1, 2 }, Allocator.Temp);
-            var ordered = input.AsQuery().OrderBy();
-
-            Assert.That(ordered.Any(), Is.True);
-            Assert.That(ordered.Any(value => value == 2), Is.True);
-            Assert.That(ordered.All(value => value > 0), Is.True);
-        }
     }
 }
