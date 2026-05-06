@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using KrasCore;
 
 namespace FireAlt.BLinq
 {
@@ -22,42 +22,146 @@ namespace FireAlt.BLinq
         
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {
-            var array = _source.ToNativeArray(allocator);
-            array.Sort(_comparer);
-            return array;
-        }
-
-        public unsafe UnsafeArray<T> ToUnsafeArray(Allocator allocator)
-        {
-            var array = _source.ToUnsafeArray(allocator);
-            NativeSortExtension.Sort((T*)array.GetUnsafePtr(), array.Length, _comparer);
-            return array;
+            return BLinqUtilities.ToSortedNativeArray<T, TEnumerator, TComparer>(
+                _source.GetEnumerator(),
+                _comparer,
+                allocator);
         }
 
         public UnsafeList<T> ToUnsafeList(AllocatorManager.AllocatorHandle allocator)
         {
-            var list = _source.ToUnsafeList(allocator);
-            list.Sort(_comparer);
-            return list;
+            return BLinqUtilities.ToSortedUnsafeList<T, TEnumerator, TComparer>(
+                _source.GetEnumerator(),
+                _comparer,
+                allocator);
         }
 
         public NativeList<T> ToNativeList(AllocatorManager.AllocatorHandle allocator)
         {
-            var list = _source.ToNativeList(allocator);
-            list.Sort(_comparer);
-            return list;
+            return BLinqUtilities.ToSortedNativeList<T, TEnumerator, TComparer>(
+                _source.GetEnumerator(),
+                _comparer,
+                allocator);
         }
 
         public T[] ToManagedArray()
         {
-            var list = ToNativeList(Allocator.Temp);
-            return list.ToManagedArray();
+            return BLinqUtilities.ToSortedManagedArray<T, TEnumerator, TComparer>(
+                _source.GetEnumerator(),
+                _comparer);
         }
 
         public List<T> ToManagedList()
         {
-            var array = ToManagedArray();
-            return new List<T>(array);
+            return BLinqUtilities.ToSortedManagedList<T, TEnumerator, TComparer>(
+                _source.GetEnumerator(),
+                _comparer);
+        }
+
+        public Dictionary<TKey, T> ToManagedDictionary<TKey, TKeySelector>(TKeySelector keySelector)
+            where TKey : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+        {
+            return BLinqUtilities.ToSortedManagedDictionary<T, TKey, T, TEnumerator, TComparer, TKeySelector, IdentitySelector<T>>(
+                _source.GetEnumerator(),
+                _comparer,
+                keySelector,
+                new IdentitySelector<T>(),
+                null);
+        }
+
+        public Dictionary<TKey, T> ToManagedDictionary<TKey, TKeySelector>(
+            TKeySelector keySelector,
+            IEqualityComparer<TKey> comparer)
+            where TKey : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+        {
+            return BLinqUtilities.ToSortedManagedDictionary<T, TKey, T, TEnumerator, TComparer, TKeySelector, IdentitySelector<T>>(
+                _source.GetEnumerator(),
+                _comparer,
+                keySelector,
+                new IdentitySelector<T>(),
+                comparer);
+        }
+
+        public Dictionary<TKey, TValue> ToManagedDictionary<TKey, TValue, TKeySelector, TValueSelector>(
+            TKeySelector keySelector,
+            TValueSelector valueSelector)
+            where TKey : unmanaged
+            where TValue : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TValueSelector : unmanaged, ISelector<T, TValue>
+        {
+            return BLinqUtilities.ToSortedManagedDictionary<T, TKey, TValue, TEnumerator, TComparer, TKeySelector, TValueSelector>(
+                _source.GetEnumerator(),
+                _comparer,
+                keySelector,
+                valueSelector,
+                null);
+        }
+
+        public Dictionary<TKey, TValue> ToManagedDictionary<TKey, TValue, TKeySelector, TValueSelector>(
+            TKeySelector keySelector,
+            TValueSelector valueSelector,
+            IEqualityComparer<TKey> comparer)
+            where TKey : unmanaged
+            where TValue : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TValueSelector : unmanaged, ISelector<T, TValue>
+        {
+            return BLinqUtilities.ToSortedManagedDictionary<T, TKey, TValue, TEnumerator, TComparer, TKeySelector, TValueSelector>(
+                _source.GetEnumerator(),
+                _comparer,
+                keySelector,
+                valueSelector,
+                comparer);
+        }
+
+        public HashSet<T> ToManagedHashSet()
+        {
+            return BLinqUtilities.ToSortedManagedHashSet<T, TEnumerator, TComparer>(
+                _source.GetEnumerator(),
+                _comparer,
+                null);
+        }
+
+        public HashSet<T> ToManagedHashSet(IEqualityComparer<T> comparer)
+        {
+            return BLinqUtilities.ToSortedManagedHashSet<T, TEnumerator, TComparer>(
+                _source.GetEnumerator(),
+                _comparer,
+                comparer);
+        }
+
+        public NativeHashMap<TKey, T> ToNativeHashMap<TKey, TKeySelector>(
+            TKeySelector keySelector,
+            AllocatorManager.AllocatorHandle allocator)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+        {
+            return BLinqUtilities.ToSortedNativeHashMap<T, TKey, T, TEnumerator, TComparer, TKeySelector, IdentitySelector<T>>(
+                _source.GetEnumerator(),
+                _comparer,
+                keySelector,
+                new IdentitySelector<T>(),
+                allocator);
+        }
+
+        public NativeHashMap<TKey, TValue> ToNativeHashMap<TKey, TValue, TKeySelector, TValueSelector>(
+            TKeySelector keySelector,
+            TValueSelector valueSelector,
+            AllocatorManager.AllocatorHandle allocator)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : unmanaged
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+            where TValueSelector : unmanaged, ISelector<T, TValue>
+        {
+            return BLinqUtilities.ToSortedNativeHashMap<T, TKey, TValue, TEnumerator, TComparer, TKeySelector, TValueSelector>(
+                _source.GetEnumerator(),
+                _comparer,
+                keySelector,
+                valueSelector,
+                allocator);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

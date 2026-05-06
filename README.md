@@ -3,7 +3,6 @@ Perform any query in a *blink* with this blazingly fast, fully Burst compatible 
 Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, making it as accessible as possible.
 
 ## TO-DO:
-* Materialization should be streamlined.
 * Create a SKILL.md to describe how to create a "lift" a feature.
 
 ## Missing Core Operators:
@@ -57,15 +56,6 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [ ] GroupJoin
 - [ ] MinBy
 - [ ] MaxBy
-
-## Missing Overloads:
-- [x] ThenBy key-selector overloads
-
-## Missing Materializers:
-- [ ] ToManagedDictionary
-- [ ] ToManagedHashSet
-- [ ] ToNativeHashMap
-- [ ] ToNativeHashSet
 
 ## Missing Special operators/sequences:
 - [ ] InfiniteSequence
