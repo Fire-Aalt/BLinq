@@ -3,7 +3,7 @@ Perform any query in a *blink* with this blazingly fast, fully Burst compatible 
 Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, making it as accessible as possible.
 
 ## TO-DO:
-* Create a SKILL.md to describe how to create a "lift" a feature.
+* Add fast paths with known Length
 
 ## Missing Core Operators:
 - [x] Select
@@ -51,9 +51,9 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [x] Take
 - [x] TakeWhile
 - [x] TakeLast
-- [ ] Reverse
-- [ ] Join
-- [ ] GroupJoin
+- [x] Reverse
+- [x] Join
+- [x] GroupJoin
 - [ ] MinBy
 - [ ] MaxBy
 

@@ -19,6 +19,12 @@ namespace FireAlt.BLinq
             _values.Add(value);
         }
 
+        public Group(TKey key, AllocatorManager.AllocatorHandle allocator)
+        {
+            _key = key;
+            _values = new NativeList<T>(0, allocator);
+        }
+
         public TKey Key
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

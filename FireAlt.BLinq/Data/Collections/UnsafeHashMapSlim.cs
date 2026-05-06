@@ -84,6 +84,27 @@ namespace FireAlt.BLinq
             return ref newEntry.Value;
         }
 
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            var hashCode = InternalGetHashCode(in key);
+            var index = _buckets[GetBucketIndex(hashCode)] - 1;
+
+            while (index >= 0)
+            {
+                ref var entry = ref _entries[index];
+                if (entry.HashCode == hashCode && entry.Key.Equals(key))
+                {
+                    value = entry.Value;
+                    return true;
+                }
+
+                index = entry.Next;
+            }
+
+            value = default;
+            return false;
+        }
+
         public Enumerator GetEnumerator()
         {
             return new Enumerator(_entries, _count);
