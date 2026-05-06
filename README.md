@@ -46,11 +46,11 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [x] Concat 
 - [x] Append
 - [x] Prepend
-- [ ] Skip
-- [ ] SkipWhile
-- [ ] Take
-- [ ] TakeWhile
-- [ ] TakeLast
+- [x] Skip
+- [x] SkipWhile
+- [x] Take
+- [x] TakeWhile
+- [x] TakeLast
 - [ ] Reverse
 - [ ] Join
 - [ ] GroupJoin

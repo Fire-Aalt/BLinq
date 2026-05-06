@@ -46,9 +46,8 @@ namespace FireAlt.BLinq
         private TEnumerator _source;
         private NativeArray<T> _buffer;
         private int _count;
-        private int _start;
-        private int _length;
         private int _index;
+        private int _remaining;
         private T _current;
         private byte _state;
 
@@ -57,9 +56,8 @@ namespace FireAlt.BLinq
             _source = source;
             _buffer = default;
             _count = count < 0 ? 0 : count;
-            _start = 0;
-            _length = 0;
             _index = 0;
+            _remaining = 0;
             _current = default;
             _state = 0;
         }
@@ -84,14 +82,20 @@ namespace FireAlt.BLinq
                 return false;
             }
 
-            if (_index >= _length)
+            if (_remaining <= 0)
             {
                 _state = 2;
                 return false;
             }
 
-            _current = _buffer[(_start + _index) % _count];
+            _current = _buffer[_index];
             _index++;
+            if (_index == _count)
+            {
+                _index = 0;
+            }
+
+            _remaining--;
             return true;
         }
 
@@ -99,9 +103,8 @@ namespace FireAlt.BLinq
         {
             _source.Reset();
             _buffer = default;
-            _start = 0;
-            _length = 0;
             _index = 0;
+            _remaining = 0;
             _current = default;
             _state = 0;
         }
@@ -120,17 +123,24 @@ namespace FireAlt.BLinq
             }
 
             _buffer = new NativeArray<T>(_count, Allocator.Temp);
+            var writeIndex = 0;
             var total = 0;
             while (_source.MoveNext())
             {
-                _buffer[total % _count] = _source.Current;
+                _buffer[writeIndex] = _source.Current;
+                writeIndex++;
+                if (writeIndex == _count)
+                {
+                    writeIndex = 0;
+                }
+
                 total++;
             }
 
-            _length = total < _count ? total : _count;
-            _start = total < _count ? 0 : total % _count;
-            _index = 0;
-            _state = _length == 0 ? (byte)2 : (byte)1;
+            _remaining = total < _count ? total : _count;
+            _index = total < _count ? 0 : writeIndex;
+            _state = _remaining == 0 ? (byte)2 : (byte)1;
         }
     }
+
 }
