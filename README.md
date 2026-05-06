@@ -35,10 +35,10 @@ Blinq utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods, makin
 - [x] DefaultIfEmpty
 - [ ] Cast                // Impossible in Unmanaged C#
 - [ ] OfType              // Impossible in Unmanaged C#
-- [ ] Distinct
-- [ ] DistinctBy
-- [ ] Union
-- [ ] UnionBy
+- [x] Distinct
+- [x] DistinctBy
+- [x] Union
+- [x] UnionBy
 - [ ] Intersect
 - [ ] IntersectBy 
 - [ ] Except
