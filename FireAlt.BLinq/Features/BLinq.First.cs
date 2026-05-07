@@ -10,6 +10,12 @@ namespace FireAlt.BLinq
     {
         private bool TryFirst(out T value)
         {
+            if (TryGetLength(out var length) && length == 0)
+            {
+                value = default;
+                return false;
+            }
+
             var enumerator = GetEnumerator();
             if (enumerator.MoveNext())
             {
@@ -54,6 +60,12 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
+            if (source.TryGetLength(out var length) && length == 0)
+            {
+                value = default;
+                return false;
+            }
+
             var enumerator = source.GetEnumerator();
             while (enumerator.MoveNext())
             {

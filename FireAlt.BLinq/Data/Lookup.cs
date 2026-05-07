@@ -103,7 +103,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<LookupEnumerator<TKey, T>, Group<TKey, T>> AsQuery()
         {
-            return new Query<LookupEnumerator<TKey, T>, Group<TKey, T>>(GetEnumerator());
+            return new Query<LookupEnumerator<TKey, T>, Group<TKey, T>>(GetEnumerator(), GroupCount);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

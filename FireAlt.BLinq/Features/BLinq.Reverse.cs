@@ -15,7 +15,10 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields the source elements in reverse order.</returns>
         public Query<Reverse<TEnumerator, T>, T> Reverse()
         {
-            return new Query<Reverse<TEnumerator, T>, T>(new Reverse<TEnumerator, T>(GetEnumerator()));
+            var hasKnownLength = TryGetLength(out var length);
+            return new Query<Reverse<TEnumerator, T>, T>(
+                new Reverse<TEnumerator, T>(GetEnumerator(), hasKnownLength, length),
+                Query<Reverse<TEnumerator, T>, T>.KnownLengthOrUnknown(hasKnownLength, length));
         }
     }
 
@@ -44,14 +47,21 @@ namespace FireAlt.BLinq
         private int _index;
         private T _current;
         private byte _state;
+        private int _length;
 
         public Reverse(TEnumerator source)
+            : this(source, false, 0)
+        {
+        }
+
+        public Reverse(TEnumerator source, bool hasKnownLength, int length)
         {
             _source = source;
             _values = default;
             _index = -1;
             _current = default;
             _state = 0;
+            _length = hasKnownLength ? length : -1;
         }
 
         public T Current
@@ -66,7 +76,7 @@ namespace FireAlt.BLinq
         {
             if (_state == 0)
             {
-                _values = BLinqUtilities.ToNativeList<T, TEnumerator>(_source, Allocator.Temp);
+                _values = BLinqUtilities.ToNativeList<T, TEnumerator>(_source, Allocator.Temp, _length);
                 _index = _values.Length - 1;
                 _state = 1;
             }

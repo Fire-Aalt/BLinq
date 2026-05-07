@@ -15,8 +15,15 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields the elements after the skipped prefix.</returns>
         public Query<Skip<TEnumerator, T>, T> Skip(int count)
         {
+            var skipCount = count < 0 ? 0 : count;
+            var hasKnownLength = TryGetLength(out var sourceLength);
+            var length = hasKnownLength
+                ? sourceLength > skipCount ? sourceLength - skipCount : 0
+                : -1;
+
             return new Query<Skip<TEnumerator, T>, T>(
-                new Skip<TEnumerator, T>(GetEnumerator(), count));
+                new Skip<TEnumerator, T>(GetEnumerator(), count, hasKnownLength && skipCount >= sourceLength),
+                length);
         }
     }
 
@@ -47,14 +54,23 @@ namespace FireAlt.BLinq
         private int _remaining;
         private T _current;
         private bool _skipped;
+        private bool _done;
+        private bool _initialDone;
 
         public Skip(TEnumerator source, int count)
+            : this(source, count, false)
+        {
+        }
+
+        public Skip(TEnumerator source, int count, bool done)
         {
             _source = source;
             _count = count < 0 ? 0 : count;
             _remaining = count < 0 ? 0 : count;
             _current = default;
             _skipped = false;
+            _done = done;
+            _initialDone = done;
         }
 
         public T Current
@@ -68,6 +84,11 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
+            if (_done)
+            {
+                return false;
+            }
+
             if (!_skipped)
             {
                 while (_remaining > 0 && _source.MoveNext())
@@ -93,6 +114,7 @@ namespace FireAlt.BLinq
             _remaining = _count;
             _current = default;
             _skipped = false;
+            _done = _initialDone;
         }
 
         public void Dispose()

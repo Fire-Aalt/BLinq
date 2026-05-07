@@ -11,6 +11,7 @@ namespace FireAlt.BLinq.Generators
     {
         private const string ATTRIBUTE_METADATA_NAME = "FireAlt.BLinq.GenerateQueryExtensionForAttribute";
         private const string ENUMERATOR_METADATA_NAME = "System.Collections.Generic.IEnumerator<T>";
+        private const string LENGTH_PROPERTY_NAME = "LengthProperty";
 
         private static readonly SymbolDisplayFormat FullyQualifiedFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -83,11 +84,29 @@ namespace FireAlt.BLinq.Generators
                     enumeratorTypeName,
                     GetTypeName(itemType),
                     "collection.GetEnumerator()",
+                    GetLengthExpression(attribute),
                     typeParameterNames,
                     constraintClauses));
             }
 
             return queryExtensions.ToImmutable();
+        }
+
+        private static string GetLengthExpression(AttributeData attribute)
+        {
+            foreach (var namedArgument in attribute.NamedArguments)
+            {
+                if (namedArgument.Key != LENGTH_PROPERTY_NAME ||
+                    namedArgument.Value.Value is not string lengthProperty ||
+                    lengthProperty.Length == 0)
+                {
+                    continue;
+                }
+
+                return $"collection.{lengthProperty}";
+            }
+
+            return string.Empty;
         }
 
         private static string GenerateSource(ImmutableArray<QueryExtensionData> queryExtensions)

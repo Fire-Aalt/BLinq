@@ -14,6 +14,11 @@ namespace FireAlt.BLinq
         /// <returns><c>true</c> when the sequence contains at least one element; otherwise <c>false</c>.</returns>
         public bool Any()
         {
+            if (TryGetLength(out var length))
+            {
+                return length != 0;
+            }
+
             return BLinqUtilities.Any<T, TEnumerator>(GetEnumerator());
         }
     }
@@ -43,6 +48,11 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
+            if (source.TryGetLength(out var length) && length == 0)
+            {
+                return false;
+            }
+
             return BLinqUtilities.Any<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
         }
 
@@ -57,6 +67,11 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
+            if (source.TryGetLength(out var length) && length == 0)
+            {
+                return true;
+            }
+
             return BLinqUtilities.All<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
         }
 

@@ -28,17 +28,17 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Count(CountPredicate);
+            return values.Count(CountPredicate) + values.Count();
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Count(CountPredicate);
+            return values.AsValueEnumerable().Count(CountPredicate) + values.AsValueEnumerable().Count();
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Count(CountPredicate);
+            return values.AsQuery().Count(CountPredicate) + values.AsQuery().Count();
         }
 
         [BurstCompile]

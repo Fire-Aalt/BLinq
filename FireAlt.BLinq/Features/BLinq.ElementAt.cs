@@ -35,7 +35,7 @@ namespace FireAlt.BLinq
 
         private bool TryElementAt(int index, out T value)
         {
-            if (index < 0)
+            if (index < 0 || TryGetLength(out var length) && index >= length)
             {
                 value = default;
                 return false;
@@ -86,7 +86,7 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
-            if (index < 0)
+            if (index < 0 || source.TryGetLength(out var length) && index >= length)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
@@ -115,7 +115,7 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
-            if (index < 0)
+            if (index < 0 || source.TryGetLength(out var length) && index >= length)
             {
                 return default;
             }

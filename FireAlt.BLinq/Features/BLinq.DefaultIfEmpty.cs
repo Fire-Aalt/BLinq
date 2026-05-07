@@ -15,8 +15,14 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields the source elements, or <paramref name="defaultValue"/> when the source is empty.</returns>
         public Query<DefaultIfEmpty<TEnumerator, T>, T> DefaultIfEmpty(T defaultValue = default)
         {
+            var hasKnownLength = TryGetLength(out var sourceLength);
+            var length = hasKnownLength
+                ? sourceLength == 0 ? 1 : sourceLength
+                : -1;
+
             return new Query<DefaultIfEmpty<TEnumerator, T>, T>(
-                new DefaultIfEmpty<TEnumerator, T>(GetEnumerator(), defaultValue));
+                new DefaultIfEmpty<TEnumerator, T>(GetEnumerator(), defaultValue, hasKnownLength, sourceLength),
+                length);
         }
     }
 
@@ -61,11 +67,16 @@ namespace FireAlt.BLinq
         private byte _state;
 
         public DefaultIfEmpty(TEnumerator source, T defaultValue)
+            : this(source, defaultValue, false, 0)
+        {
+        }
+
+        public DefaultIfEmpty(TEnumerator source, T defaultValue, bool hasKnownLength, int length)
         {
             _source = source;
             _defaultValue = defaultValue;
             _current = default;
-            _state = 0;
+            _state = hasKnownLength && length > 0 ? (byte)1 : (byte)0;
         }
 
         public T Current

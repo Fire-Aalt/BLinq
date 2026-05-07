@@ -14,5 +14,7 @@ namespace FireAlt.BLinq
         public Type CollectionType { get; }
 
         public Type EnumeratorType { get; }
+
+        public string LengthProperty { get; set; }
     }
 }

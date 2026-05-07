@@ -56,7 +56,14 @@ namespace FireAlt.BLinq.Generators.Templates
             PopIndent();
             Block(() =>
             {
-                WriteLine($"return new {queryType}({queryExtension.EnumeratorExpression});");
+                if (queryExtension.LengthExpression.Length == 0)
+                {
+                    WriteLine($"return new {queryType}({queryExtension.EnumeratorExpression});");
+                }
+                else
+                {
+                    WriteLine($"return new {queryType}({queryExtension.EnumeratorExpression}, {queryExtension.LengthExpression});");
+                }
             });
         }
     }

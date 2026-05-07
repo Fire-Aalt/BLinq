@@ -9,6 +9,7 @@ namespace FireAlt.BLinq.Generators
             string enumeratorTypeName,
             string itemTypeName,
             string enumeratorExpression,
+            string lengthExpression,
             ImmutableArray<string> typeParameterNames,
             ImmutableArray<string> constraintClauses)
         {
@@ -16,6 +17,7 @@ namespace FireAlt.BLinq.Generators
             EnumeratorTypeName = enumeratorTypeName;
             ItemTypeName = itemTypeName;
             EnumeratorExpression = enumeratorExpression;
+            LengthExpression = lengthExpression;
             TypeParameterNames = typeParameterNames;
             ConstraintClauses = constraintClauses;
         }
@@ -27,6 +29,8 @@ namespace FireAlt.BLinq.Generators
         public string ItemTypeName { get; }
 
         public string EnumeratorExpression { get; }
+
+        public string LengthExpression { get; }
 
         public ImmutableArray<string> TypeParameterNames { get; }
 

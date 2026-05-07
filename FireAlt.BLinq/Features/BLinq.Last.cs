@@ -14,6 +14,19 @@ namespace FireAlt.BLinq
         /// <returns>The last element in the sequence.</returns>
         public T Last()
         {
+            if (TryGetLength(out var length))
+            {
+                if (length == 0)
+                {
+                    throw new InvalidOperationException("The BLinq source contains no elements.");
+                }
+
+                if (BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out var lastValue))
+                {
+                    return lastValue;
+                }
+            }
+
             if (BLinqUtilities.TryLast<T, TEnumerator>(GetEnumerator(), out var value))
             {
                 return value;
@@ -28,6 +41,18 @@ namespace FireAlt.BLinq
         /// <returns>The last element in the sequence, or default when the sequence is empty.</returns>
         public T LastOrDefault()
         {
+            if (TryGetLength(out var length))
+            {
+                if (length == 0)
+                {
+                    return default;
+                }
+
+                return BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out var lastValue)
+                    ? lastValue
+                    : default;
+            }
+
             return BLinqUtilities.TryLast<T, TEnumerator>(GetEnumerator(), out var value) ? value : default;
         }
     }
@@ -69,6 +94,11 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
+            if (source.TryGetLength(out var length) && length == 0)
+            {
+                throw new InvalidOperationException("The BLinq source contains no elements.");
+            }
+
             if (BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate, out var value))
             {
                 return value;
@@ -88,6 +118,11 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
+            if (source.TryGetLength(out var length) && length == 0)
+            {
+                return default;
+            }
+
             return BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate, out var value)
                 ? value
                 : default;

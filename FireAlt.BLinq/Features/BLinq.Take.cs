@@ -15,8 +15,14 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields at most <paramref name="count"/> elements.</returns>
         public Query<Take<TEnumerator, T>, T> Take(int count)
         {
+            var takeCount = count < 0 ? 0 : count;
+            var length = TryGetLength(out var sourceLength)
+                ? sourceLength < takeCount ? sourceLength : takeCount
+                : -1;
+
             return new Query<Take<TEnumerator, T>, T>(
-                new Take<TEnumerator, T>(GetEnumerator(), count));
+                new Take<TEnumerator, T>(GetEnumerator(), count),
+                length);
         }
     }
 

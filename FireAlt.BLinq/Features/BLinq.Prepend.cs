@@ -15,8 +15,10 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields <paramref name="element"/> followed by the source elements.</returns>
         public Query<Prepend<TEnumerator, T>, T> Prepend(T element)
         {
+            var length = TryGetLength(out var sourceLength) ? checked(sourceLength + 1) : -1;
             return new Query<Prepend<TEnumerator, T>, T>(
-                new Prepend<TEnumerator, T>(GetEnumerator(), element));
+                new Prepend<TEnumerator, T>(GetEnumerator(), element),
+                length);
         }
     }
 

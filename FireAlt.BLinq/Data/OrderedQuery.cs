@@ -19,6 +19,12 @@ namespace FireAlt.BLinq
             _source = source;
             _comparer = comparer;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool TryGetLength(out int length)
+        {
+            return _source.TryGetLength(out length);
+        }
         
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {

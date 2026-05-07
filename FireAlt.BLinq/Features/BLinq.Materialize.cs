@@ -12,27 +12,40 @@ namespace FireAlt.BLinq
     {
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {
-            return BLinqUtilities.ToNativeArray<T, TEnumerator>(GetEnumerator(), allocator);
+            return BLinqUtilities.ToNativeArray<T, TEnumerator>(
+                GetEnumerator(),
+                allocator,
+                TryGetLength(out var length) ? length : -1);
         }
 
         public UnsafeList<T> ToUnsafeList(AllocatorManager.AllocatorHandle allocator)
         {
-            return BLinqUtilities.ToUnsafeList<T, TEnumerator>(GetEnumerator(), allocator);
+            return BLinqUtilities.ToUnsafeList<T, TEnumerator>(
+                GetEnumerator(),
+                allocator,
+                TryGetLength(out var length) ? length : -1);
         }
 
         public NativeList<T> ToNativeList(AllocatorManager.AllocatorHandle allocator)
         {
-            return BLinqUtilities.ToNativeList<T, TEnumerator>(GetEnumerator(), allocator);
+            return BLinqUtilities.ToNativeList<T, TEnumerator>(
+                GetEnumerator(),
+                allocator,
+                TryGetLength(out var length) ? length : -1);
         }
 
         public T[] ToManagedArray()
         {
-            return BLinqUtilities.ToManagedArray<T, TEnumerator>(GetEnumerator());
+            return BLinqUtilities.ToManagedArray<T, TEnumerator>(
+                GetEnumerator(),
+                TryGetLength(out var length) ? length : -1);
         }
 
         public List<T> ToManagedList()
         {
-            return BLinqUtilities.ToManagedList<T, TEnumerator>(GetEnumerator());
+            return BLinqUtilities.ToManagedList<T, TEnumerator>(
+                GetEnumerator(),
+                TryGetLength(out var length) ? length : -1);
         }
 
         public Dictionary<TKey, T> ToManagedDictionary<TKey, TKeySelector>(TKeySelector keySelector)
@@ -494,11 +507,12 @@ namespace FireAlt.BLinq
     {
         public static NativeArray<T> ToNativeArray<T, TEnumerator>(
             TEnumerator source,
-            AllocatorManager.AllocatorHandle allocator)
+            AllocatorManager.AllocatorHandle allocator,
+            int knownLength = -1)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp);
+            var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp, knownLength);
             var array = list.ToArray(allocator);
             list.Dispose();
             return array;
@@ -506,11 +520,12 @@ namespace FireAlt.BLinq
 
         public static UnsafeList<T> ToUnsafeList<T, TEnumerator>(
             TEnumerator source,
-            AllocatorManager.AllocatorHandle allocator)
+            AllocatorManager.AllocatorHandle allocator,
+            int knownLength = -1)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            var list = new UnsafeList<T>(0, allocator);
+            var list = new UnsafeList<T>(knownLength >= 0 ? knownLength : 0, allocator);
             while (source.MoveNext())
             {
                 list.Add(source.Current);
@@ -522,11 +537,12 @@ namespace FireAlt.BLinq
 
         public static NativeList<T> ToNativeList<T, TEnumerator>(
             TEnumerator source,
-            AllocatorManager.AllocatorHandle allocator)
+            AllocatorManager.AllocatorHandle allocator,
+            int knownLength = -1)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            var list = new NativeList<T>(allocator);
+            var list = knownLength >= 0 ? new NativeList<T>(knownLength, allocator) : new NativeList<T>(allocator);
             while (source.MoveNext())
             {
                 list.Add(source.Current);
@@ -536,21 +552,39 @@ namespace FireAlt.BLinq
             return list;
         }
 
-        public static T[] ToManagedArray<T, TEnumerator>(TEnumerator source)
+        public static T[] ToManagedArray<T, TEnumerator>(TEnumerator source, int knownLength = -1)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
+            if (knownLength >= 0)
+            {
+                var managedArray = new T[knownLength];
+                for (var i = 0; i < knownLength; i++)
+                {
+                    if (!source.MoveNext())
+                    {
+                        source.Dispose();
+                        return managedArray;
+                    }
+
+                    managedArray[i] = source.Current;
+                }
+
+                source.Dispose();
+                return managedArray;
+            }
+
             var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp);
             var array = ToManagedArray(list);
             list.Dispose();
             return array;
         }
 
-        public static List<T> ToManagedList<T, TEnumerator>(TEnumerator source)
+        public static List<T> ToManagedList<T, TEnumerator>(TEnumerator source, int knownLength = -1)
             where T : unmanaged
             where TEnumerator : unmanaged, IEnumerator<T>
         {
-            var list = new List<T>();
+            var list = knownLength >= 0 ? new List<T>(knownLength) : new List<T>();
             while (source.MoveNext())
             {
                 list.Add(source.Current);

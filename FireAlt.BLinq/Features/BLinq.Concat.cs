@@ -17,8 +17,13 @@ namespace FireAlt.BLinq
             Query<TSecondEnumerator, T> second)
             where TSecondEnumerator : unmanaged, IEnumerator<T>
         {
+            var length = TryGetLength(out var firstLength) && second.TryGetLength(out var secondLength)
+                ? checked(firstLength + secondLength)
+                : -1;
+
             return new Query<Concat<TEnumerator, TSecondEnumerator, T>, T>(
-                new Concat<TEnumerator, TSecondEnumerator, T>(GetEnumerator(), second.GetEnumerator()));
+                new Concat<TEnumerator, TSecondEnumerator, T>(GetEnumerator(), second.GetEnumerator()),
+                length);
         }
     }
 

@@ -15,6 +15,24 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">The source sequence contains no elements or more than one element.</exception>
         public T Single()
         {
+            if (TryGetLength(out var length))
+            {
+                if (length == 0)
+                {
+                    throw new InvalidOperationException("The BLinq source contains no elements.");
+                }
+
+                if (length > 1)
+                {
+                    throw new InvalidOperationException("The BLinq source contains more than one element.");
+                }
+
+                if (BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out var singleValue))
+                {
+                    return singleValue;
+                }
+            }
+
             return BLinqUtilities.Single<T, TEnumerator>(GetEnumerator());
         }
 
@@ -25,6 +43,23 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">The source sequence contains more than one element.</exception>
         public T SingleOrDefault()
         {
+            if (TryGetLength(out var length))
+            {
+                if (length == 0)
+                {
+                    return default;
+                }
+
+                if (length > 1)
+                {
+                    throw new InvalidOperationException("The BLinq source contains more than one element.");
+                }
+
+                return BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out var singleValue)
+                    ? singleValue
+                    : default;
+            }
+
             return BLinqUtilities.SingleOrDefault<T, TEnumerator>(GetEnumerator());
         }
     }
@@ -56,6 +91,11 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
+            if (source.TryGetLength(out var length) && length == 0)
+            {
+                throw new InvalidOperationException("The BLinq source contains no matching elements.");
+            }
+
             return BLinqUtilities.Single<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
         }
 
@@ -84,6 +124,11 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
+            if (source.TryGetLength(out var length) && length == 0)
+            {
+                return default;
+            }
+
             return BLinqUtilities.SingleOrDefault<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
         }
 

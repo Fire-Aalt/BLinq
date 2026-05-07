@@ -68,6 +68,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IEnumerator<T>
             where TOtherEnumerator : unmanaged, IEnumerator<T>
         {
+            if (source.TryGetLength(out var sourceLength) &&
+                other.TryGetLength(out var otherLength) &&
+                sourceLength != otherLength)
+            {
+                return false;
+            }
+
             return source.SequenceEqual(other.GetEnumerator(), new NativeEqualityComparer<T>());
         }
     }

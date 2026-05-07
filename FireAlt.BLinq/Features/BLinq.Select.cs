@@ -19,8 +19,10 @@ namespace FireAlt.BLinq
         public Query<Select<TEnumerator, T, T, TSelector>, T> Select<TSelector>(TSelector selector)
             where TSelector : unmanaged, ISelector<T, T>
         {
+            var hasKnownLength = TryGetLength(out var length);
             return new Query<Select<TEnumerator, T, T, TSelector>, T>(
-                new Select<TEnumerator, T, T, TSelector>(GetEnumerator(), selector));
+                new Select<TEnumerator, T, T, TSelector>(GetEnumerator(), selector),
+                Query<Select<TEnumerator, T, T, TSelector>, T>.KnownLengthOrUnknown(hasKnownLength, length));
         }
 
         /// <summary>
@@ -34,8 +36,10 @@ namespace FireAlt.BLinq
             where TResult : unmanaged
             where TSelector : unmanaged, ISelector<T, TResult>
         {
+            var hasKnownLength = TryGetLength(out var length);
             return new Query<Select<TEnumerator, T, TResult, TSelector>, TResult>(
-                new Select<TEnumerator, T, TResult, TSelector>(GetEnumerator(), selector));
+                new Select<TEnumerator, T, TResult, TSelector>(GetEnumerator(), selector),
+                Query<Select<TEnumerator, T, TResult, TSelector>, TResult>.KnownLengthOrUnknown(hasKnownLength, length));
         }
     }
 

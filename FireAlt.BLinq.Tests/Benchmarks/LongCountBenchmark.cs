@@ -28,17 +28,17 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return (int)values.LongCount(LongCountPredicate);
+            return (int)values.LongCount(LongCountPredicate) + (int)values.LongCount();
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return (int)values.AsValueEnumerable().LongCount(LongCountPredicate);
+            return (int)values.AsValueEnumerable().LongCount(LongCountPredicate) + (int)values.AsValueEnumerable().LongCount();
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return (int)values.AsQuery().LongCount(LongCountPredicate);
+            return (int)values.AsQuery().LongCount(LongCountPredicate) + (int)values.AsQuery().LongCount();
         }
 
         [BurstCompile]

@@ -13,6 +13,14 @@ namespace FireAlt.BLinq
         {
             return new Query<TEnumerator, T>(enumerator);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Query<TEnumerator, T> From<T, TEnumerator>(TEnumerator enumerator, int length)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+        {
+            return new Query<TEnumerator, T>(enumerator, length);
+        }
     }
     
     public static partial class BLinqExtensions
