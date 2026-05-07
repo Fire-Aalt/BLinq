@@ -7,7 +7,7 @@ using Unity.Collections;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -19,7 +19,7 @@ namespace FireAlt.BLinq
         public Query<ExceptBy<TEnumerator, TOtherEnumerator, T, TKey, TKeySelector>, T> ExceptBy<TOtherEnumerator, TKey, TKeySelector>(
             Query<TOtherEnumerator, TKey> other,
             TKeySelector keySelector)
-            where TOtherEnumerator : unmanaged, IEnumerator<TKey>
+            where TOtherEnumerator : unmanaged, IQueryEnumerator<TKey>
             where TKey : unmanaged, IEquatable<TKey>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
@@ -46,8 +46,8 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TOtherEnumerator : unmanaged, IEnumerator<TKey>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
+            where TOtherEnumerator : unmanaged, IQueryEnumerator<TKey>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.ExceptBy<TOtherEnumerator, TKey, TKeySelector>(other, keySelector);
@@ -68,16 +68,16 @@ namespace FireAlt.BLinq
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TOtherEnumerator : unmanaged, IEnumerator<TKey>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
+            where TOtherEnumerator : unmanaged, IQueryEnumerator<TKey>
         {
             return ThrowCodeGen<Query<ExceptBy<TEnumerator, TOtherEnumerator, T, TKey>, T>>();
         }
     }
 
-    public struct ExceptBy<TEnumerator, TOtherEnumerator, T, TKey, TKeySelector> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
-        where TOtherEnumerator : unmanaged, IEnumerator<TKey>
+    public struct ExceptBy<TEnumerator, TOtherEnumerator, T, TKey, TKeySelector> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
+        where TOtherEnumerator : unmanaged, IQueryEnumerator<TKey>
         where T : unmanaged
         where TKey : unmanaged, IEquatable<TKey>
         where TKeySelector : unmanaged, ISelector<T, TKey>
@@ -163,11 +163,17 @@ namespace FireAlt.BLinq
                 _initialized = false;
             }
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 
-    public struct ExceptBy<TEnumerator, TOtherEnumerator, T, TKey> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
-        where TOtherEnumerator : unmanaged, IEnumerator<TKey>
+    public struct ExceptBy<TEnumerator, TOtherEnumerator, T, TKey> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
+        where TOtherEnumerator : unmanaged, IQueryEnumerator<TKey>
         where T : unmanaged
         where TKey : unmanaged, IEquatable<TKey>
     {
@@ -188,5 +194,11 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

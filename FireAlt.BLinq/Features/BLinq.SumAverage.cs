@@ -13,7 +13,7 @@ namespace FireAlt.BLinq
         /// <returns>The sum of all elements.</returns>
         public static T Sum<T, TEnumerator, TAccumulator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             return BLinqUtilities.Sum<T, TEnumerator, TAccumulator>(source.GetEnumerator(), default);
@@ -29,7 +29,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, TSource> source, TSelector selector)
             where TSource : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TSelector : unmanaged, ISelector<TSource, TResult>
             where TAccumulator : unmanaged, IAccumulator<TResult>
         {
@@ -46,7 +46,7 @@ namespace FireAlt.BLinq
         /// <returns>The average of all elements.</returns>
         public static T Average<T, TEnumerator, TAccumulator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             return BLinqUtilities.Average<T, TEnumerator, TAccumulator>(source.GetEnumerator(), default);
@@ -62,7 +62,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, TSource> source, TSelector selector)
             where TSource : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TSelector : unmanaged, ISelector<TSource, TResult>
             where TAccumulator : unmanaged, IAccumulator<TResult>
         {
@@ -85,7 +85,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, TSource> source, Func<TSource, TResult> selector, TResult _ = default)
             where TSource : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
         {
             return ThrowCodeGen<TResult>();
         }
@@ -103,7 +103,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, TSource> source, Func<TSource, TResult> selector, TResult _ = default)
             where TSource : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
         {
             return ThrowCodeGen<TResult>();
         }
@@ -113,7 +113,7 @@ namespace FireAlt.BLinq
     {
         public static T Sum<T, TEnumerator, TAccumulator>(TEnumerator enumerator, TAccumulator accumulator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             var total = default(T);
@@ -131,7 +131,7 @@ namespace FireAlt.BLinq
             TEnumerator enumerator, TSelector selector, TAccumulator accumulator)
             where TSource : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TSelector : unmanaged, ISelector<TSource, TResult>
             where TAccumulator : unmanaged, IAccumulator<TResult>
         {
@@ -149,7 +149,7 @@ namespace FireAlt.BLinq
 
         public static T Average<T, TEnumerator, TAccumulator>(TEnumerator enumerator, TAccumulator accumulator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             var total = default(T);
@@ -169,7 +169,7 @@ namespace FireAlt.BLinq
             TEnumerator enumerator, TSelector selector, TAccumulator accumulator)
             where TSource : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TSelector : unmanaged, ISelector<TSource, TResult>
             where TAccumulator : unmanaged, IAccumulator<TResult>
         {

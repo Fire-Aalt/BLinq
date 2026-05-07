@@ -9,7 +9,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Query<TEnumerator, T> From<T, TEnumerator>(TEnumerator enumerator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return new Query<TEnumerator, T>(enumerator);
         }
@@ -17,7 +17,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Query<TEnumerator, T> From<T, TEnumerator>(TEnumerator enumerator, int length)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return new Query<TEnumerator, T>(enumerator, length);
         }

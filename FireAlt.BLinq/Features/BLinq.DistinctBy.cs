@@ -7,7 +7,7 @@ using Unity.Collections;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -38,7 +38,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.DistinctBy<TKey, TKeySelector>(keySelector);
@@ -57,14 +57,14 @@ namespace FireAlt.BLinq
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Query<DistinctBy<TEnumerator, T, TKey>, T>>();
         }
     }
 
-    public struct DistinctBy<TEnumerator, T, TKey, TKeySelector> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct DistinctBy<TEnumerator, T, TKey, TKeySelector> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
         where TKey : unmanaged, IEquatable<TKey>
         where TKeySelector : unmanaged, ISelector<T, TKey>
@@ -137,10 +137,16 @@ namespace FireAlt.BLinq
                 _initialized = false;
             }
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 
-    public struct DistinctBy<TEnumerator, T, TKey> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct DistinctBy<TEnumerator, T, TKey> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
         where TKey : unmanaged, IEquatable<TKey>
     {
@@ -161,5 +167,11 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

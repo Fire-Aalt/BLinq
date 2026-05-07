@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -32,7 +32,7 @@ namespace FireAlt.BLinq
         /// <returns><c>true</c> when the sequence contains at least one element; otherwise <c>false</c>.</returns>
         public static bool Any<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Any();
         }
@@ -45,7 +45,7 @@ namespace FireAlt.BLinq
         /// <returns><c>true</c> when any element matches; otherwise <c>false</c>.</returns>
         public static bool Any<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryGetLength(out var length) && length == 0)
@@ -64,7 +64,7 @@ namespace FireAlt.BLinq
         /// <returns><c>true</c> when every element matches, or when the sequence is empty; otherwise <c>false</c>.</returns>
         public static bool All<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryGetLength(out var length) && length == 0)
@@ -85,7 +85,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool Any<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<bool>();
         }
@@ -100,7 +100,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool All<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<bool>();
         }
@@ -110,7 +110,7 @@ namespace FireAlt.BLinq
     {
         public static bool Any<T, TEnumerator>(TEnumerator enumerator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             if (enumerator.MoveNext())
             {
@@ -124,7 +124,7 @@ namespace FireAlt.BLinq
 
         public static bool Any<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             while (enumerator.MoveNext())
@@ -143,7 +143,7 @@ namespace FireAlt.BLinq
 
         public static bool All<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             while (enumerator.MoveNext())

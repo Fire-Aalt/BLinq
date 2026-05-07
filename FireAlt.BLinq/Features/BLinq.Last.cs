@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -21,7 +21,8 @@ namespace FireAlt.BLinq
                     throw new InvalidOperationException("The BLinq source contains no elements.");
                 }
 
-                if (BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out var lastValue))
+                if (TryGetElementAt(length - 1, out var lastValue) ||
+                    BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out lastValue))
                 {
                     return lastValue;
                 }
@@ -48,7 +49,8 @@ namespace FireAlt.BLinq
                     return default;
                 }
 
-                return BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out var lastValue)
+                return TryGetElementAt(length - 1, out var lastValue) ||
+                       BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out lastValue)
                     ? lastValue
                     : default;
             }
@@ -66,7 +68,7 @@ namespace FireAlt.BLinq
         /// <returns>The last element in the sequence.</returns>
         public static T Last<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Last();
         }
@@ -78,7 +80,7 @@ namespace FireAlt.BLinq
         /// <returns>The last element in the sequence, or default when the sequence is empty.</returns>
         public static T LastOrDefault<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.LastOrDefault();
         }
@@ -91,12 +93,28 @@ namespace FireAlt.BLinq
         /// <returns>The last matching element in the sequence.</returns>
         public static T Last<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            if (source.TryGetLength(out var length))
             {
-                throw new InvalidOperationException("The BLinq source contains no elements.");
+                if (length == 0)
+                {
+                    throw new InvalidOperationException("The BLinq source contains no elements.");
+                }
+
+                for (var i = length - 1; i >= 0; i--)
+                {
+                    if (!source.TryGetElementAt(i, out var current))
+                    {
+                        break;
+                    }
+
+                    if (predicate.Match(in current))
+                    {
+                        return current;
+                    }
+                }
             }
 
             if (BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate, out var value))
@@ -115,12 +133,28 @@ namespace FireAlt.BLinq
         /// <returns>The last matching element, or default when no matching element exists.</returns>
         public static T LastOrDefault<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            if (source.TryGetLength(out var length))
             {
-                return default;
+                if (length == 0)
+                {
+                    return default;
+                }
+
+                for (var i = length - 1; i >= 0; i--)
+                {
+                    if (!source.TryGetElementAt(i, out var current))
+                    {
+                        break;
+                    }
+
+                    if (predicate.Match(in current))
+                    {
+                        return current;
+                    }
+                }
             }
 
             return BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate, out var value)
@@ -138,7 +172,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T Last<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }
@@ -153,7 +187,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T LastOrDefault<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }
@@ -163,7 +197,7 @@ namespace FireAlt.BLinq
     {
         public static bool TryLast<T, TEnumerator>(TEnumerator enumerator, out T value)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             value = default;
             var found = false;
@@ -179,7 +213,7 @@ namespace FireAlt.BLinq
 
         public static bool TryLast<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate, out T value)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             value = default;

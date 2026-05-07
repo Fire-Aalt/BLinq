@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -36,7 +36,7 @@ namespace FireAlt.BLinq
         public static Query<DefaultIfEmpty<TEnumerator, T>, T> DefaultIfEmpty<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.DefaultIfEmpty();
         }
@@ -51,20 +51,22 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             T defaultValue)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.DefaultIfEmpty(defaultValue);
         }
     }
 
-    public struct DefaultIfEmpty<TEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct DefaultIfEmpty<TEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private TEnumerator _source;
         private T _defaultValue;
         private T _current;
         private byte _state;
+        private int _length;
+        private bool _hasKnownLength;
 
         public DefaultIfEmpty(TEnumerator source, T defaultValue)
             : this(source, defaultValue, false, 0)
@@ -77,6 +79,8 @@ namespace FireAlt.BLinq
             _defaultValue = defaultValue;
             _current = default;
             _state = hasKnownLength && length > 0 ? (byte)1 : (byte)0;
+            _length = length;
+            _hasKnownLength = hasKnownLength;
         }
 
         public T Current
@@ -129,6 +133,28 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            if (index < 0 || !_hasKnownLength)
+            {
+                return false;
+            }
+
+            if (_length == 0)
+            {
+                if (index == 0)
+                {
+                    value = _defaultValue;
+                    return true;
+                }
+
+                return false;
+            }
+
+            return _source.TryGetElementAt(index, out value);
         }
     }
 }

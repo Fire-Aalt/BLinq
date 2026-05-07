@@ -14,14 +14,14 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields each distinct value the first time it appears.</returns>
         public static Query<Distinct<TEnumerator, T>, T> Distinct<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return new Query<Distinct<TEnumerator, T>, T>(new Distinct<TEnumerator, T>(source.GetEnumerator()));
         }
     }
 
-    public struct Distinct<TEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct Distinct<TEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged, IEquatable<T>
     {
         private TEnumerator _source;
@@ -89,5 +89,11 @@ namespace FireAlt.BLinq
                 _initialized = false;
             }
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

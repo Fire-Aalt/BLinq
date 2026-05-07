@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FireAlt.BLinq.Generators")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b4d3c87a857482973d60df273bc73f822772071b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ddd052c3d6ed03605380e7413ac4bafc64b911ff")]
 [assembly: System.Reflection.AssemblyProductAttribute("FireAlt.BLinq.Generators")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FireAlt.BLinq.Generators")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

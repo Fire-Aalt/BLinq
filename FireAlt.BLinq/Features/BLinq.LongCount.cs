@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -32,7 +32,7 @@ namespace FireAlt.BLinq
         /// <returns>The number of elements in the sequence.</returns>
         public static long LongCount<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.LongCount();
         }
@@ -45,7 +45,7 @@ namespace FireAlt.BLinq
         /// <returns>The number of matching elements in the sequence.</returns>
         public static long LongCount<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryGetLength(out var length) && length == 0)
@@ -66,7 +66,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static long LongCount<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<long>();
         }
@@ -76,7 +76,7 @@ namespace FireAlt.BLinq
     {
         public static long LongCount<T, TEnumerator>(TEnumerator enumerator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var count = 0L;
             while (enumerator.MoveNext())
@@ -90,7 +90,7 @@ namespace FireAlt.BLinq
 
         public static long LongCount<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             var count = 0L;

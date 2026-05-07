@@ -73,7 +73,7 @@ namespace FireAlt.BLinq.Generators.Templates
             AggressiveInlining();
             WriteLine($"public static {accumulator.FullTypeName} Sum<TEnumerator>(this global::FireAlt.BLinq.Query<TEnumerator, {accumulator.FullTypeName}> source)");
             PushIndent();
-            WriteLine($"where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<{accumulator.FullTypeName}>");
+            WriteLine($"where TEnumerator : unmanaged, global::FireAlt.BLinq.IQueryEnumerator<{accumulator.FullTypeName}>");
             PopIndent();
             Block(() =>
             {
@@ -94,7 +94,7 @@ namespace FireAlt.BLinq.Generators.Templates
             WriteLine($"public static {accumulator.FullTypeName} Sum<TSource, TEnumerator, TSelector>(this global::FireAlt.BLinq.Query<TEnumerator, TSource> source, TSelector selector, {accumulator.FullTypeName} _ = default)");
             PushIndent();
             WriteLine("where TSource : unmanaged");
-            WriteLine("where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<TSource>");
+            WriteLine("where TEnumerator : unmanaged, global::FireAlt.BLinq.IQueryEnumerator<TSource>");
             WriteLine($"where TSelector : unmanaged, global::FireAlt.BLinq.ISelector<TSource, {accumulator.FullTypeName}>");
             PopIndent();
             Block(() =>
@@ -113,7 +113,7 @@ namespace FireAlt.BLinq.Generators.Templates
             AggressiveInlining();
             WriteLine($"public static {accumulator.FullTypeName} Average<TEnumerator>(this global::FireAlt.BLinq.Query<TEnumerator, {accumulator.FullTypeName}> source)");
             PushIndent();
-            WriteLine($"where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<{accumulator.FullTypeName}>");
+            WriteLine($"where TEnumerator : unmanaged, global::FireAlt.BLinq.IQueryEnumerator<{accumulator.FullTypeName}>");
             PopIndent();
             Block(() =>
             {
@@ -134,7 +134,7 @@ namespace FireAlt.BLinq.Generators.Templates
             WriteLine($"public static {accumulator.FullTypeName} Average<TSource, TEnumerator, TSelector>(this global::FireAlt.BLinq.Query<TEnumerator, TSource> source, TSelector selector, {accumulator.FullTypeName} _ = default)");
             PushIndent();
             WriteLine("where TSource : unmanaged");
-            WriteLine("where TEnumerator : unmanaged, global::System.Collections.Generic.IEnumerator<TSource>");
+            WriteLine("where TEnumerator : unmanaged, global::FireAlt.BLinq.IQueryEnumerator<TSource>");
             WriteLine($"where TSelector : unmanaged, global::FireAlt.BLinq.ISelector<TSource, {accumulator.FullTypeName}>");
             PopIndent();
             Block(() =>

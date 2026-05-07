@@ -6,7 +6,7 @@ using Unity.Collections;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -66,7 +66,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return BLinqUtilities.GroupBy<T, TKey, TEnumerator, TKeySelector>(
@@ -87,7 +87,7 @@ namespace FireAlt.BLinq
         public static Query<LookupEnumerator<T, T>, Group<T, T>> GroupBy<T, TEnumerator, TKeySelector>(this Query<TEnumerator, T> source,
             TKeySelector keySelector)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, T>
         {
             return BLinqUtilities.GroupBy<T, T, TEnumerator, TKeySelector>(
@@ -112,7 +112,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return BLinqUtilities.GroupBy<T, TKey, TEnumerator, TKeySelector>(
@@ -135,7 +135,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, T>
         {
             return BLinqUtilities.GroupBy<T, T, TEnumerator, TKeySelector>(
@@ -159,7 +159,7 @@ namespace FireAlt.BLinq
                 this Query<TEnumerator, T> source, Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Query<LookupEnumerator<TKey, T>, Group<TKey, T>>>();
         }
@@ -182,7 +182,7 @@ namespace FireAlt.BLinq
                 AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Lookup<TKey, T>>();
         }
@@ -198,7 +198,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             var keyToGroupIndex = new UnsafeHashMapSlim<TKey, int>(DEFAULT_GROUP_BY_CAPACITY, Allocator.Temp);

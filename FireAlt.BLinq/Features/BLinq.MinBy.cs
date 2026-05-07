@@ -5,9 +5,21 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
+        /// <summary>
+        /// Returns the element with the minimum key according to the default comparer.
+        /// </summary>
+        /// <param name="keySelector">Selector used to compute a key for each element.</param>
+        /// <returns>The element with the minimum selected key.</returns>
+        public T MinBy<TKey, TKeySelector>(TKeySelector keySelector)
+            where TKey : unmanaged, IComparable<TKey>
+            where TKeySelector : unmanaged, ISelector<T, TKey>
+        {
+            return MinBy<TKey, TKeySelector, AscendingComparer<TKey>>(keySelector, new AscendingComparer<TKey>());
+        }
+
         /// <summary>
         /// Returns the element with the minimum key according to <paramref name="comparer"/>.
         /// </summary>
@@ -39,7 +51,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.MinBy<TKey, TKeySelector, AscendingComparer<TKey>>(keySelector, new AscendingComparer<TKey>());
@@ -58,7 +70,7 @@ namespace FireAlt.BLinq
             TKeyComparer comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
@@ -78,7 +90,7 @@ namespace FireAlt.BLinq
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }
@@ -98,7 +110,7 @@ namespace FireAlt.BLinq
             TKeyComparer comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
             return ThrowCodeGen<T>();
@@ -113,7 +125,7 @@ namespace FireAlt.BLinq
             TKeyComparer comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {

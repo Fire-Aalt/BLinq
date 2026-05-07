@@ -17,7 +17,7 @@ namespace FireAlt.BLinq.Tests
                 .ToArray();
             var flattened = input
                 .AsQuery()
-                .SelectMany<int, int, NativeArray<int>.Enumerator, FixedList32Bytes<int>.Enumerator>(value =>
+                .SelectMany(value =>
                 {
                     var list = new FixedList32Bytes<int>();
                     list.Add(value);

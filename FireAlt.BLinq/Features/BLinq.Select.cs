@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -57,7 +57,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source, TSelector selector)
             where T : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TSelector : unmanaged, ISelector<T, TResult>
         {
             return source.Select<TResult, TSelector>(selector);
@@ -78,14 +78,14 @@ namespace FireAlt.BLinq
             Func<T, TResult> selector)
             where T : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Query<Select<TEnumerator, T, TResult>, TResult>>();
         }
     }
     
-    public struct Select<TEnumerator, TSource, TResult, TSelector> : IEnumerator<TResult>
-        where TEnumerator : unmanaged, IEnumerator<TSource>
+    public struct Select<TEnumerator, TSource, TResult, TSelector> : IQueryEnumerator<TResult>
+        where TEnumerator : unmanaged, IQueryEnumerator<TSource>
         where TSource : unmanaged
         where TResult : unmanaged
         where TSelector : unmanaged, ISelector<TSource, TResult>
@@ -126,10 +126,23 @@ namespace FireAlt.BLinq
         {
             _source.Dispose();
         }
+
+        public bool TryGetElementAt(int index, out TResult value)
+        {
+            var sourceValue = default(TSource);
+            if (!_source.TryGetElementAt(index, out sourceValue))
+            {
+                value = default;
+                return false;
+            }
+
+            value = _selector.Select(in sourceValue);
+            return true;
+        }
     }
     
-    public struct Select<TEnumerator, TSource, TResult> : IEnumerator<TResult>
-        where TEnumerator : unmanaged, IEnumerator<TSource>
+    public struct Select<TEnumerator, TSource, TResult> : IQueryEnumerator<TResult>
+        where TEnumerator : unmanaged, IQueryEnumerator<TSource>
         where TSource : unmanaged
         where TResult : unmanaged
     {
@@ -149,6 +162,12 @@ namespace FireAlt.BLinq
 
         public void Dispose()
         {
+        }
+
+        public bool TryGetElementAt(int index, out TResult value)
+        {
+            value = default;
+            return false;
         }
     }
 }

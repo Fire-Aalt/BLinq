@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -34,7 +34,7 @@ namespace FireAlt.BLinq
         /// <exception cref="OverflowException">The number of elements is larger than <see cref="int.MaxValue"/>.</exception>
         public static int Count<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Count();
         }
@@ -48,7 +48,7 @@ namespace FireAlt.BLinq
         /// <exception cref="OverflowException">The number of matching elements is larger than <see cref="int.MaxValue"/>.</exception>
         public static int Count<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryGetLength(out var length) && length == 0)
@@ -70,7 +70,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static int Count<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<int>();
         }
@@ -80,7 +80,7 @@ namespace FireAlt.BLinq
     {
         public static int Count<T, TEnumerator>(TEnumerator enumerator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var count = 0;
             while (enumerator.MoveNext())
@@ -100,7 +100,7 @@ namespace FireAlt.BLinq
 
         public static int Count<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             var count = 0;

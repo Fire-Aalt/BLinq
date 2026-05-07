@@ -7,7 +7,7 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace FireAlt.BLinq
 {
     public struct OrderedQuery<TEnumerator, T, TComparer>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
         where TComparer : unmanaged, IComparer<T>
     {
@@ -177,9 +177,9 @@ namespace FireAlt.BLinq
         }
     }
     
-    public struct OrderedQueryEnumerator<T, TEnumerator, TComparer> : IEnumerator<T>
+    public struct OrderedQueryEnumerator<T, TEnumerator, TComparer> : IQueryEnumerator<T>
         where T : unmanaged
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where TComparer : unmanaged, IComparer<T>
     {
         private Query<TEnumerator, T> _source;
@@ -239,5 +239,11 @@ namespace FireAlt.BLinq
                 _list = default;
             }
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

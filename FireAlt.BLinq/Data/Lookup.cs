@@ -62,9 +62,9 @@ namespace FireAlt.BLinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Query<NativeArray<T>.Enumerator, T> AsQuery()
+        public Query<NativeArrayQueryEnumerator<T>, T> AsQuery()
         {
-            return _values.AsQuery();
+            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(_values.AsArray()), Length);
         }
 
         internal void Dispose()
@@ -131,7 +131,7 @@ namespace FireAlt.BLinq
         }
     }
 
-    public struct LookupEnumerator<TKey, T> : IEnumerator<Group<TKey, T>>
+    public struct LookupEnumerator<TKey, T> : IQueryEnumerator<Group<TKey, T>>
         where TKey : unmanaged
         where T : unmanaged
     {
@@ -166,6 +166,18 @@ namespace FireAlt.BLinq
 
         public void Dispose()
         {
+        }
+
+        public bool TryGetElementAt(int index, out Group<TKey, T> value)
+        {
+            if ((uint)index >= (uint)_groups.Length)
+            {
+                value = default;
+                return false;
+            }
+
+            value = _groups[index];
+            return true;
         }
     }
 }

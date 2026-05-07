@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -27,7 +27,8 @@ namespace FireAlt.BLinq
                     throw new InvalidOperationException("The BLinq source contains more than one element.");
                 }
 
-                if (BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out var singleValue))
+                if (TryGetElementAt(0, out var singleValue) ||
+                    BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out singleValue))
                 {
                     return singleValue;
                 }
@@ -55,7 +56,8 @@ namespace FireAlt.BLinq
                     throw new InvalidOperationException("The BLinq source contains more than one element.");
                 }
 
-                return BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out var singleValue)
+                return TryGetElementAt(0, out var singleValue) ||
+                       BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out singleValue)
                     ? singleValue
                     : default;
             }
@@ -74,7 +76,7 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">The source sequence contains no elements or more than one element.</exception>
         public static T Single<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Single();
         }
@@ -88,7 +90,7 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">No element or more than one element matches <paramref name="predicate"/>.</exception>
         public static T Single<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryGetLength(out var length) && length == 0)
@@ -107,7 +109,7 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">The source sequence contains more than one element.</exception>
         public static T SingleOrDefault<T, TEnumerator>(this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.SingleOrDefault();
         }
@@ -121,7 +123,7 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">More than one element matches <paramref name="predicate"/>.</exception>
         public static T SingleOrDefault<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryGetLength(out var length) && length == 0)
@@ -143,7 +145,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T Single<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }
@@ -159,7 +161,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T SingleOrDefault<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }
@@ -169,7 +171,7 @@ namespace FireAlt.BLinq
     {
         public static T Single<T, TEnumerator>(TEnumerator enumerator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             if (!enumerator.MoveNext())
             {
@@ -190,7 +192,7 @@ namespace FireAlt.BLinq
 
         public static T Single<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (TrySingleMatching<T, TEnumerator, TPredicate>(enumerator, predicate, out var value))
@@ -203,7 +205,7 @@ namespace FireAlt.BLinq
 
         public static T SingleOrDefault<T, TEnumerator>(TEnumerator enumerator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             if (!enumerator.MoveNext())
             {
@@ -224,7 +226,7 @@ namespace FireAlt.BLinq
 
         public static T SingleOrDefault<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             return TrySingleMatching<T, TEnumerator, TPredicate>(enumerator, predicate, out var value) ? value : default;
@@ -232,7 +234,7 @@ namespace FireAlt.BLinq
 
         private static bool TrySingleMatching<T, TEnumerator, TPredicate>(TEnumerator enumerator, TPredicate predicate, out T value)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             value = default;

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -34,7 +34,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             return source.TakeWhile(predicate);
@@ -52,14 +52,14 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Query<TakeWhile<TEnumerator, T>, T>>();
         }
     }
 
-    public struct TakeWhile<TEnumerator, T, TPredicate> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct TakeWhile<TEnumerator, T, TPredicate> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
         where TPredicate : unmanaged, IPredicate<T>
     {
@@ -115,10 +115,16 @@ namespace FireAlt.BLinq
         {
             _source.Dispose();
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 
-    public struct TakeWhile<TEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct TakeWhile<TEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         public T Current => BLinqExtensions.ThrowCodeGen<T>();
@@ -138,5 +144,11 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

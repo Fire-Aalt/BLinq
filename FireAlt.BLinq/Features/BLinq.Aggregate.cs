@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -68,7 +68,7 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">The source sequence contains no elements.</exception>
         public static T Aggregate<T, TEnumerator, TAggregator>(this Query<TEnumerator, T> source, TAggregator aggregator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TAggregator : unmanaged, IAggregator<T, T>
         {
             return source.Aggregate(aggregator);
@@ -87,7 +87,7 @@ namespace FireAlt.BLinq
             TAggregator aggregator)
             where TSource : unmanaged
             where TAccumulate : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             return source.Aggregate(seed, aggregator);
@@ -109,7 +109,7 @@ namespace FireAlt.BLinq
             where TSource : unmanaged
             where TAccumulate : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
             where TResultSelector : unmanaged, ISelector<TAccumulate, TResult>
         {
@@ -127,7 +127,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T Aggregate<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, T, T> aggregator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }
@@ -147,7 +147,7 @@ namespace FireAlt.BLinq
             Func<TAccumulate, TSource, TAccumulate> aggregator)
             where TSource : unmanaged
             where TAccumulate : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
         {
             return ThrowCodeGen<TAccumulate>();
         }
@@ -170,7 +170,7 @@ namespace FireAlt.BLinq
             where TSource : unmanaged
             where TAccumulate : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
         {
             return ThrowCodeGen<TResult>();
         }
@@ -180,7 +180,7 @@ namespace FireAlt.BLinq
     {
         public static T Aggregate<T, TEnumerator, TAggregator>(TEnumerator enumerator, TAggregator aggregator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TAggregator : unmanaged, IAggregator<T, T>
         {
             if (!enumerator.MoveNext())
@@ -206,7 +206,7 @@ namespace FireAlt.BLinq
             TAggregator aggregator)
             where TSource : unmanaged
             where TAccumulate : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
         {
             var aggregate = seed;
@@ -228,7 +228,7 @@ namespace FireAlt.BLinq
             where TSource : unmanaged
             where TAccumulate : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<TSource>
+            where TEnumerator : unmanaged, IQueryEnumerator<TSource>
             where TAggregator : unmanaged, IAggregator<TAccumulate, TSource>
             where TResultSelector : unmanaged, ISelector<TAccumulate, TResult>
         {

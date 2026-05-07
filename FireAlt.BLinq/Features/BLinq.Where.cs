@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -37,7 +37,7 @@ namespace FireAlt.BLinq
         public static Query<Where<TEnumerator, T, TPredicate>, T> Where<T, TEnumerator, TPredicate>(
             this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             return source.Where(predicate);
@@ -56,14 +56,14 @@ namespace FireAlt.BLinq
         public static Query<Where<TEnumerator, T>, T> Where<T, TEnumerator>(
             this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Query<Where<TEnumerator, T>, T>>();
         }
     }
 
-    public struct Where<TEnumerator, T, TPredicate> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct Where<TEnumerator, T, TPredicate> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
         where TPredicate : unmanaged, IPredicate<T>
     {
@@ -114,10 +114,16 @@ namespace FireAlt.BLinq
         {
             _source.Dispose();
         }
-    }
     
-    public struct Where<TEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
+    
+    public struct Where<TEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         public T Current => BLinqExtensions.ThrowCodeGen<T>();
@@ -137,5 +143,11 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

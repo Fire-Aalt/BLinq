@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private bool TryFirst(out T value)
@@ -14,6 +14,11 @@ namespace FireAlt.BLinq
             {
                 value = default;
                 return false;
+            }
+
+            if (TryGetElementAt(0, out value))
+            {
+                return true;
             }
 
             var enumerator = GetEnumerator();
@@ -57,7 +62,7 @@ namespace FireAlt.BLinq
     {
         private static bool TryFirst<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate, out T value)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryGetLength(out var length) && length == 0)
@@ -90,7 +95,7 @@ namespace FireAlt.BLinq
         /// <returns>The first matching element in the sequence.</returns>
         public static T First<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             if (source.TryFirst(predicate, out var value))
@@ -109,7 +114,7 @@ namespace FireAlt.BLinq
         /// <returns>The first matching element, or default when no matching element exists.</returns>
         public static T FirstOrDefault<T, TEnumerator, TPredicate>(this Query<TEnumerator, T> source, TPredicate predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
             return source.TryFirst(predicate, out var value) ? value : default;
@@ -125,7 +130,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T First<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }
@@ -140,7 +145,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static T FirstOrDefault<T, TEnumerator>(this Query<TEnumerator, T> source, Func<T, bool> predicate)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<T>();
         }

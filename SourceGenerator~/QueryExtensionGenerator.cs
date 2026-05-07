@@ -12,6 +12,7 @@ namespace FireAlt.BLinq.Generators
         private const string ATTRIBUTE_METADATA_NAME = "FireAlt.BLinq.GenerateQueryExtensionForAttribute";
         private const string ENUMERATOR_METADATA_NAME = "System.Collections.Generic.IEnumerator<T>";
         private const string LENGTH_PROPERTY_NAME = "LengthProperty";
+        private const string INDEXER_NAME = "Indexer";
 
         private static readonly SymbolDisplayFormat FullyQualifiedFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -79,12 +80,18 @@ namespace FireAlt.BLinq.Generators
                     .Where(clause => clause.Length != 0)
                     .ToImmutableArray();
 
+                var lengthExpression = GetLengthExpression(attribute);
+                var hasIndexer = lengthExpression.Length != 0 && GetIndexer(attribute);
+                var indexerEnumeratorTypeName = $"CollectionQueryEnumerator{queryExtensions.Count}";
+
                 queryExtensions.Add(new QueryExtensionData(
                     collectionTypeName,
                     enumeratorTypeName,
                     GetTypeName(itemType),
                     "collection.GetEnumerator()",
-                    GetLengthExpression(attribute),
+                    lengthExpression,
+                    hasIndexer,
+                    indexerEnumeratorTypeName,
                     typeParameterNames,
                     constraintClauses));
             }
@@ -107,6 +114,20 @@ namespace FireAlt.BLinq.Generators
             }
 
             return string.Empty;
+        }
+
+        private static bool GetIndexer(AttributeData attribute)
+        {
+            foreach (var namedArgument in attribute.NamedArguments)
+            {
+                if (namedArgument.Key == INDEXER_NAME &&
+                    namedArgument.Value.Value is bool hasIndexer)
+                {
+                    return hasIndexer;
+                }
+            }
+
+            return false;
         }
 
         private static string GenerateSource(ImmutableArray<QueryExtensionData> queryExtensions)

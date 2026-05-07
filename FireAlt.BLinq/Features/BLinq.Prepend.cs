@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -34,14 +34,14 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             T element)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Prepend(element);
         }
     }
 
-    public struct Prepend<TEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct Prepend<TEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private TEnumerator _source;
@@ -95,6 +95,23 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            if (index < 0)
+            {
+                return false;
+            }
+
+            if (index == 0)
+            {
+                value = _element;
+                return true;
+            }
+
+            return _source.TryGetElementAt(index - 1, out value);
         }
     }
 }

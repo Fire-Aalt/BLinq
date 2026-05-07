@@ -46,10 +46,10 @@ namespace FireAlt.BLinq.Tests
             var left = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 3);
             var right = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 2);
 
-            Assert.That(left.SequenceEqual(right), Is.False);
+            Assert.That(BLinqExtensions.SequenceEqual(left, right), Is.False);
         }
 
-        private struct ThrowingEnumerator : IEnumerator<int>
+        private struct ThrowingEnumerator : IQueryEnumerator<int>
         {
             public int Current => throw new InvalidOperationException("Enumerator should not be read.");
 
@@ -66,6 +66,12 @@ namespace FireAlt.BLinq.Tests
 
             public void Dispose()
             {
+            }
+
+            public bool TryGetElementAt(int index, out int value)
+            {
+                value = default;
+                return false;
             }
         }
 

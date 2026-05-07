@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -17,7 +17,7 @@ namespace FireAlt.BLinq
         {
             var length = TryGetLength(out var sourceLength) ? checked(sourceLength + 1) : -1;
             return new Query<Append<TEnumerator, T>, T>(
-                new Append<TEnumerator, T>(GetEnumerator(), element),
+                new Append<TEnumerator, T>(GetEnumerator(), element, TryGetLength(out sourceLength), sourceLength),
                 length);
         }
     }
@@ -34,20 +34,22 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             T element)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Append(element);
         }
     }
 
-    public struct Append<TEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct Append<TEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private TEnumerator _source;
         private T _element;
         private T _current;
         private byte _state;
+        private int _sourceLength;
+        private bool _hasKnownLength;
 
         public Append(TEnumerator source, T element)
         {
@@ -55,6 +57,18 @@ namespace FireAlt.BLinq
             _element = element;
             _current = default;
             _state = 0;
+            _sourceLength = 0;
+            _hasKnownLength = false;
+        }
+
+        public Append(TEnumerator source, T element, bool hasKnownLength, int sourceLength)
+        {
+            _source = source;
+            _element = element;
+            _current = default;
+            _state = 0;
+            _sourceLength = sourceLength;
+            _hasKnownLength = hasKnownLength;
         }
 
         public T Current
@@ -99,6 +113,28 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            if (index < 0 || !_hasKnownLength)
+            {
+                return false;
+            }
+
+            if (index == _sourceLength)
+            {
+                value = _element;
+                return true;
+            }
+
+            if (index < _sourceLength)
+            {
+                return _source.TryGetElementAt(index, out value);
+            }
+
+            return false;
         }
     }
 }

@@ -6,7 +6,7 @@ using Unity.Collections;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -32,14 +32,14 @@ namespace FireAlt.BLinq
         public static Query<Reverse<TEnumerator, T>, T> Reverse<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Reverse();
         }
     }
 
-    public struct Reverse<TEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+    public struct Reverse<TEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private TEnumerator _source;
@@ -76,9 +76,28 @@ namespace FireAlt.BLinq
         {
             if (_state == 0)
             {
-                _values = BLinqUtilities.ToNativeList<T, TEnumerator>(_source, Allocator.Temp, _length);
-                _index = _values.Length - 1;
-                _state = 1;
+                if (_length >= 0 && _source.TryGetElementAt(0, out _))
+                {
+                    _index = _length;
+                    _state = 2;
+                }
+                else
+                {
+                    _values = BLinqUtilities.ToNativeList<T, TEnumerator>(_source, Allocator.Temp, _length);
+                    _index = _values.Length - 1;
+                    _state = 1;
+                }
+            }
+
+            if (_state == 2)
+            {
+                _index--;
+                if (_index < 0)
+                {
+                    return false;
+                }
+
+                return _source.TryGetElementAt(_index, out _current);
             }
 
             if (_index < 0)
@@ -113,6 +132,19 @@ namespace FireAlt.BLinq
                 _values.Dispose();
                 _values = default;
             }
+        }
+
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            if (index < 0 ||
+                _length < 0 ||
+                index >= _length)
+            {
+                return false;
+            }
+
+            return _source.TryGetElementAt(_length - 1 - index, out value);
         }
     }
 }

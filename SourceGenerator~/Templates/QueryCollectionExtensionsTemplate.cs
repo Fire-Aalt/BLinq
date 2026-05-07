@@ -28,6 +28,12 @@ namespace FireAlt.BLinq.Generators.Templates
                         QueryExtension(queryExtensions[i]);
                     }
                 });
+
+                for (var i = 0; i < queryExtensions.Length; i++)
+                {
+                    WriteLine();
+                    IndexerEnumerator(queryExtensions[i]);
+                }
             });
         }
 
@@ -43,7 +49,9 @@ namespace FireAlt.BLinq.Generators.Templates
             var typeParameterList = queryExtension.TypeParameterNames.Length == 0
                 ? string.Empty
                 : $"<{string.Join(", ", queryExtension.TypeParameterNames)}>";
-            var queryType = $"global::FireAlt.BLinq.Query<{queryExtension.EnumeratorTypeName}, {queryExtension.ItemTypeName}>";
+            var enumeratorType = $"{queryExtension.IndexerEnumeratorTypeName}{typeParameterList}";
+            var queryType = $"global::FireAlt.BLinq.Query<{enumeratorType}, {queryExtension.ItemTypeName}>";
+            var enumeratorExpression = $"new {enumeratorType}(collection)";
 
             AggressiveInlining();
             WriteLine($"public static {queryType} AsQuery{typeParameterList}(this {queryExtension.CollectionTypeName} collection)");
@@ -58,12 +66,89 @@ namespace FireAlt.BLinq.Generators.Templates
             {
                 if (queryExtension.LengthExpression.Length == 0)
                 {
-                    WriteLine($"return new {queryType}({queryExtension.EnumeratorExpression});");
+                    WriteLine($"return new {queryType}({enumeratorExpression});");
                 }
                 else
                 {
-                    WriteLine($"return new {queryType}({queryExtension.EnumeratorExpression}, {queryExtension.LengthExpression});");
+                    WriteLine($"return new {queryType}({enumeratorExpression}, {queryExtension.LengthExpression});");
                 }
+            });
+        }
+
+        private void IndexerEnumerator(QueryExtensionData queryExtension)
+        {
+            var typeParameterList = queryExtension.TypeParameterNames.Length == 0
+                ? string.Empty
+                : $"<{string.Join(", ", queryExtension.TypeParameterNames)}>";
+
+            WriteLine($"public struct {queryExtension.IndexerEnumeratorTypeName}{typeParameterList} : global::FireAlt.BLinq.IQueryEnumerator<{queryExtension.ItemTypeName}>");
+            PushIndent();
+            foreach (var constraintClause in queryExtension.ConstraintClauses)
+            {
+                WriteLine(constraintClause);
+            }
+
+            PopIndent();
+            Block(() =>
+            {
+                WriteLine($"private {queryExtension.CollectionTypeName} _collection;");
+                WriteLine($"private {queryExtension.EnumeratorTypeName} _enumerator;");
+                WriteLine();
+
+                Block($"public {queryExtension.IndexerEnumeratorTypeName}({queryExtension.CollectionTypeName} collection)", () =>
+                {
+                    WriteLine("_collection = collection;");
+                    WriteLine($"_enumerator = {queryExtension.EnumeratorExpression};");
+                });
+                WriteLine();
+
+                AggressiveInlining();
+                Block($"public bool TryGetElementAt(int index, out {queryExtension.ItemTypeName} value)", () =>
+                {
+                    if (!queryExtension.HasIndexer)
+                    {
+                        WriteLine("value = default;");
+                        WriteLine("return false;");
+                        return;
+                    }
+
+                    Block($"if ((uint)index >= (uint){queryExtension.LengthExpression.Replace("collection", "_collection")})", () =>
+                    {
+                        WriteLine("value = default;");
+                        WriteLine("return false;");
+                    });
+                    WriteLine();
+                    WriteLine("value = _collection[index];");
+                    WriteLine("return true;");
+                });
+                WriteLine();
+
+                Block($"public {queryExtension.ItemTypeName} Current", () =>
+                {
+                    AggressiveInlining();
+                    WriteLine("get => _enumerator.Current;");
+                });
+                WriteLine();
+                WriteLine("object global::System.Collections.IEnumerator.Current => Current;");
+                WriteLine();
+
+                AggressiveInlining();
+                Block("public bool MoveNext()", () =>
+                {
+                    WriteLine("return _enumerator.MoveNext();");
+                });
+                WriteLine();
+
+                Block("public void Reset()", () =>
+                {
+                    WriteLine("_enumerator.Reset();");
+                });
+                WriteLine();
+
+                Block("public void Dispose()", () =>
+                {
+                    WriteLine("_enumerator.Dispose();");
+                });
             });
         }
     }

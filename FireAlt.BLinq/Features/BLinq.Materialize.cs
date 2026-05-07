@@ -7,7 +7,7 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
@@ -150,7 +150,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return BLinqUtilities.ToNativeHashSet<T, TEnumerator>(source.GetEnumerator(), allocator);
         }
@@ -159,7 +159,7 @@ namespace FireAlt.BLinq
             this OrderedQuery<TEnumerator, T, TComparer> source,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return BLinqUtilities.ToSortedNativeHashSet<T, TEnumerator, TComparer>(
@@ -173,7 +173,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.ToManagedDictionary<TKey, TKeySelector>(keySelector);
@@ -185,7 +185,7 @@ namespace FireAlt.BLinq
             IEqualityComparer<TKey> comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.ToManagedDictionary<TKey, TKeySelector>(keySelector, comparer);
@@ -198,7 +198,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
@@ -213,7 +213,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
@@ -226,7 +226,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.ToNativeHashMap<TKey, TKeySelector>(keySelector, allocator);
@@ -240,7 +240,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
@@ -252,7 +252,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
@@ -265,7 +265,7 @@ namespace FireAlt.BLinq
             IEqualityComparer<TKey> comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
@@ -279,7 +279,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
@@ -295,7 +295,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
@@ -309,7 +309,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
@@ -324,7 +324,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
@@ -339,7 +339,7 @@ namespace FireAlt.BLinq
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Dictionary<TKey, T>>();
         }
@@ -352,7 +352,7 @@ namespace FireAlt.BLinq
             IEqualityComparer<TKey> comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Dictionary<TKey, T>>();
         }
@@ -366,7 +366,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Dictionary<TKey, TValue>>();
         }
@@ -381,7 +381,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<Dictionary<TKey, TValue>>();
         }
@@ -394,7 +394,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<NativeHashMap<TKey, T>>();
         }
@@ -409,7 +409,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<NativeHashMap<TKey, TValue>>();
         }
@@ -421,7 +421,7 @@ namespace FireAlt.BLinq
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<Dictionary<TKey, T>>();
@@ -435,7 +435,7 @@ namespace FireAlt.BLinq
             IEqualityComparer<TKey> comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<Dictionary<TKey, T>>();
@@ -450,7 +450,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<Dictionary<TKey, TValue>>();
@@ -466,7 +466,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<Dictionary<TKey, TValue>>();
@@ -480,7 +480,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<NativeHashMap<TKey, T>>();
@@ -496,7 +496,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return ThrowCodeGen<NativeHashMap<TKey, TValue>>();
@@ -505,12 +505,18 @@ namespace FireAlt.BLinq
 
     internal static partial class BLinqUtilities
     {
+        public static Query<NativeArrayQueryEnumerator<T>, T> ToRawQuery<T>(NativeList<T> list)
+            where T : unmanaged
+        {
+            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(list.AsArray()), list.Length);
+        }
+
         public static NativeArray<T> ToNativeArray<T, TEnumerator>(
             TEnumerator source,
             AllocatorManager.AllocatorHandle allocator,
             int knownLength = -1)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp, knownLength);
             var array = list.ToArray(allocator);
@@ -523,7 +529,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator,
             int knownLength = -1)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var list = new UnsafeList<T>(knownLength >= 0 ? knownLength : 0, allocator);
             while (source.MoveNext())
@@ -540,7 +546,7 @@ namespace FireAlt.BLinq
             AllocatorManager.AllocatorHandle allocator,
             int knownLength = -1)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var list = knownLength >= 0 ? new NativeList<T>(knownLength, allocator) : new NativeList<T>(allocator);
             while (source.MoveNext())
@@ -554,7 +560,7 @@ namespace FireAlt.BLinq
 
         public static T[] ToManagedArray<T, TEnumerator>(TEnumerator source, int knownLength = -1)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             if (knownLength >= 0)
             {
@@ -582,7 +588,7 @@ namespace FireAlt.BLinq
 
         public static List<T> ToManagedList<T, TEnumerator>(TEnumerator source, int knownLength = -1)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var list = knownLength >= 0 ? new List<T>(knownLength) : new List<T>();
             while (source.MoveNext())
@@ -599,7 +605,7 @@ namespace FireAlt.BLinq
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
@@ -613,7 +619,7 @@ namespace FireAlt.BLinq
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToUnsafeList<T, TEnumerator>(source, allocator);
@@ -626,7 +632,7 @@ namespace FireAlt.BLinq
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToNativeList<T, TEnumerator>(source, allocator);
@@ -719,7 +725,7 @@ namespace FireAlt.BLinq
             TEnumerator source,
             TComparer comparer)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
@@ -744,7 +750,7 @@ namespace FireAlt.BLinq
             TEnumerator source,
             TComparer comparer)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             var array = ToSortedManagedArray<T, TEnumerator, TComparer>(source, comparer);
@@ -759,7 +765,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
@@ -789,7 +795,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
@@ -797,8 +803,8 @@ namespace FireAlt.BLinq
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
             try
             {
-                return ToManagedDictionary<T, TKey, TValue, NativeArray<T>.Enumerator, TKeySelector, TValueSelector>(
-                    list.GetEnumerator(),
+                return ToManagedDictionary<T, TKey, TValue, NativeArrayQueryEnumerator<T>, TKeySelector, TValueSelector>(
+                    new NativeArrayQueryEnumerator<T>(list.AsArray()),
                     keySelector,
                     valueSelector,
                     equalityComparer);
@@ -813,7 +819,7 @@ namespace FireAlt.BLinq
             TEnumerator source,
             IEqualityComparer<T> comparer)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var hashSet = new HashSet<T>(comparer);
             try
@@ -836,13 +842,13 @@ namespace FireAlt.BLinq
             TComparer comparer,
             IEqualityComparer<T> equalityComparer)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
             try
             {
-                return ToManagedHashSet<T, NativeArray<T>.Enumerator>(list.GetEnumerator(), equalityComparer);
+                return ToManagedHashSet<T, NativeArrayQueryEnumerator<T>>(new NativeArrayQueryEnumerator<T>(list.AsArray()), equalityComparer);
             }
             finally
             {
@@ -858,7 +864,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
@@ -898,7 +904,7 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
@@ -906,8 +912,8 @@ namespace FireAlt.BLinq
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
             try
             {
-                return ToNativeHashMap<T, TKey, TValue, NativeArray<T>.Enumerator, TKeySelector, TValueSelector>(
-                    list.GetEnumerator(),
+                return ToNativeHashMap<T, TKey, TValue, NativeArrayQueryEnumerator<T>, TKeySelector, TValueSelector>(
+                    new NativeArrayQueryEnumerator<T>(list.AsArray()),
                     keySelector,
                     valueSelector,
                     allocator);
@@ -922,7 +928,7 @@ namespace FireAlt.BLinq
             TEnumerator source,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp);
             var hashSet = new NativeHashSet<T>(list.Length, allocator);
@@ -940,13 +946,13 @@ namespace FireAlt.BLinq
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
             try
             {
-                return ToNativeHashSet<T, NativeArray<T>.Enumerator>(list.GetEnumerator(), allocator);
+                return ToNativeHashSet<T, NativeArrayQueryEnumerator<T>>(new NativeArrayQueryEnumerator<T>(list.AsArray()), allocator);
             }
             finally
             {

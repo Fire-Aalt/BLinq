@@ -6,7 +6,7 @@ using Unity.Collections;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -102,7 +102,7 @@ namespace FireAlt.BLinq
         public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, AscendingComparer<T>>> OrderBy<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.OrderBy<T, IdentitySelector<T>>(new IdentitySelector<T>());
         }
@@ -113,7 +113,7 @@ namespace FireAlt.BLinq
         public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, DescendingComparer<T>>> OrderByDescending<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.OrderByDescending<T, IdentitySelector<T>>(new IdentitySelector<T>());
         }
@@ -126,7 +126,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.OrderBy<TKey, TKeySelector>(keySelector);
@@ -141,7 +141,7 @@ namespace FireAlt.BLinq
             TKeyComparer comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
@@ -156,7 +156,7 @@ namespace FireAlt.BLinq
             TKeySelector keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
             return source.OrderByDescending<TKey, TKeySelector>(keySelector);
@@ -171,7 +171,7 @@ namespace FireAlt.BLinq
             TKeyComparer comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
@@ -183,7 +183,7 @@ namespace FireAlt.BLinq
         /// </summary>
         public static NativeList<T> ToOrderedBy<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.ToOrderedBy(new AscendingComparer<T>(), allocator);
         }
@@ -193,7 +193,7 @@ namespace FireAlt.BLinq
         /// </summary>
         public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.ToOrderedBy(new DescendingComparer<T>(), allocator);
         }
@@ -206,7 +206,7 @@ namespace FireAlt.BLinq
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return source.ToOrderedBy(comparer, allocator);
@@ -220,7 +220,7 @@ namespace FireAlt.BLinq
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             return source.ToOrderedByDescending(comparer, allocator);
@@ -236,7 +236,7 @@ namespace FireAlt.BLinq
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>>>();
         }
@@ -252,7 +252,7 @@ namespace FireAlt.BLinq
             TKeyComparer comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
             return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeyComparer>>>();
@@ -268,7 +268,7 @@ namespace FireAlt.BLinq
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>>>();
         }
@@ -284,7 +284,7 @@ namespace FireAlt.BLinq
             TKeyComparer comparer)
             where T : unmanaged
             where TKey : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
             return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>>();
@@ -299,7 +299,7 @@ namespace FireAlt.BLinq
         //     AllocatorManager.AllocatorHandle allocator)
         //     where T : unmanaged
         //     where TKey : unmanaged
-        //     where TEnumerator : unmanaged, IEnumerator<T>
+        //     where TEnumerator : unmanaged, IQueryEnumerator<T>
         // {
         //     return source.ToOrderedBy(comparer, allocator);
         // }
@@ -313,7 +313,7 @@ namespace FireAlt.BLinq
         //     AllocatorManager.AllocatorHandle allocator)
         //     where T : unmanaged
         //     where TKey : unmanaged
-        //     where TEnumerator : unmanaged, IEnumerator<T>
+        //     where TEnumerator : unmanaged, IQueryEnumerator<T>
         // {
         //     return source.ToOrderedByDescending(comparer, allocator);
         // }

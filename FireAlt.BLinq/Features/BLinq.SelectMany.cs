@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -42,7 +42,7 @@ namespace FireAlt.BLinq
             TSelector selector)
             where T : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TInnerEnumerator : unmanaged, IEnumerator<TResult>
             where TSelector : unmanaged, ISelector<T, TInnerEnumerator>
         {
@@ -61,7 +61,7 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             TSelector selector)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TInnerEnumerator : unmanaged, IEnumerator<T>
             where TSelector : unmanaged, ISelector<T, TInnerEnumerator>
         {
@@ -83,7 +83,7 @@ namespace FireAlt.BLinq
             Func<T, TInnerEnumerator> selector)
             where T : unmanaged
             where TResult : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TInnerEnumerator : unmanaged, IEnumerator<TResult>
         {
             return ThrowCodeGen<Query<SelectMany<TEnumerator, TInnerEnumerator, T, TResult>, TResult>>();
@@ -103,15 +103,15 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             Func<T, TInnerEnumerator> selector)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TInnerEnumerator : unmanaged, IEnumerator<T>
         {
             return ThrowCodeGen<Query<SelectMany<TEnumerator, TInnerEnumerator, T, T>, T>>();
         }
     }
 
-    public struct SelectMany<TSourceEnumerator, TInnerEnumerator, TSource, TResult, TSelector> : IEnumerator<TResult>
-        where TSourceEnumerator : unmanaged, IEnumerator<TSource>
+    public struct SelectMany<TSourceEnumerator, TInnerEnumerator, TSource, TResult, TSelector> : IQueryEnumerator<TResult>
+        where TSourceEnumerator : unmanaged, IQueryEnumerator<TSource>
         where TInnerEnumerator : unmanaged, IEnumerator<TResult>
         where TSource : unmanaged
         where TResult : unmanaged
@@ -190,10 +190,16 @@ namespace FireAlt.BLinq
 
             _source.Dispose();
         }
-    }
+    
+        public bool TryGetElementAt(int index, out TResult value)
+        {
+            value = default;
+            return false;
+        }
+}
 
-    public struct SelectMany<TSourceEnumerator, TInnerEnumerator, TSource, TResult> : IEnumerator<TResult>
-        where TSourceEnumerator : unmanaged, IEnumerator<TSource>
+    public struct SelectMany<TSourceEnumerator, TInnerEnumerator, TSource, TResult> : IQueryEnumerator<TResult>
+        where TSourceEnumerator : unmanaged, IQueryEnumerator<TSource>
         where TInnerEnumerator : unmanaged, IEnumerator<TResult>
         where TSource : unmanaged
         where TResult : unmanaged
@@ -215,5 +221,11 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
         }
-    }
+    
+        public bool TryGetElementAt(int index, out TResult value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

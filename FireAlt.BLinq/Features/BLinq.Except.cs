@@ -17,17 +17,17 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             Query<TOtherEnumerator, T> other)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TOtherEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
+            where TOtherEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return new Query<Except<TEnumerator, TOtherEnumerator, T>, T>(
                 new Except<TEnumerator, TOtherEnumerator, T>(source.GetEnumerator(), other.GetEnumerator()));
         }
     }
 
-    public struct Except<TEnumerator, TOtherEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
-        where TOtherEnumerator : unmanaged, IEnumerator<T>
+    public struct Except<TEnumerator, TOtherEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
+        where TOtherEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged, IEquatable<T>
     {
         private TEnumerator _source;
@@ -108,5 +108,11 @@ namespace FireAlt.BLinq
                 _initialized = false;
             }
         }
-    }
+    
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            return false;
+        }
+}
 }

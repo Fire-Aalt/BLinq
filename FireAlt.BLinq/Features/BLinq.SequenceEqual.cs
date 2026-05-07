@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -16,7 +16,7 @@ namespace FireAlt.BLinq
         /// <c>true</c> when both sequences have the same length and the same values in the same order; otherwise <c>false</c>.
         /// </returns>
         public bool SequenceEqual<TOtherEnumerator, TEqualityComparer>(TOtherEnumerator other, TEqualityComparer comparer)
-            where TOtherEnumerator : unmanaged, IEnumerator<T>
+            where TOtherEnumerator : unmanaged, IQueryEnumerator<T>
             where TEqualityComparer : unmanaged, INativeEqualityComparer<T>
         {
             var left = GetEnumerator();
@@ -65,14 +65,37 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             Query<TOtherEnumerator, T> other)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TOtherEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
+            where TOtherEnumerator : unmanaged, IQueryEnumerator<T>
         {
             if (source.TryGetLength(out var sourceLength) &&
-                other.TryGetLength(out var otherLength) &&
-                sourceLength != otherLength)
+                other.TryGetLength(out var otherLength))
             {
-                return false;
+                if (sourceLength != otherLength)
+                {
+                    return false;
+                }
+
+                if (sourceLength == 0)
+                {
+                    return true;
+                }
+
+                if (source.TryGetElementAt(0, out _) && other.TryGetElementAt(0, out _))
+                {
+                    var comparer = new NativeEqualityComparer<T>();
+                    for (var i = 0; i < sourceLength; i++)
+                    {
+                        source.TryGetElementAt(i, out var left);
+                        other.TryGetElementAt(i, out var right);
+                        if (!comparer.Equals(in left, in right))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
             }
 
             return source.SequenceEqual(other.GetEnumerator(), new NativeEqualityComparer<T>());

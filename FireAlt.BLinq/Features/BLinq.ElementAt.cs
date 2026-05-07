@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -41,7 +41,8 @@ namespace FireAlt.BLinq
                 return false;
             }
 
-            return BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), index, out value);
+            return TryGetElementAt(index, out value) ||
+                   BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), index, out value);
         }
     }
 
@@ -56,7 +57,7 @@ namespace FireAlt.BLinq
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is outside the bounds of the sequence.</exception>
         public static T ElementAt<T, TEnumerator>(this Query<TEnumerator, T> source, int index)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.ElementAt(index);
         }
@@ -69,7 +70,7 @@ namespace FireAlt.BLinq
         /// <returns>The element at the specified index, or default when the index is out of range.</returns>
         public static T ElementAtOrDefault<T, TEnumerator>(this Query<TEnumerator, T> source, int index)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.ElementAtOrDefault(index);
         }
@@ -83,7 +84,7 @@ namespace FireAlt.BLinq
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is outside the bounds of the sequence.</exception>
         public static T ElementAt<T, TEnumerator, TComparer>(this OrderedQuery<TEnumerator, T, TComparer> source, int index)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             if (index < 0 || source.TryGetLength(out var length) && index >= length)
@@ -112,7 +113,7 @@ namespace FireAlt.BLinq
             this OrderedQuery<TEnumerator, T, TComparer> source,
             int index)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TComparer : unmanaged, IComparer<T>
         {
             if (index < 0 || source.TryGetLength(out var length) && index >= length)
@@ -133,7 +134,7 @@ namespace FireAlt.BLinq
     {
         public static bool TryElementAt<T, TEnumerator>(TEnumerator enumerator, int index, out T value)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var currentIndex = 0;
             while (enumerator.MoveNext())

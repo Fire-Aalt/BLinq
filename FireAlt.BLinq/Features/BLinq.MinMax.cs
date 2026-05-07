@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -75,7 +75,7 @@ namespace FireAlt.BLinq
         /// <param name="source">Source query.</param>
         /// <returns>The minimum element in the sequence.</returns>
         public static T Min<TEnumerator, T>(this Query<TEnumerator, T> source)
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where T : unmanaged, IComparable<T>
         {
             return source.Min(new AscendingComparer<T>());
@@ -87,7 +87,7 @@ namespace FireAlt.BLinq
         /// <param name="source">Source query.</param>
         /// <returns>The maximum element in the sequence.</returns>
         public static T Max<TEnumerator, T>(this Query<TEnumerator, T> source)
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
             where T : unmanaged, IComparable<T>
         {
             return source.Max(new AscendingComparer<T>());

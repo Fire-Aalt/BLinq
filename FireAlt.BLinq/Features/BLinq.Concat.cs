@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -15,14 +15,18 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields all elements from this query followed by all elements from <paramref name="second"/>.</returns>
         public Query<Concat<TEnumerator, TSecondEnumerator, T>, T> Concat<TSecondEnumerator>(
             Query<TSecondEnumerator, T> second)
-            where TSecondEnumerator : unmanaged, IEnumerator<T>
+            where TSecondEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var length = TryGetLength(out var firstLength) && second.TryGetLength(out var secondLength)
                 ? checked(firstLength + secondLength)
                 : -1;
 
             return new Query<Concat<TEnumerator, TSecondEnumerator, T>, T>(
-                new Concat<TEnumerator, TSecondEnumerator, T>(GetEnumerator(), second.GetEnumerator()),
+                new Concat<TEnumerator, TSecondEnumerator, T>(
+                    GetEnumerator(),
+                    second.GetEnumerator(),
+                    TryGetLength(out firstLength),
+                    firstLength),
                 length);
         }
     }
@@ -39,22 +43,24 @@ namespace FireAlt.BLinq
             this Query<TEnumerator, T> source,
             Query<TSecondEnumerator, T> second)
             where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TSecondEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
+            where TSecondEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Concat(second);
         }
     }
 
-    public struct Concat<TEnumerator, TSecondEnumerator, T> : IEnumerator<T>
-        where TEnumerator : unmanaged, IEnumerator<T>
-        where TSecondEnumerator : unmanaged, IEnumerator<T>
+    public struct Concat<TEnumerator, TSecondEnumerator, T> : IQueryEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
+        where TSecondEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private TEnumerator _source;
         private TSecondEnumerator _second;
         private T _current;
         private byte _state;
+        private int _firstLength;
+        private bool _hasFirstLength;
 
         public Concat(TEnumerator source, TSecondEnumerator second)
         {
@@ -62,6 +68,22 @@ namespace FireAlt.BLinq
             _second = second;
             _current = default;
             _state = 0;
+            _hasFirstLength = false;
+            _firstLength = 0;
+        }
+
+        public Concat(
+            TEnumerator source,
+            TSecondEnumerator second,
+            bool hasFirstLength,
+            int firstLength)
+        {
+            _source = source;
+            _second = second;
+            _current = default;
+            _state = 0;
+            _hasFirstLength = hasFirstLength;
+            _firstLength = firstLength;
         }
 
         public T Current
@@ -108,6 +130,22 @@ namespace FireAlt.BLinq
         {
             _source.Dispose();
             _second.Dispose();
+        }
+
+        public bool TryGetElementAt(int index, out T value)
+        {
+            value = default;
+            if (index < 0 || !_hasFirstLength)
+            {
+                return false;
+            }
+
+            if (index < _firstLength)
+            {
+                return _source.TryGetElementAt(index, out value);
+            }
+
+            return _second.TryGetElementAt(index - _firstLength, out value);
         }
     }
 }

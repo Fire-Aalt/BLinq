@@ -12,7 +12,7 @@ namespace FireAlt.BLinq.Tests
         public void MinBy_ReturnsElementWithMinimumKey()
         {
             var input = new NativeArray<int>(new[] { 13, 21, 32 }, Allocator.Temp);
-            var actual = input.AsQuery().MinBy<int, int, NativeArray<int>.Enumerator>(value => value % 10);
+            var actual = input.AsQuery().MinBy(value => value % 10);
 
             Assert.That(actual, Is.EqualTo(21));
         }
@@ -23,7 +23,7 @@ namespace FireAlt.BLinq.Tests
             var input = new NativeArray<int>(0, Allocator.Temp);
 
             Assert.Throws<InvalidOperationException>(() =>
-                input.AsQuery().MinBy<int, int, NativeArray<int>.Enumerator>(value => value % 10));
+                input.AsQuery().MinBy(value => value % 10));
         }
     }
 }

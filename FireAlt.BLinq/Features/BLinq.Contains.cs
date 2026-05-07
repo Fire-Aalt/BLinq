@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         /// <summary>
@@ -42,7 +42,7 @@ namespace FireAlt.BLinq
         /// <returns><c>true</c> when the value is present; otherwise <c>false</c>.</returns>
         public static bool Contains<T, TEnumerator>(this Query<TEnumerator, T> source, T value)
             where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
+            where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             return source.Contains(value, new NativeEqualityComparer<T>());
         }

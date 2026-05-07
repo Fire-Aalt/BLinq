@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace FireAlt.BLinq
 {
     public partial struct Query<TEnumerator, T>
-        where TEnumerator : unmanaged, IEnumerator<T>
+        where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private TEnumerator _enumerator;
@@ -37,9 +37,16 @@ namespace FireAlt.BLinq
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool TryGetElementAt(int index, out T value)
+        {
+            return _enumerator.TryGetElementAt(index, out value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int KnownLengthOrUnknown(bool known, int length)
         {
             return known && length >= 0 ? length : -1;
         }
     }
+
 }

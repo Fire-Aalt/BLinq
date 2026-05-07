@@ -28,8 +28,8 @@ namespace FireAlt.BLinq
             where TInner : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TResult : unmanaged
-            where TOuterEnumerator : unmanaged, IEnumerator<TOuter>
-            where TInnerEnumerator : unmanaged, IEnumerator<TInner>
+            where TOuterEnumerator : unmanaged, IQueryEnumerator<TOuter>
+            where TInnerEnumerator : unmanaged, IQueryEnumerator<TInner>
             where TOuterKeySelector : unmanaged, ISelector<TOuter, TKey>
             where TInnerKeySelector : unmanaged, ISelector<TInner, TKey>
             where TResultSelector : unmanaged, IGroupJoinResultSelector<TOuter, Group<TKey, TInner>, TResult>
@@ -65,16 +65,16 @@ namespace FireAlt.BLinq
             where TInner : unmanaged
             where TKey : unmanaged, IEquatable<TKey>
             where TResult : unmanaged
-            where TOuterEnumerator : unmanaged, IEnumerator<TOuter>
-            where TInnerEnumerator : unmanaged, IEnumerator<TInner>
+            where TOuterEnumerator : unmanaged, IQueryEnumerator<TOuter>
+            where TInnerEnumerator : unmanaged, IQueryEnumerator<TInner>
         {
             return ThrowCodeGen<Query<GroupJoin<TOuterEnumerator, TInnerEnumerator, TOuter, TInner, TKey, TResult>, TResult>>();
         }
     }
 
-    public struct GroupJoin<TOuterEnumerator, TInnerEnumerator, TOuter, TInner, TKey, TResult, TOuterKeySelector, TInnerKeySelector, TResultSelector> : IEnumerator<TResult>
-        where TOuterEnumerator : unmanaged, IEnumerator<TOuter>
-        where TInnerEnumerator : unmanaged, IEnumerator<TInner>
+    public struct GroupJoin<TOuterEnumerator, TInnerEnumerator, TOuter, TInner, TKey, TResult, TOuterKeySelector, TInnerKeySelector, TResultSelector> : IQueryEnumerator<TResult>
+        where TOuterEnumerator : unmanaged, IQueryEnumerator<TOuter>
+        where TInnerEnumerator : unmanaged, IQueryEnumerator<TInner>
         where TOuter : unmanaged
         where TInner : unmanaged
         where TKey : unmanaged, IEquatable<TKey>
@@ -207,11 +207,17 @@ namespace FireAlt.BLinq
                 _keyToGroupIndex = default;
             }
         }
-    }
+    
+        public bool TryGetElementAt(int index, out TResult value)
+        {
+            value = default;
+            return false;
+        }
+}
 
-    public struct GroupJoin<TOuterEnumerator, TInnerEnumerator, TOuter, TInner, TKey, TResult> : IEnumerator<TResult>
-        where TOuterEnumerator : unmanaged, IEnumerator<TOuter>
-        where TInnerEnumerator : unmanaged, IEnumerator<TInner>
+    public struct GroupJoin<TOuterEnumerator, TInnerEnumerator, TOuter, TInner, TKey, TResult> : IQueryEnumerator<TResult>
+        where TOuterEnumerator : unmanaged, IQueryEnumerator<TOuter>
+        where TInnerEnumerator : unmanaged, IQueryEnumerator<TInner>
         where TOuter : unmanaged
         where TInner : unmanaged
         where TKey : unmanaged
@@ -234,5 +240,11 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
         }
-    }
+    
+        public bool TryGetElementAt(int index, out TResult value)
+        {
+            value = default;
+            return false;
+        }
+}
 }
