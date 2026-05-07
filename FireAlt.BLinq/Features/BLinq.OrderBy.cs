@@ -179,6 +179,54 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
+        /// Materializes the query into a sorted list in ascending element order.
+        /// </summary>
+        public static NativeList<T> ToOrderedBy<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged, IComparable<T>
+            where TEnumerator : unmanaged, IEnumerator<T>
+        {
+            return source.ToOrderedBy(new AscendingComparer<T>(), allocator);
+        }
+
+        /// <summary>
+        /// Materializes the query into a sorted list in descending element order.
+        /// </summary>
+        public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged, IComparable<T>
+            where TEnumerator : unmanaged, IEnumerator<T>
+        {
+            return source.ToOrderedBy(new DescendingComparer<T>(), allocator);
+        }
+
+        /// <summary>
+        /// Materializes the query into a sorted list using the provided comparer.
+        /// </summary>
+        public static NativeList<T> ToOrderedBy<T, TEnumerator, TComparer>(
+            this Query<TEnumerator, T> source,
+            TComparer comparer,
+            AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, IComparer<T>
+        {
+            return source.ToOrderedBy(comparer, allocator);
+        }
+
+        /// <summary>
+        /// Materializes the query into a sorted list in reverse order using the provided comparer.
+        /// </summary>
+        public static NativeList<T> ToOrderedByDescending<T, TEnumerator, TComparer>(
+            this Query<TEnumerator, T> source,
+            TComparer comparer,
+            AllocatorManager.AllocatorHandle allocator)
+            where T : unmanaged
+            where TEnumerator : unmanaged, IEnumerator<T>
+            where TComparer : unmanaged, IComparer<T>
+        {
+            return source.ToOrderedByDescending(comparer, allocator);
+        }
+        
+        /// <summary>
         /// Orders the query in ascending order using a delegate key selector and the default key comparer.
         /// </summary>
         [NativeDelegateMethod(typeof(ISelector<,>))]
@@ -241,54 +289,34 @@ namespace FireAlt.BLinq
         {
             return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>>();
         }
-
-        /// <summary>
-        /// Materializes the query into a sorted list in ascending element order.
-        /// </summary>
-        public static NativeList<T> ToOrderedBy<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
-        {
-            return source.ToOrderedBy(new AscendingComparer<T>(), allocator);
-        }
-
-        /// <summary>
-        /// Materializes the query into a sorted list in descending element order.
-        /// </summary>
-        public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged, IComparable<T>
-            where TEnumerator : unmanaged, IEnumerator<T>
-        {
-            return source.ToOrderedBy(new DescendingComparer<T>(), allocator);
-        }
-
-        /// <summary>
-        /// Materializes the query into a sorted list using the provided comparer.
-        /// </summary>
-        public static NativeList<T> ToOrderedBy<T, TEnumerator, TComparer>(
-            this Query<TEnumerator, T> source,
-            TComparer comparer,
-            AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, global::System.Collections.Generic.IComparer<T>
-        {
-            return source.ToOrderedBy(comparer, allocator);
-        }
-
-        /// <summary>
-        /// Materializes the query into a sorted list in reverse order using the provided comparer.
-        /// </summary>
-        public static NativeList<T> ToOrderedByDescending<T, TEnumerator, TComparer>(
-            this Query<TEnumerator, T> source,
-            TComparer comparer,
-            AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IEnumerator<T>
-            where TComparer : unmanaged, global::System.Collections.Generic.IComparer<T>
-        {
-            return source.ToOrderedByDescending(comparer, allocator);
-        }
+        
+        // /// <summary>
+        // /// Materializes the query into a sorted list using the provided comparer.
+        // /// </summary>
+        // public static NativeList<T> ToOrderedBy<T, TKey, TEnumerator>(
+        //     this Query<TEnumerator, T> source,
+        //     Func<T, TKey> keySelector,
+        //     AllocatorManager.AllocatorHandle allocator)
+        //     where T : unmanaged
+        //     where TKey : unmanaged
+        //     where TEnumerator : unmanaged, IEnumerator<T>
+        // {
+        //     return source.ToOrderedBy(comparer, allocator);
+        // }
+        //
+        // /// <summary>
+        // /// Materializes the query into a sorted list in reverse order using the provided comparer.
+        // /// </summary>
+        // public static NativeList<T> ToOrderedByDescending<T, TKey, TEnumerator>(
+        //     this Query<TEnumerator, T> source,
+        //     Func<T, TKey> keySelector,
+        //     AllocatorManager.AllocatorHandle allocator)
+        //     where T : unmanaged
+        //     where TKey : unmanaged
+        //     where TEnumerator : unmanaged, IEnumerator<T>
+        // {
+        //     return source.ToOrderedByDescending(comparer, allocator);
+        // }
     }
 
     public struct IdentitySelector<T> : ISelector<T, T>

@@ -195,8 +195,10 @@ BLinq has a few intentional limitations that follow from its design. These trade
 - **IL2CPP generic depth**: IL2CPP has a maximum generic nesting depth, which is `7` by default. Query chains should stay within that operation depth unless the IL2CPP generic depth limit is increased through IL2CPP compiler arguments; with a higher limit, longer query chains are supported.
 
 ## TODO
-
+- ToOrderedBy(keySelector) overload
 - Add fast paths for sources where count or indexability can be preserved through the query pipeline.
+- Optimize ILPP.
+- Add benchmark data.
 
 ## Future C# / Unity TODO
 

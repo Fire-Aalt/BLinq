@@ -33,7 +33,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().GroupBy(Key).Select(group => group.First()).Sum(Select);
+            return values.AsValueEnumerable().DistinctBy(Key).Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)

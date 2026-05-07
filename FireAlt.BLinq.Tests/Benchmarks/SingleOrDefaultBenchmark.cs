@@ -28,17 +28,17 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Single(SingleMatch) + values.SingleOrDefault(NoMatch);
+            return values.SingleOrDefault(NoMatch);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Single(SingleMatch) + values.AsValueEnumerable().SingleOrDefault(NoMatch);
+            return values.AsValueEnumerable().SingleOrDefault(NoMatch);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Single(SingleMatch) + values.AsQuery().SingleOrDefault(NoMatch);
+            return values.AsQuery().SingleOrDefault(NoMatch);
         }
 
         [BurstCompile]

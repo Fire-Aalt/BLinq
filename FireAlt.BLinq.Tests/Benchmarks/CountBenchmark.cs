@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class ElementAtBenchmark : IBenchmark
+    public class CountBenchmark : IBenchmark
     {
-        public string Name => "ElementAt";
+        public string Name => "Count";
 
         [Test]
         [Performance]
@@ -23,28 +23,33 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<ElementAtBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<CountBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.ElementAt(values.Length / 4);
+            return values.Count(CountPredicate);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().ElementAt(values.Length / 4);
+            return values.AsValueEnumerable().Count(CountPredicate);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().ElementAt(values.Length / 4);
+            return values.AsQuery().Count(CountPredicate);
         }
 
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
+        }
+
+        private static bool CountPredicate(int value)
+        {
+            return (value & 1) == 0;
         }
     }
 }

@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class ElementAtBenchmark : IBenchmark
+    public class MaxBenchmark : IBenchmark
     {
-        public string Name => "ElementAt";
+        public string Name => "Max";
 
         [Test]
         [Performance]
@@ -23,22 +23,22 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<ElementAtBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<MaxBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.ElementAt(values.Length / 4);
+            return values.Max();
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().ElementAt(values.Length / 4);
+            return values.AsValueEnumerable().Max();
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().ElementAt(values.Length / 4);
+            return values.AsQuery().Max();
         }
 
         [BurstCompile]

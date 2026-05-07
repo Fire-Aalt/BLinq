@@ -4,14 +4,15 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.PerformanceTesting;
 using ZLinq;
+
 // ReSharper disable Unity.BurstFunctionSignatureContainsManagedTypes
 
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class SimpleBenchmark : IBenchmark
+    public class SequenceEqualBenchmark : IBenchmark
     {
-        public string Name => "Simple";
+        public string Name => "SequenceEqual";
 
         [Test]
         [Performance]
@@ -22,46 +23,28 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<SimpleBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<SequenceEqualBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values
-                .Where(SimpleWhere)
-                .Sum(SimpleSelect);
+            return values.SequenceEqual(values) ? 1 : 0;
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values
-                .AsValueEnumerable()
-                .Where(SimpleWhere)
-                .Sum(SimpleSelect);
+            return values.AsValueEnumerable().SequenceEqual(values.AsValueEnumerable()) ? 1 : 0;
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values
-                .AsQuery()
-                .Where(SimpleWhere)
-                .Sum(SimpleSelect);
+            return values.AsQuery().SequenceEqual(values.AsQuery()) ? 1 : 0;
         }
 
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
-        }
-
-        private static bool SimpleWhere(int value)
-        {
-            return (value & 1) == 0;
-        }
-
-        private static int SimpleSelect(int value)
-        {
-            return (value & 1023) + 1;
         }
     }
 }

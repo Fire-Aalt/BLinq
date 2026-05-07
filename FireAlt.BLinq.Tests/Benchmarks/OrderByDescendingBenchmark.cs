@@ -1,18 +1,18 @@
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.PerformanceTesting;
 using ZLinq;
+
 // ReSharper disable Unity.BurstFunctionSignatureContainsManagedTypes
 
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class OrderByBenchmark : IBenchmark
+    public class OrderByDescendingBenchmark : IBenchmark
     {
-        public string Name => "OrderBy";
+        public string Name => "OrderByDescending";
 
         [Test]
         [Performance]
@@ -23,31 +23,22 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<OrderByBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<OrderByDescendingBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values
-                .OrderBy(Key)
-                .Sum(Select);
+            return WeightedSum(values.OrderByDescending(Key).ToArray());
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values
-                .AsValueEnumerable()
-                .OrderBy(Key)
-                .Sum(Select);
+            return WeightedSum(values.AsValueEnumerable().OrderByDescending(Key).ToArray());
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values
-                .AsQuery()
-                .ToOrderedBy(new KeyComparer(), Allocator.Temp)
-                .AsQuery()
-                .Sum(Select);
+            return WeightedSum(values.AsQuery().OrderByDescending(Key).ToNativeList(Allocator.Temp));
         }
 
         [BurstCompile]
@@ -61,16 +52,27 @@ namespace FireAlt.BLinq.Tests.Benchmarks
             return ((value * 73) ^ (value >> 3)) & 4095;
         }
 
-        private static int Select(int value)
+        private static int WeightedSum(int[] values)
         {
-            return (value & 255) + 1;
+            var sum = 0;
+            for (var i = 0; i < values.Length; i++)
+            {
+                sum += ((i + 1) & 255) * ((values[i] & 255) + 1);
+            }
+
+            return sum;
         }
 
-        private struct KeyComparer : IComparer<int>
+        private static int WeightedSum(NativeList<int> values)
         {
-            public int Compare(int x, int y)
+            unchecked
             {
-                return Key(x).CompareTo(Key(y));
+                var sum = 0;
+                for (var i = 0; i < values.Length; i++)
+                {
+                    sum += ((i + 1) & 255) * ((values[i] & 255) + 1);
+                }
+                return sum;
             }
         }
     }

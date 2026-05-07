@@ -28,17 +28,17 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Last(Where) + values.LastOrDefault(NoMatch);
+            return values.Last(Where);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Last(Where) + values.AsValueEnumerable().LastOrDefault(NoMatch);
+            return values.AsValueEnumerable().Last(Where);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Last(Where) + values.AsQuery().LastOrDefault(NoMatch);
+            return values.AsQuery().Last(Where);
         }
 
         [BurstCompile]

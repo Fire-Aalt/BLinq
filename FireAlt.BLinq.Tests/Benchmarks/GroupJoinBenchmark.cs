@@ -28,22 +28,22 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Where(Outer)
-                .GroupJoin(values.Where(Inner), Key, Key, LinqResult)
+            return values
+                .GroupJoin(values, Key, Key, LinqResult)
                 .Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Where(Outer)
-                .GroupJoin(values.AsValueEnumerable().Where(Inner), Key, Key, LinqResult)
+            return values.AsValueEnumerable()
+                .GroupJoin(values.AsValueEnumerable(), Key, Key, LinqResult)
                 .Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Where(Outer)
-                .GroupJoin(values.AsQuery().Where(Inner), Key, Key, BLinqResult)
+            return values.AsQuery()
+                .GroupJoin(values.AsQuery(), Key, Key, BLinqResult)
                 .Sum(Select);
         }
 

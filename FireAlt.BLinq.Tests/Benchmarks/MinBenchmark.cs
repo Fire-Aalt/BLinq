@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class AnyAllBenchmark : IBenchmark
+    public class MinBenchmark : IBenchmark
     {
-        public string Name => "AnyAll";
+        public string Name => "Min";
 
         [Test]
         [Performance]
@@ -23,40 +23,28 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<AnyAllBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<MinBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return (values.Any(AnyPredicate) ? 1 : 0) + (values.All(AllPredicate) ? 2 : 0);
+            return values.Min();
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return (values.AsValueEnumerable().Any(AnyPredicate) ? 1 : 0)
-                + (values.AsValueEnumerable().All(AllPredicate) ? 2 : 0);
+            return values.AsValueEnumerable().Min();
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return (values.AsQuery().Any(AnyPredicate) ? 1 : 0)
-                + (values.AsQuery().All(AllPredicate) ? 2 : 0);
+            return values.AsQuery().Min();
         }
 
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
-        }
-
-        private static bool AnyPredicate(int value)
-        {
-            return value == 8191;
-        }
-
-        private static bool AllPredicate(int value)
-        {
-            return value >= 0;
         }
     }
 }

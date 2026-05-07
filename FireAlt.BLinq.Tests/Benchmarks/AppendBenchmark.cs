@@ -28,28 +28,23 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Where(Include).Append(17).Sum(Select);
+            return values.Append(17).Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Where(Include).Append(17).Sum(Select);
+            return values.AsValueEnumerable().Append(17).Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Where(Include).Append(17).Sum(Select);
+            return values.AsQuery().Append(17).Sum(Select);
         }
 
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
-        }
-
-        private static bool Include(int value)
-        {
-            return (value & 1) == 0;
         }
 
         private static int Select(int value)

@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class ElementAtBenchmark : IBenchmark
+    public class AverageBenchmark : IBenchmark
     {
-        public string Name => "ElementAt";
+        public string Name => "Average";
 
         [Test]
         [Performance]
@@ -23,28 +23,33 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<ElementAtBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<AverageBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.ElementAt(values.Length / 4);
+            return (int)values.Average(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().ElementAt(values.Length / 4);
+            return (int)values.AsValueEnumerable().Average(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().ElementAt(values.Length / 4);
+            return values.AsQuery().Average(Select);
         }
 
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
+        }
+
+        private static int Select(int value)
+        {
+            return (value & 255) + 1;
         }
     }
 }

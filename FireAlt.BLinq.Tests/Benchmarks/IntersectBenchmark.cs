@@ -28,19 +28,19 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Where(Left).Intersect(values.Select(Key)).Sum(Select);
+            return values.Intersect(values.Select(Key)).Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Where(Left)
+            return values.AsValueEnumerable()
                 .Intersect(values.AsValueEnumerable().Select(Key))
                 .Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Where(Left)
+            return values.AsQuery()
                 .Intersect(values.AsQuery().Select(Key))
                 .Sum(Select);
         }
@@ -49,11 +49,6 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
-        }
-
-        private static bool Left(int value)
-        {
-            return (value & 1) == 0;
         }
 
         private static int Key(int value)

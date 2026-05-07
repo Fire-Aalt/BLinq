@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class CountLongCountBenchmark : IBenchmark
+    public class SumBenchmark : IBenchmark
     {
-        public string Name => "CountLongCount";
+        public string Name => "Sum";
 
         [Test]
         [Performance]
@@ -23,24 +23,22 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<CountLongCountBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<SumBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Count(CountPredicate) + (int)values.LongCount(LongCountPredicate);
+            return values.Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Count(CountPredicate)
-                + (int)values.AsValueEnumerable().LongCount(LongCountPredicate);
+            return values.AsValueEnumerable().Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Count(CountPredicate)
-                + (int)values.AsQuery().LongCount(LongCountPredicate);
+            return values.AsQuery().Sum(Select);
         }
 
         [BurstCompile]
@@ -49,14 +47,9 @@ namespace FireAlt.BLinq.Tests.Benchmarks
             return BLinq(values);
         }
 
-        private static bool CountPredicate(int value)
+        private static int Select(int value)
         {
-            return (value & 1) == 0;
-        }
-
-        private static bool LongCountPredicate(int value)
-        {
-            return value % 3 == 0;
+            return (value & 255) + 1;
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using Unity.Burst;
 using Unity.Collections;
@@ -10,9 +11,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class JoinBenchmark : IBenchmark
+    public class SelectManyBenchmark : IBenchmark
     {
-        public string Name => "Join";
+        public string Name => "SelectMany";
 
         [Test]
         [Performance]
@@ -23,27 +24,24 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<JoinBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<SelectManyBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values
-                .Join(values, Key, Key, Result)
-                .Sum(Select);
+            return values.SelectMany(LinqInnerValues).Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable()
-                .Join(values.AsValueEnumerable(), Key, Key, Result)
-                .Sum(Select);
+            return values.AsValueEnumerable().SelectMany(LinqInnerValues).Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery()
-                .Join(values.AsQuery(), Key, Key, Result)
+            return values
+                .AsQuery()
+                .SelectMany(BLinqInnerValues)
                 .Sum(Select);
         }
 
@@ -52,15 +50,17 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         {
             return BLinq(values);
         }
-
-        private static int Key(int value)
+        
+        private static int[] LinqInnerValues(int value)
         {
-            return value & 255;
+            return new[] { value, value + 3 };
         }
 
-        private static int Result(int outer, int inner)
+        [MustDisposeResource]
+        private static FixedList32Bytes<int>.Enumerator BLinqInnerValues(int value)
         {
-            return outer + inner;
+            var list = new FixedList32Bytes<int> { value, value + 3 };
+            return list.GetEnumerator();
         }
 
         private static int Select(int value)

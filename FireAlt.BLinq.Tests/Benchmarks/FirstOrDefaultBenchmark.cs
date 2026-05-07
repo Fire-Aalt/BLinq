@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class ElementAtBenchmark : IBenchmark
+    public class FirstOrDefaultBenchmark : IBenchmark
     {
-        public string Name => "ElementAt";
+        public string Name => "FirstOrDefault";
 
         [Test]
         [Performance]
@@ -23,28 +23,40 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<ElementAtBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<FirstOrDefaultBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.ElementAt(values.Length / 4);
+            return values.FirstOrDefault(FirstPredicate) + values.FirstOrDefault(NoMatch);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().ElementAt(values.Length / 4);
+            return values.AsValueEnumerable().FirstOrDefault(FirstPredicate)
+                + values.AsValueEnumerable().FirstOrDefault(NoMatch);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().ElementAt(values.Length / 4);
+            return values.AsQuery().FirstOrDefault(FirstPredicate)
+                + values.AsQuery().FirstOrDefault(NoMatch);
         }
 
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
+        }
+
+        private static bool FirstPredicate(int value)
+        {
+            return value == 997;
+        }
+
+        private static bool NoMatch(int value)
+        {
+            return value < 0;
         }
     }
 }

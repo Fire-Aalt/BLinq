@@ -28,30 +28,23 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Where(Include).OrderByDescending(Key).First();
+            return values.OrderByDescending(Key).First();
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Where(Include).MaxBy(Key);
+            return values.AsValueEnumerable().MaxBy(Key);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery()
-                .Where(Include)
-                .MaxBy<int, int, Where<NativeArray<int>.Enumerator, int>>(value => (value * 31) & 1023);
+            return values.AsQuery().MaxBy(Key);
         }
 
         [BurstCompile]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
-        }
-
-        private static bool Include(int value)
-        {
-            return (value & 1) == 0;
         }
 
         private static int Key(int value)

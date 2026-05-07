@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class ElementAtBenchmark : IBenchmark
+    public class ContainsBenchmark : IBenchmark
     {
-        public string Name => "ElementAt";
+        public string Name => "Contains";
 
         [Test]
         [Performance]
@@ -23,22 +23,24 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<ElementAtBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<ContainsBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.ElementAt(values.Length / 4);
+            return (values.Contains(values.Length - 1) ? 1 : 0) + (values.Contains(-1) ? 2 : 0);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().ElementAt(values.Length / 4);
+            return (values.AsValueEnumerable().Contains(values.Length - 1) ? 1 : 0)
+                + (values.AsValueEnumerable().Contains(-1) ? 2 : 0);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().ElementAt(values.Length / 4);
+            return (values.AsQuery().Contains(values.Length - 1) ? 1 : 0)
+                + (values.AsQuery().Contains(-1) ? 2 : 0);
         }
 
         [BurstCompile]

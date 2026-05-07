@@ -28,7 +28,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Where(Left)
+            return values
                 .Concat(values.Where(Right))
                 .GroupBy(Key)
                 .Select(group => group.First())
@@ -37,16 +37,14 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().Where(Left)
-                .Concat(values.AsValueEnumerable().Where(Right))
-                .GroupBy(Key)
-                .Select(group => group.First())
+            return values.AsValueEnumerable()
+                .UnionBy(values.AsValueEnumerable().Where(Right), Key)
                 .Sum(Select);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().Where(Left)
+            return values.AsQuery()
                 .UnionBy(values.AsQuery().Where(Right), Key)
                 .Sum(Select);
         }
@@ -55,11 +53,6 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
-        }
-
-        private static bool Left(int value)
-        {
-            return (value & 1) == 0;
         }
 
         private static bool Right(int value)

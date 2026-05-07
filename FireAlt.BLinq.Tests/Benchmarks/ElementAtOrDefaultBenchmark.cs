@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class ElementAtBenchmark : IBenchmark
+    public class ElementAtOrDefaultBenchmark : IBenchmark
     {
-        public string Name => "ElementAt";
+        public string Name => "ElementAtOrDefault";
 
         [Test]
         [Performance]
@@ -23,22 +23,22 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<ElementAtBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<ElementAtOrDefaultBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.ElementAt(values.Length / 4);
+            return values.ElementAtOrDefault(values.Length / 4);
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable().ElementAt(values.Length / 4);
+            return values.AsValueEnumerable().ElementAtOrDefault(values.Length / 4);
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery().ElementAt(values.Length / 4);
+            return values.AsQuery().ElementAtOrDefault(values.Length / 4);
         }
 
         [BurstCompile]

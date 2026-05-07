@@ -10,9 +10,9 @@ using ZLinq;
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
     [BurstCompile]
-    public class JoinBenchmark : IBenchmark
+    public class ToLookupBenchmark : IBenchmark
     {
-        public string Name => "Join";
+        public string Name => "ToLookup";
 
         [Test]
         [Performance]
@@ -23,28 +23,27 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<JoinBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<ToLookupBenchmark>(elementCount, BLinq, BLinqBurst);
         }
 
         public int Linq(in NativeArray<int> values)
         {
             return values
-                .Join(values, Key, Key, Result)
-                .Sum(Select);
+                .ToLookup(Key)
+                .Sum(group => (group.Key + 1) * group.Sum(Select));
         }
 
         public int ZLinq(in NativeArray<int> values)
         {
-            return values.AsValueEnumerable()
-                .Join(values.AsValueEnumerable(), Key, Key, Result)
-                .Sum(Select);
+            return values
+                .AsValueEnumerable()
+                .GroupBy(Key)
+                .Sum(group => (group.Key + 1) * group.AsValueEnumerable().Sum(Select));
         }
 
         public static int BLinq(in NativeArray<int> values)
         {
-            return values.AsQuery()
-                .Join(values.AsQuery(), Key, Key, Result)
-                .Sum(Select);
+            return SumLookup(values.AsQuery().ToLookup(Key, Allocator.Temp));
         }
 
         [BurstCompile]
@@ -53,14 +52,21 @@ namespace FireAlt.BLinq.Tests.Benchmarks
             return BLinq(values);
         }
 
-        private static int Key(int value)
+        private static int SumLookup(Lookup<int, int> lookup)
         {
-            return value & 255;
+            var sum = 0;
+
+            foreach (var group in lookup)
+            {
+                sum += (group.Key + 1) * group.AsQuery().Sum(Select);
+            }
+
+            return sum;
         }
 
-        private static int Result(int outer, int inner)
+        private static int Key(int value)
         {
-            return outer + inner;
+            return value & 15;
         }
 
         private static int Select(int value)
