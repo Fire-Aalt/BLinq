@@ -35,6 +35,19 @@ namespace FireAlt.BLinq.Tests
         }
 
         [Test]
+        public void OrderByDescending_PreservesSourceOrderForEqualKeys()
+        {
+            var input = new NativeArray<int>(new[] { 18, 2, 10, 3, 11, 19 }, Allocator.Temp);
+            var expected = input.OrderByDescending(value => value & 1).ToArray();
+            var ordered = input
+                .AsQuery()
+                .OrderByDescending(value => value & 1)
+                .ToNativeList(Allocator.Temp);
+
+            AssertSequence(ordered.AsArray(), expected);
+        }
+
+        [Test]
         public void ThenBy_UsesDelegateKeySelector()
         {
             var input = new NativeArray<SortRecord>(

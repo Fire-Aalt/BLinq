@@ -205,7 +205,7 @@ namespace FireAlt.BLinq
             if (!_initialized)
             {
                 _list = _source.ToNativeList(Allocator.Temp);
-                _list.Sort(_comparer);
+                BLinqUtilities.StableSort(_list, _comparer);
                 _initialized = true;
             }
 

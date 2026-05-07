@@ -65,7 +65,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         private static int Select(int value)
         {
-            return (value & 255) + 1;
+            return (value & 255) - 128;
         }
     }
 }

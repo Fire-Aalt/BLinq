@@ -75,7 +75,7 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToNativeList(allocator);
-            list.Sort(comparer);
+            BLinqUtilities.StableSort(list, comparer);
             return list;
         }
 
@@ -89,7 +89,7 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToNativeList(allocator);
-            list.Sort(new ReverseComparer<T, TComparer>(comparer));
+            BLinqUtilities.StableSort(list, new ReverseComparer<T, TComparer>(comparer));
             return list;
         }
     }

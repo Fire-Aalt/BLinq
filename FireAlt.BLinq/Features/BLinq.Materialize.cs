@@ -583,7 +583,7 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToUnsafeList<T, TEnumerator>(source, allocator);
-            list.Sort(comparer);
+            StableSort(ref list, comparer);
             return list;
         }
 
@@ -596,8 +596,89 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToNativeList<T, TEnumerator>(source, allocator);
-            list.Sort(comparer);
+            StableSort(list, comparer);
             return list;
+        }
+
+        public static void StableSort<T, TComparer>(NativeList<T> list, TComparer comparer)
+            where T : unmanaged
+            where TComparer : unmanaged, IComparer<T>
+        {
+            if (list.Length < 2)
+            {
+                return;
+            }
+
+            var entries = new NativeArray<StableSortEntry<T>>(list.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (var i = 0; i < list.Length; i++)
+            {
+                entries[i] = new StableSortEntry<T>(list[i], i);
+            }
+
+            entries.Sort(new StableSortEntryComparer<T, TComparer>(comparer));
+
+            for (var i = 0; i < entries.Length; i++)
+            {
+                list[i] = entries[i].Value;
+            }
+
+            entries.Dispose();
+        }
+
+        public static void StableSort<T, TComparer>(ref UnsafeList<T> list, TComparer comparer)
+            where T : unmanaged
+            where TComparer : unmanaged, IComparer<T>
+        {
+            if (list.Length < 2)
+            {
+                return;
+            }
+
+            var entries = new NativeArray<StableSortEntry<T>>(list.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (var i = 0; i < list.Length; i++)
+            {
+                entries[i] = new StableSortEntry<T>(list[i], i);
+            }
+
+            entries.Sort(new StableSortEntryComparer<T, TComparer>(comparer));
+
+            for (var i = 0; i < entries.Length; i++)
+            {
+                list[i] = entries[i].Value;
+            }
+
+            entries.Dispose();
+        }
+
+        private readonly struct StableSortEntry<T>
+            where T : unmanaged
+        {
+            public readonly T Value;
+            public readonly int Index;
+
+            public StableSortEntry(T value, int index)
+            {
+                Value = value;
+                Index = index;
+            }
+        }
+
+        private struct StableSortEntryComparer<T, TComparer> : IComparer<StableSortEntry<T>>
+            where T : unmanaged
+            where TComparer : unmanaged, IComparer<T>
+        {
+            private TComparer _comparer;
+
+            public StableSortEntryComparer(TComparer comparer)
+            {
+                _comparer = comparer;
+            }
+
+            public int Compare(StableSortEntry<T> x, StableSortEntry<T> y)
+            {
+                var result = _comparer.Compare(x.Value, y.Value);
+                return result != 0 ? result : x.Index.CompareTo(y.Index);
+            }
         }
 
         public static T[] ToSortedManagedArray<T, TEnumerator, TComparer>(
