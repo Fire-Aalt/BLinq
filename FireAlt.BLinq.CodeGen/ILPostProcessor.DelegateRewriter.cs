@@ -54,6 +54,7 @@ namespace FireAlt.BLinq.CodeGen
             var originalAmbiguousRewrittenEnumeratorTypes = new HashSet<string>(_ambiguousRewrittenEnumeratorTypes);
             var originalRewrittenLocalTypes = new Dictionary<VariableDefinition, TypeReference>(_rewrittenLocalTypes);
             var originalAmbiguousRewrittenLocalTypes = new HashSet<VariableDefinition>(_ambiguousRewrittenLocalTypes);
+            var originalActiveLocalAliases = new Dictionary<VariableDefinition, VariableDefinition>(_activeLocalAliases);
             var originalRewrittenCaptureLocals = new Dictionary<string, IReadOnlyDictionary<FieldDefinition, VariableDefinition>>(_rewrittenCaptureLocals);
 
             bool Fail()
@@ -102,6 +103,12 @@ namespace FireAlt.BLinq.CodeGen
                 foreach (var value in originalAmbiguousRewrittenLocalTypes)
                 {
                     _ambiguousRewrittenLocalTypes.Add(value);
+                }
+
+                _activeLocalAliases.Clear();
+                foreach (var pair in originalActiveLocalAliases)
+                {
+                    _activeLocalAliases.Add(pair.Key, pair.Value);
                 }
 
                 _rewrittenCaptureLocals.Clear();
@@ -816,7 +823,7 @@ namespace FireAlt.BLinq.CodeGen
                 return;
             }
 
-            AddRewrittenLocalTypeMapping(local, realReturnType);
+            AddRewrittenLocalTypeMapping(owner, store, local, realReturnType);
         }
 
         private void MapRewrittenType(TypeReference placeholderType, TypeReference realType)
@@ -861,26 +868,69 @@ namespace FireAlt.BLinq.CodeGen
             _rewrittenEnumeratorTypes.Add(placeholderTypeName, realType);
         }
 
-        private void AddRewrittenLocalTypeMapping(VariableDefinition local, TypeReference realType)
+        private void AddRewrittenLocalTypeMapping(
+            MethodDefinition owner,
+            Instruction storeInstruction,
+            VariableDefinition local,
+            TypeReference realType)
         {
             if (_ambiguousRewrittenLocalTypes.Contains(local))
             {
                 return;
             }
 
-            if (_rewrittenLocalTypes.TryGetValue(local, out var existing))
+            var activeLocal = ResolveActiveLocalAlias(local);
+            if (_rewrittenLocalTypes.TryGetValue(activeLocal, out var existing))
             {
                 if (TypeReferencesMatch(existing, realType))
                 {
+                    if (activeLocal != local)
+                    {
+                        RewriteStoreLocalInstruction(storeInstruction, activeLocal);
+                    }
+
                     return;
                 }
 
-                _rewrittenLocalTypes.Remove(local);
-                _ambiguousRewrittenLocalTypes.Add(local);
+                var alias = new VariableDefinition(owner.Module.ImportReference(realType));
+                owner.Body.Variables.Add(alias);
+                owner.Body.InitLocals = true;
+                _rewrittenLocalTypes.Add(alias, realType);
+                _activeLocalAliases[local] = alias;
+                RewriteStoreLocalInstruction(storeInstruction, alias);
                 return;
             }
 
-            _rewrittenLocalTypes.Add(local, realType);
+            _rewrittenLocalTypes.Add(activeLocal, realType);
+            if (activeLocal != local)
+            {
+                RewriteStoreLocalInstruction(storeInstruction, activeLocal);
+            }
+        }
+
+        private VariableDefinition ResolveActiveLocalAlias(VariableDefinition local)
+        {
+            return _activeLocalAliases.TryGetValue(local, out var alias)
+                ? alias
+                : local;
+        }
+
+        private static void RewriteStoreLocalInstruction(Instruction instruction, VariableDefinition local)
+        {
+            instruction.OpCode = OpCodes.Stloc;
+            instruction.Operand = local;
+        }
+
+        private static void RewriteLoadLocalInstruction(Instruction instruction, VariableDefinition local)
+        {
+            instruction.OpCode = OpCodes.Ldloc;
+            instruction.Operand = local;
+        }
+
+        private static void RewriteLoadLocalAddressInstruction(Instruction instruction, VariableDefinition local)
+        {
+            instruction.OpCode = OpCodes.Ldloca;
+            instruction.Operand = local;
         }
 
         private bool TryRewriteMethodReference(
@@ -1320,7 +1370,13 @@ namespace FireAlt.BLinq.CodeGen
                 case Code.Ldloc_3:
                     if (TryGetLoadedLocal(owner, instruction, out var local))
                     {
-                        type = GetLocalType(module, local);
+                        var activeLocal = ResolveActiveLocalAlias(local);
+                        if (activeLocal != local)
+                        {
+                            RewriteLoadLocalInstruction(instruction, activeLocal);
+                        }
+
+                        type = GetLocalType(module, activeLocal);
                         return true;
                     }
 
@@ -1329,7 +1385,13 @@ namespace FireAlt.BLinq.CodeGen
                 case Code.Ldloca_S:
                     if (instruction.Operand is VariableDefinition addressLocal)
                     {
-                        type = new ByReferenceType(GetLocalType(module, addressLocal));
+                        var activeLocal = ResolveActiveLocalAlias(addressLocal);
+                        if (activeLocal != addressLocal)
+                        {
+                            RewriteLoadLocalAddressInstruction(instruction, activeLocal);
+                        }
+
+                        type = new ByReferenceType(GetLocalType(module, activeLocal));
                         return true;
                     }
 

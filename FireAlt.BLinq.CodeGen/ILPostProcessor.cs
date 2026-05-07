@@ -19,6 +19,7 @@ namespace FireAlt.BLinq.CodeGen
         private readonly HashSet<string> _ambiguousRewrittenEnumeratorTypes = new();
         private readonly Dictionary<VariableDefinition, TypeReference> _rewrittenLocalTypes = new();
         private readonly HashSet<VariableDefinition> _ambiguousRewrittenLocalTypes = new();
+        private readonly Dictionary<VariableDefinition, VariableDefinition> _activeLocalAliases = new();
         private readonly Dictionary<string, IReadOnlyDictionary<FieldDefinition, VariableDefinition>> _rewrittenCaptureLocals = new();
         private readonly Dictionary<string, bool> _nativeDelegateMethodCache = new();
         private readonly Dictionary<string, IReadOnlyList<TypeReference>> _nativeDelegateInterfaceCache = new();
@@ -112,6 +113,7 @@ namespace FireAlt.BLinq.CodeGen
             _ambiguousRewrittenEnumeratorTypes.Clear();
             _rewrittenLocalTypes.Clear();
             _ambiguousRewrittenLocalTypes.Clear();
+            _activeLocalAliases.Clear();
             _rewrittenCaptureLocals.Clear();
             var instructions = method.Body.Instructions;
 
@@ -163,6 +165,7 @@ namespace FireAlt.BLinq.CodeGen
             var ambiguousRewrittenEnumeratorTypes = new HashSet<string>(_ambiguousRewrittenEnumeratorTypes);
             var rewrittenLocalTypes = new Dictionary<VariableDefinition, TypeReference>(_rewrittenLocalTypes);
             var ambiguousRewrittenLocalTypes = new HashSet<VariableDefinition>(_ambiguousRewrittenLocalTypes);
+            var activeLocalAliases = new Dictionary<VariableDefinition, VariableDefinition>(_activeLocalAliases);
             var rewrittenCaptureLocals = new Dictionary<string, IReadOnlyDictionary<FieldDefinition, VariableDefinition>>(_rewrittenCaptureLocals);
 
             try
@@ -193,6 +196,12 @@ namespace FireAlt.BLinq.CodeGen
                 foreach (var value in ambiguousRewrittenLocalTypes)
                 {
                     _ambiguousRewrittenLocalTypes.Add(value);
+                }
+
+                _activeLocalAliases.Clear();
+                foreach (var pair in activeLocalAliases)
+                {
+                    _activeLocalAliases.Add(pair.Key, pair.Value);
                 }
 
                 _rewrittenCaptureLocals.Clear();
