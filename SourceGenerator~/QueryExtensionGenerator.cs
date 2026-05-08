@@ -3,6 +3,7 @@ namespace FireAlt.BLinq.Generators
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
+    using System.Text;
     using FireAlt.BLinq.Generators.Templates;
     using Microsoft.CodeAnalysis;
 
@@ -43,6 +44,7 @@ namespace FireAlt.BLinq.Generators
             var attributes = compilation.Assembly.GetAttributes();
             var queryExtensions = ImmutableArray.CreateBuilder<QueryExtensionData>();
             var emittedExtensions = new HashSet<string>();
+            var emittedEnumeratorTypeNames = new HashSet<string>();
 
             foreach (var attribute in attributes)
             {
@@ -82,7 +84,7 @@ namespace FireAlt.BLinq.Generators
 
                 var lengthExpression = GetLengthExpression(attribute);
                 var hasIndexer = lengthExpression.Length != 0 && GetIndexer(attribute);
-                var indexerEnumeratorTypeName = $"CollectionQueryEnumerator{queryExtensions.Count}";
+                var indexerEnumeratorTypeName = GetUniqueEnumeratorTypeName(collectionType, emittedEnumeratorTypeNames);
 
                 queryExtensions.Add(new QueryExtensionData(
                     collectionTypeName,
@@ -114,6 +116,46 @@ namespace FireAlt.BLinq.Generators
             }
 
             return string.Empty;
+        }
+
+        private static string GetUniqueEnumeratorTypeName(INamedTypeSymbol collectionType, ISet<string> emittedEnumeratorTypeNames)
+        {
+            var name = "From" + GetCollectionName(collectionType);
+            if (emittedEnumeratorTypeNames.Add(name))
+            {
+                return name;
+            }
+
+            var index = 1;
+            while (!emittedEnumeratorTypeNames.Add(name + index))
+            {
+                index++;
+            }
+
+            return name + index;
+        }
+
+        private static string GetCollectionName(INamedTypeSymbol collectionType)
+        {
+            var containingTypeName = collectionType.ContainingType == null
+                ? string.Empty
+                : GetCollectionName(collectionType.ContainingType);
+
+            return containingTypeName + GetIdentifierName(collectionType.Name);
+        }
+
+        private static string GetIdentifierName(string name)
+        {
+            var builder = new StringBuilder(name.Length);
+            foreach (var character in name)
+            {
+                if (char.IsLetterOrDigit(character) || character == '_')
+                {
+                    builder.Append(character);
+                }
+            }
+
+            return builder.ToString();
         }
 
         private static bool GetIndexer(AttributeData attribute)
