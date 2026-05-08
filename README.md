@@ -136,6 +136,8 @@ Requirements:
 | `Intersect` | Produces the set intersection of two queries using default equality. |
 | `IntersectBy` | Produces the set intersection of two queries according to a selected key. |
 | `Join` | Correlates two queries by matching keys and yields one result for each matching outer and inner pair. |
+| `JoinLeft` | Correlates two queries by matching keys and yields all outer elements, using default inner values for unmatched keys. |
+| `JoinRight` | Correlates two queries by matching keys and yields all inner elements, using default outer values for unmatched keys. |
 | `Last` | Returns the last element of a query or the last element matching a predicate. |
 | `LastOrDefault` | Returns the last element of a query or predicate match, or the default value when no element exists. |
 | `LongCount` | Returns the number of elements in the query as a `long`, or the number matching a predicate. |

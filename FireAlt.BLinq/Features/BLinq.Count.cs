@@ -1,6 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 namespace FireAlt.BLinq
 {
@@ -85,12 +86,7 @@ namespace FireAlt.BLinq
             var count = 0;
             while (enumerator.MoveNext())
             {
-                if (count == int.MaxValue)
-                {
-                    enumerator.Dispose();
-                    throw new OverflowException();
-                }
-
+                CheckCount(count);
                 count++;
             }
 
@@ -112,17 +108,23 @@ namespace FireAlt.BLinq
                     continue;
                 }
 
-                if (count == int.MaxValue)
-                {
-                    enumerator.Dispose();
-                    throw new OverflowException();
-                }
-
+                CheckCount(count);
                 count++;
             }
 
             enumerator.Dispose();
             return count;
+        }
+        
+        [AssertionMethod]
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        [Conditional("UNITY_DOTS_DEBUG")]
+        private static void CheckCount(int count)
+        {
+            if (count == int.MaxValue)
+            {
+                throw new OverflowException();
+            }
         }
     }
 }
