@@ -75,59 +75,6 @@ namespace FireAlt.BLinq
             return source.ElementAtOrDefault(index);
         }
 
-        /// <summary>
-        /// Returns the element at <paramref name="index"/> in the ordered query.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="index">The zero-based index of the element to return.</param>
-        /// <returns>The element at the specified index.</returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is outside the bounds of the sequence.</exception>
-        public static T ElementAt<T, TEnumerator, TComparer>(this OrderedQuery<TEnumerator, T, TComparer> source, int index)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            if (index < 0 || source.TryGetLength(out var length) && index >= length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
-            if (BLinqUtilities.TryElementAt<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>>(
-                    source.GetEnumerator(),
-                    index,
-                    out var value))
-            {
-                return value;
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
-
-        /// <summary>
-        /// Returns the element at <paramref name="index"/> in the ordered query, or the default value when the index is out of range.
-        /// </summary>
-        /// <param name="source">Source ordered query.</param>
-        /// <param name="index">The zero-based index of the element to return.</param>
-        /// <returns>The element at the specified index, or default when the index is out of range.</returns>
-        public static T ElementAtOrDefault<T, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            int index)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            if (index < 0 || source.TryGetLength(out var length) && index >= length)
-            {
-                return default;
-            }
-
-            return BLinqUtilities.TryElementAt<T, OrderedQueryEnumerator<T, TEnumerator, TComparer>>(
-                source.GetEnumerator(),
-                index,
-                out var value)
-                ? value
-                : default;
-        }
     }
 
     internal static partial class BLinqUtilities

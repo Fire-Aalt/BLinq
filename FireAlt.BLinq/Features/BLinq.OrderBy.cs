@@ -12,7 +12,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in ascending order using a key selector and the default key comparer.
         /// </summary>
-        public OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>> OrderBy<TKey, TKeySelector>(
+        public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>>, T> OrderBy<TKey, TKeySelector>(
             TKeySelector keySelector)
             where TKey : unmanaged, IComparable<TKey>
             where TKeySelector : unmanaged, ISelector<T, TKey>
@@ -25,22 +25,24 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in ascending order using a key selector and comparer.
         /// </summary>
-        public OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>> OrderBy<TKey, TKeySelector, TKeyComparer>(
+        public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>, T> OrderBy<TKey, TKeySelector, TKeyComparer>(
             TKeySelector keySelector,
             TKeyComparer comparer)
             where TKey : unmanaged
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
-            return new OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>(
-                this,
-                new KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>(keySelector, comparer));
+            return new Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>, T>(
+                new OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>(
+                    this,
+                    new KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>(keySelector, comparer)),
+                TryGetLength(out var length) ? length : -1);
         }
 
         /// <summary>
         /// Orders the query in descending order using a key selector and the default key comparer.
         /// </summary>
-        public OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>> OrderByDescending<TKey, TKeySelector>(
+        public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>>, T> OrderByDescending<TKey, TKeySelector>(
             TKeySelector keySelector)
             where TKey : unmanaged, IComparable<TKey>
             where TKeySelector : unmanaged, ISelector<T, TKey>
@@ -53,7 +55,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in descending order using a key selector and comparer.
         /// </summary>
-        public OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>> OrderByDescending<TKey, TKeySelector, TKeyComparer>(
+        public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>>, T> OrderByDescending<TKey, TKeySelector, TKeyComparer>(
             TKeySelector keySelector,
             TKeyComparer comparer)
             where TKey : unmanaged
@@ -99,7 +101,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in ascending order using the element as the key.
         /// </summary>
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, AscendingComparer<T>>> OrderBy<T, TEnumerator>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, AscendingComparer<T>>>, T> OrderBy<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IQueryEnumerator<T>
@@ -110,7 +112,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in descending order using the element as the key.
         /// </summary>
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, DescendingComparer<T>>> OrderByDescending<T, TEnumerator>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, DescendingComparer<T>>>, T> OrderByDescending<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IQueryEnumerator<T>
@@ -121,7 +123,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in ascending order using a key selector and the default key comparer.
         /// </summary>
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>> OrderBy<T, TKey, TEnumerator, TKeySelector>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>>, T> OrderBy<T, TKey, TEnumerator, TKeySelector>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector)
             where T : unmanaged
@@ -135,7 +137,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in ascending order using a key selector and comparer.
         /// </summary>
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>> OrderBy<T, TKey, TEnumerator, TKeySelector, TKeyComparer>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>, T> OrderBy<T, TKey, TEnumerator, TKeySelector, TKeyComparer>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector,
             TKeyComparer comparer)
@@ -151,7 +153,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in descending order using a key selector and the default key comparer.
         /// </summary>
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>> OrderByDescending<T, TKey, TEnumerator, TKeySelector>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>>, T> OrderByDescending<T, TKey, TEnumerator, TKeySelector>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector)
             where T : unmanaged
@@ -165,7 +167,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Orders the query in descending order using a key selector and comparer.
         /// </summary>
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>> OrderByDescending<T, TKey, TEnumerator, TKeySelector, TKeyComparer>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>>, T> OrderByDescending<T, TKey, TEnumerator, TKeySelector, TKeyComparer>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector,
             TKeyComparer comparer)
@@ -181,7 +183,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Materializes the query into a sorted list in ascending element order.
         /// </summary>
-        public static NativeList<T> ToOrderedBy<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
+        public static NativeList<T> ToOrderedBy<TEnumerator, T>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
@@ -191,7 +193,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Materializes the query into a sorted list in descending element order.
         /// </summary>
-        public static NativeList<T> ToOrderedByDescending<T, TEnumerator>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
+        public static NativeList<T> ToOrderedByDescending<TEnumerator, T>(this Query<TEnumerator, T> source, AllocatorManager.AllocatorHandle allocator)
             where T : unmanaged, IComparable<T>
             where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
@@ -201,7 +203,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Materializes the query into a sorted list using the provided comparer.
         /// </summary>
-        public static NativeList<T> ToOrderedBy<T, TEnumerator, TComparer>(
+        public static NativeList<T> ToOrderedBy<TEnumerator, T, TComparer>(
             this Query<TEnumerator, T> source,
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
@@ -215,7 +217,7 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Materializes the query into a sorted list in reverse order using the provided comparer.
         /// </summary>
-        public static NativeList<T> ToOrderedByDescending<T, TEnumerator, TComparer>(
+        public static NativeList<T> ToOrderedByDescending<TEnumerator, T, TComparer>(
             this Query<TEnumerator, T> source,
             TComparer comparer,
             AllocatorManager.AllocatorHandle allocator)
@@ -231,14 +233,14 @@ namespace FireAlt.BLinq
         /// </summary>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>> OrderBy<T, TKey, TEnumerator>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>>, T> OrderBy<T, TKey, TEnumerator>(
             this Query<TEnumerator, T> source,
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
             where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
-            return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>>>();
+            return ThrowCodeGen<Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>>, T>>();
         }
 
         /// <summary>
@@ -246,7 +248,7 @@ namespace FireAlt.BLinq
         /// </summary>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeyComparer>> OrderBy<T, TKey, TEnumerator, TKeyComparer>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeyComparer>>, T> OrderBy<T, TKey, TEnumerator, TKeyComparer>(
             this Query<TEnumerator, T> source,
             Func<T, TKey> keySelector,
             TKeyComparer comparer)
@@ -255,7 +257,7 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
-            return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, TKeyComparer>>>();
+            return ThrowCodeGen<Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeyComparer>>, T>>();
         }
 
         /// <summary>
@@ -263,14 +265,14 @@ namespace FireAlt.BLinq
         /// </summary>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>> OrderByDescending<T, TKey, TEnumerator>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>>, T> OrderByDescending<T, TKey, TEnumerator>(
             this Query<TEnumerator, T> source,
             Func<T, TKey> keySelector)
             where T : unmanaged
             where TKey : unmanaged, IComparable<TKey>
             where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
-            return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>>>();
+            return ThrowCodeGen<Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>>, T>>();
         }
 
         /// <summary>
@@ -278,7 +280,7 @@ namespace FireAlt.BLinq
         /// </summary>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>> OrderByDescending<T, TKey, TEnumerator, TKeyComparer>(
+        public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>, T> OrderByDescending<T, TKey, TEnumerator, TKeyComparer>(
             this Query<TEnumerator, T> source,
             Func<T, TKey> keySelector,
             TKeyComparer comparer)
@@ -287,7 +289,7 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeyComparer : unmanaged, IComparer<TKey>
         {
-            return ThrowCodeGen<OrderedQuery<TEnumerator, T, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>>();
+            return ThrowCodeGen<Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>, T>>();
         }
         
         // /// <summary>

@@ -65,15 +65,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         private static int WeightedSum(NativeList<int> values)
         {
-            unchecked
+            var sum = 0;
+            for (var i = 0; i < values.Length; i++)
             {
-                var sum = 0;
-                for (var i = 0; i < values.Length; i++)
-                {
-                    sum += ((i + 1) & 255) * ((values[i] & 255) + 1);
-                }
-                return sum;
+                sum += ((i + 1) & 255) * ((values[i] & 255) + 1);
             }
+            return sum;
         }
     }
 }

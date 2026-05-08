@@ -155,19 +155,6 @@ namespace FireAlt.BLinq
             return BLinqUtilities.ToNativeHashSet<T, TEnumerator>(source.GetEnumerator(), allocator);
         }
 
-        public static NativeHashSet<T> ToNativeHashSet<T, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged, IEquatable<T>
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return BLinqUtilities.ToSortedNativeHashSet<T, TEnumerator, TComparer>(
-                source._source.GetEnumerator(),
-                source._comparer,
-                allocator);
-        }
-
         public static Dictionary<TKey, T> ToManagedDictionary<T, TKey, TEnumerator, TKeySelector>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector)
@@ -241,91 +228,6 @@ namespace FireAlt.BLinq
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
             where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-            where TValueSelector : unmanaged, ISelector<T, TValue>
-        {
-            return source.ToNativeHashMap<TKey, TValue, TKeySelector, TValueSelector>(keySelector, valueSelector, allocator);
-        }
-
-        public static Dictionary<TKey, T> ToManagedDictionary<T, TKey, TEnumerator, TComparer, TKeySelector>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TKeySelector keySelector)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-        {
-            return source.ToManagedDictionary<TKey, TKeySelector>(keySelector);
-        }
-
-        public static Dictionary<TKey, T> ToManagedDictionary<T, TKey, TEnumerator, TComparer, TKeySelector>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TKeySelector keySelector,
-            IEqualityComparer<TKey> comparer)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-        {
-            return source.ToManagedDictionary<TKey, TKeySelector>(keySelector, comparer);
-        }
-
-        public static Dictionary<TKey, TValue> ToManagedDictionary<T, TKey, TValue, TEnumerator, TComparer, TKeySelector, TValueSelector>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TKeySelector keySelector,
-            TValueSelector valueSelector)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TValue : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-            where TValueSelector : unmanaged, ISelector<T, TValue>
-        {
-            return source.ToManagedDictionary<TKey, TValue, TKeySelector, TValueSelector>(keySelector, valueSelector);
-        }
-
-        public static Dictionary<TKey, TValue> ToManagedDictionary<T, TKey, TValue, TEnumerator, TComparer, TKeySelector, TValueSelector>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TKeySelector keySelector,
-            TValueSelector valueSelector,
-            IEqualityComparer<TKey> comparer)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TValue : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-            where TValueSelector : unmanaged, ISelector<T, TValue>
-        {
-            return source.ToManagedDictionary<TKey, TValue, TKeySelector, TValueSelector>(keySelector, valueSelector, comparer);
-        }
-
-        public static NativeHashMap<TKey, T> ToNativeHashMap<T, TKey, TEnumerator, TComparer, TKeySelector>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TKeySelector keySelector,
-            AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged
-            where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-            where TKeySelector : unmanaged, ISelector<T, TKey>
-        {
-            return source.ToNativeHashMap<TKey, TKeySelector>(keySelector, allocator);
-        }
-
-        public static NativeHashMap<TKey, TValue> ToNativeHashMap<T, TKey, TValue, TEnumerator, TComparer, TKeySelector, TValueSelector>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            TKeySelector keySelector,
-            TValueSelector valueSelector,
-            AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged
-            where TKey : unmanaged, IEquatable<TKey>
-            where TValue : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
@@ -414,93 +316,6 @@ namespace FireAlt.BLinq
             return ThrowCodeGen<NativeHashMap<TKey, TValue>>();
         }
 
-        [NativeDelegateMethod(typeof(ISelector<,>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Dictionary<TKey, T> ToManagedDictionary<T, TKey, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, TKey> keySelector)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<Dictionary<TKey, T>>();
-        }
-
-        [NativeDelegateMethod(typeof(ISelector<,>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Dictionary<TKey, T> ToManagedDictionary<T, TKey, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, TKey> keySelector,
-            IEqualityComparer<TKey> comparer)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<Dictionary<TKey, T>>();
-        }
-
-        [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Dictionary<TKey, TValue> ToManagedDictionary<T, TKey, TValue, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, TKey> keySelector,
-            Func<T, TValue> valueSelector)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TValue : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<Dictionary<TKey, TValue>>();
-        }
-
-        [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static Dictionary<TKey, TValue> ToManagedDictionary<T, TKey, TValue, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, TKey> keySelector,
-            Func<T, TValue> valueSelector,
-            IEqualityComparer<TKey> comparer)
-            where T : unmanaged
-            where TKey : unmanaged
-            where TValue : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<Dictionary<TKey, TValue>>();
-        }
-
-        [NativeDelegateMethod(typeof(ISelector<,>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static NativeHashMap<TKey, T> ToNativeHashMap<T, TKey, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, TKey> keySelector,
-            AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged
-            where TKey : unmanaged, IEquatable<TKey>
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<NativeHashMap<TKey, T>>();
-        }
-
-        [NativeDelegateMethod(typeof(ISelector<,>), typeof(ISelector<,>))]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static NativeHashMap<TKey, TValue> ToNativeHashMap<T, TKey, TValue, TEnumerator, TComparer>(
-            this OrderedQuery<TEnumerator, T, TComparer> source,
-            Func<T, TKey> keySelector,
-            Func<T, TValue> valueSelector,
-            AllocatorManager.AllocatorHandle allocator)
-            where T : unmanaged
-            where TKey : unmanaged, IEquatable<TKey>
-            where TValue : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-            where TComparer : unmanaged, IComparer<T>
-        {
-            return ThrowCodeGen<NativeHashMap<TKey, TValue>>();
-        }
     }
 
     internal static partial class BLinqUtilities

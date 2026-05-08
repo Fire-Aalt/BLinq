@@ -45,8 +45,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         {
             return values
                 .AsQuery()
-                .ToOrderedBy(new KeyComparer(), Allocator.Temp)
-                .AsQuery()
+                .OrderBy(Key)
                 .Sum(Select);
         }
 
