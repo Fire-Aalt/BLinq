@@ -117,9 +117,11 @@ Requirements:
 | `Any` | Determines whether the query contains any elements or any elements matching a predicate. |
 | `Append` | Appends a value to the end of a query. |
 | `Average` | Returns the average of the query or projected query values using the default accumulator. |
+| `Chunk` | Splits a query into contiguous temporary native chunks. |
 | `Concat` | Concatenates two queries. |
 | `Contains` | Determines whether the query contains a specified value. |
 | `Count` | Returns the number of elements in the query or the number matching a predicate. |
+| `CountBy` | Counts elements by selected key and yields key/count pairs. |
 | `DefaultIfEmpty` | Returns the query elements, or a singleton default value when the query is empty. |
 | `Distinct` | Returns distinct elements from a query using default equality. |
 | `DistinctBy` | Returns distinct elements according to a selected key. |
@@ -162,6 +164,7 @@ Requirements:
 | `Union` | Produces the set union of two queries using default equality. |
 | `UnionBy` | Produces the set union of two queries according to a selected key. |
 | `Where` | Filters a query so that only elements matching a predicate are yielded. |
+| `Zip` | Merges two queries pairwise, optionally using a result selector. |
 
 ## Materialization
 
