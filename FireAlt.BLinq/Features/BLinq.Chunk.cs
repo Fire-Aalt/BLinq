@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
+using UnityEngine;
 
 namespace FireAlt.BLinq
 {
@@ -95,12 +98,14 @@ namespace FireAlt.BLinq
         private int _size;
         private Chunk<T> _current;
         private bool _finished;
+        private int _dataIndex;
 
         public Chunk(TEnumerator source, int size)
         {
             _source = source;
             _size = size;
             _current = default;
+            _dataIndex = 0;
             _finished = false;
         }
 
@@ -120,10 +125,24 @@ namespace FireAlt.BLinq
             }
 
             var values = new NativeList<T>(_size, Allocator.Temp);
-            while (values.Length < _size && _source.MoveNext())
+            if (_source.TryGetSpan(out var span))
             {
-                values.Add(_source.Current);
+                unsafe
+                {
+                    var length = math.min(_size, span.Length - _dataIndex);
+                    var window = span.Slice(_dataIndex, length);
+                    values.Resize(length, NativeArrayOptions.UninitializedMemory);
+                    window.CopyTo(new Span<T>(values.GetUnsafePtr(), _size));
+                }
             }
+            else
+            {
+                while (values.Length < _size && _source.MoveNext())
+                {
+                    values.Add(_source.Current);
+                }
+            }
+            _dataIndex += _size;
 
             if (values.Length == 0)
             {
@@ -144,6 +163,7 @@ namespace FireAlt.BLinq
         {
             _source.Reset();
             _current = default;
+            _dataIndex = 0;
             _finished = false;
         }
 
