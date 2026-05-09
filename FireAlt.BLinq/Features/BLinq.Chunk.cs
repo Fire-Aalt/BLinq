@@ -30,25 +30,6 @@ namespace FireAlt.BLinq
         }
     }
 
-    public static partial class BLinqExtensions
-    {
-        /// <summary>
-        /// Splits a query into contiguous chunks of up to <paramref name="size"/> elements.
-        /// </summary>
-        /// <param name="source">Source query.</param>
-        /// <param name="size">The maximum number of elements in each chunk.</param>
-        /// <returns>A query that yields chunk views backed by temporary native storage.</returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is less than one.</exception>
-        public static Query<Chunk<TEnumerator, T>, Chunk<T>> Chunk<T, TEnumerator>(
-            this Query<TEnumerator, T> source,
-            int size)
-            where T : unmanaged
-            where TEnumerator : unmanaged, IQueryEnumerator<T>
-        {
-            return source.Chunk(size);
-        }
-    }
-
     public struct Chunk<T>
         where T : unmanaged
     {

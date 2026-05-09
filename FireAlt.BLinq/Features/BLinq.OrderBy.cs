@@ -9,8 +9,10 @@ namespace FireAlt.BLinq
         where T : unmanaged
     {
         /// <summary>
-        /// Orders the query in ascending order using a key selector and the default key comparer.
+        /// Orders the query in ascending order by the selected key.
         /// </summary>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <returns>A query that yields the source elements in ascending key order.</returns>
         public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>>, T> OrderBy<TKey, TKeySelector>(
             TKeySelector keySelector)
             where TKey : unmanaged, IComparable<TKey>
@@ -22,8 +24,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in ascending order using a key selector and comparer.
+        /// Orders the query in ascending order by the selected key and comparer.
         /// </summary>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <param name="comparer">Compares keys for ordering.</param>
+        /// <returns>A query that yields the source elements in ascending key order.</returns>
         public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>, T> OrderBy<TKey, TKeySelector, TKeyComparer>(
             TKeySelector keySelector,
             TKeyComparer comparer)
@@ -38,8 +43,10 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in descending order using a key selector and the default key comparer.
+        /// Orders the query in descending order by the selected key.
         /// </summary>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <returns>A query that yields the source elements in descending key order.</returns>
         public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>>, T> OrderByDescending<TKey, TKeySelector>(
             TKeySelector keySelector)
             where TKey : unmanaged, IComparable<TKey>
@@ -51,8 +58,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in descending order using a key selector and comparer.
+        /// Orders the query in descending order by the selected key and comparer.
         /// </summary>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <param name="comparer">Compares keys for ordering.</param>
+        /// <returns>A query that yields the source elements in descending key order.</returns>
         public Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>>, T> OrderByDescending<TKey, TKeySelector, TKeyComparer>(
             TKeySelector keySelector,
             TKeyComparer comparer)
@@ -69,8 +79,10 @@ namespace FireAlt.BLinq
     public static partial class BLinqExtensions
     {
         /// <summary>
-        /// Orders the query in ascending order using the element as the key.
+        /// Orders the query in ascending order using the element value as the key.
         /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <returns>A query that yields the source elements in ascending value order.</returns>
         public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, AscendingComparer<T>>>, T> OrderBy<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
@@ -80,8 +92,10 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in descending order using the element as the key.
+        /// Orders the query in descending order using the element value as the key.
         /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <returns>A query that yields the source elements in descending value order.</returns>
         public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, T, IdentitySelector<T>, DescendingComparer<T>>>, T> OrderByDescending<T, TEnumerator>(
             this Query<TEnumerator, T> source)
             where T : unmanaged, IComparable<T>
@@ -91,8 +105,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in ascending order using a key selector and the default key comparer.
+        /// Orders the query in ascending order by the selected key.
         /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <returns>A query that yields the source elements in ascending key order.</returns>
         public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>>, T> OrderBy<T, TKey, TEnumerator, TKeySelector>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector)
@@ -105,8 +122,12 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in ascending order using a key selector and comparer.
+        /// Orders the query in ascending order by the selected key and comparer.
         /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <param name="comparer">Compares keys for ordering.</param>
+        /// <returns>A query that yields the source elements in ascending key order.</returns>
         public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>, T> OrderBy<T, TKey, TEnumerator, TKeySelector, TKeyComparer>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector,
@@ -121,8 +142,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in descending order using a key selector and the default key comparer.
+        /// Orders the query in descending order by the selected key.
         /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <returns>A query that yields the source elements in descending key order.</returns>
         public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>>, T> OrderByDescending<T, TKey, TEnumerator, TKeySelector>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector)
@@ -135,8 +159,12 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Orders the query in descending order using a key selector and comparer.
+        /// Orders the query in descending order by the selected key and comparer.
         /// </summary>
+        /// <param name="source">Source query.</param>
+        /// <param name="keySelector">Selects the key for each element.</param>
+        /// <param name="comparer">Compares keys for ordering.</param>
+        /// <returns>A query that yields the source elements in descending key order.</returns>
         public static Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>>, T> OrderByDescending<T, TKey, TEnumerator, TKeySelector, TKeyComparer>(
             this Query<TEnumerator, T> source,
             TKeySelector keySelector,

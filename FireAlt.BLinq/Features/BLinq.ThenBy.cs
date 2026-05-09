@@ -7,8 +7,10 @@ namespace FireAlt.BLinq
     public static partial class BLinqExtensions
     {
         /// <summary>
-        /// Adds a secondary ascending ordering using the element as the key.
+        /// Adds a secondary ascending ordering using the element value as the key.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <returns>A query ordered by the existing keys, then by the element value.</returns>
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, T, IdentitySelector<T>, AscendingComparer<T>>>>, T> ThenBy<T, TEnumerator, TComparer>(
             this Query<OrderBy<TEnumerator, T, TComparer>, T> source)
             where T : unmanaged, IComparable<T>
@@ -21,8 +23,10 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Adds a secondary descending ordering using the element as the key.
+        /// Adds a secondary descending ordering using the element value as the key.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <returns>A query ordered by the existing keys, then by the element value descending.</returns>
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, T, IdentitySelector<T>, DescendingComparer<T>>>>, T> ThenByDescending<T, TEnumerator, TComparer>(
             this Query<OrderBy<TEnumerator, T, TComparer>, T> source)
             where T : unmanaged, IComparable<T>
@@ -35,8 +39,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Adds a secondary ascending ordering using a key selector and the default key comparer.
+        /// Adds a secondary ascending ordering using a key selector and the default comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <returns>A query ordered by the existing keys, then by the secondary key.</returns>
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, AscendingComparer<TKey>>>>, T> ThenBy<T, TKey, TEnumerator, TComparer, TKeySelector>(
             this Query<OrderBy<TEnumerator, T, TComparer>, T> source,
             TKeySelector keySelector)
@@ -55,6 +62,10 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Adds a secondary ascending ordering using a key selector and comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <param name="comparer">Compares secondary keys for ordering.</param>
+        /// <returns>A query ordered by the existing keys, then by the secondary key.</returns>
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>>, T> ThenBy<T, TKey, TEnumerator, TComparer, TKeySelector, TKeyComparer>(
             this Query<OrderBy<TEnumerator, T, TComparer>, T> source,
             TKeySelector keySelector,
@@ -78,8 +89,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Adds a secondary descending ordering using a key selector and the default key comparer.
+        /// Adds a secondary descending ordering using a key selector and the default comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <returns>A query ordered by the existing keys, then by the secondary key descending.</returns>
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, DescendingComparer<TKey>>>>, T> ThenByDescending<T, TKey, TEnumerator, TComparer, TKeySelector>(
             this Query<OrderBy<TEnumerator, T, TComparer>, T> source,
             TKeySelector keySelector)
@@ -98,6 +112,10 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Adds a secondary descending ordering using a key selector and comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <param name="comparer">Compares secondary keys for ordering.</param>
+        /// <returns>A query ordered by the existing keys, then by the secondary key descending.</returns>
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, ReverseComparer<TKey, TKeyComparer>>>>, T> ThenByDescending<T, TKey, TEnumerator, TComparer, TKeySelector, TKeyComparer>(
             this Query<OrderBy<TEnumerator, T, TComparer>, T> source,
             TKeySelector keySelector,
@@ -116,8 +134,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Adds a secondary ascending ordering using a delegate key selector and the default key comparer.
+        /// Adds a secondary ascending ordering using a delegate key selector and the default comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <returns>A placeholder that the IL post-processor rewrites to the unmanaged `ThenBy` path.</returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, AscendingComparer<TKey>>>>, T> ThenBy<T, TKey, TEnumerator, TComparer>(
@@ -134,6 +155,10 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Adds a secondary ascending ordering using a delegate key selector and comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <param name="comparer">Compares secondary keys for ordering.</param>
+        /// <returns>A placeholder that the IL post-processor rewrites to the unmanaged `ThenBy` path.</returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeyComparer>>>, T> ThenBy<T, TKey, TEnumerator, TComparer, TKeyComparer>(
@@ -150,8 +175,11 @@ namespace FireAlt.BLinq
         }
 
         /// <summary>
-        /// Adds a secondary descending ordering using a delegate key selector and the default key comparer.
+        /// Adds a secondary descending ordering using a delegate key selector and the default comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <returns>A placeholder that the IL post-processor rewrites to the unmanaged `ThenByDescending` path.</returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, DescendingComparer<TKey>>>>, T> ThenByDescending<T, TKey, TEnumerator, TComparer>(
@@ -168,6 +196,10 @@ namespace FireAlt.BLinq
         /// <summary>
         /// Adds a secondary descending ordering using a delegate key selector and comparer.
         /// </summary>
+        /// <param name="source">The ordered source query.</param>
+        /// <param name="keySelector">Selects the secondary key for each element.</param>
+        /// <param name="comparer">Compares secondary keys for ordering.</param>
+        /// <returns>A placeholder that the IL post-processor rewrites to the unmanaged `ThenByDescending` path.</returns>
         [NativeDelegateMethod(typeof(ISelector<,>))]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, ReverseComparer<TKey, TKeyComparer>>>>, T> ThenByDescending<T, TKey, TEnumerator, TComparer, TKeyComparer>(

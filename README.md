@@ -109,64 +109,65 @@ Requirements:
 
 ## Operator Reference
 
-| Operator | Brief |
-| --- | --- |
-| `Aggregate` | Applies an accumulator over the query and returns the final accumulated value. |
-| `AggregateBy` | Groups elements by key and accumulates a value for each key. |
-| `All` | Determines whether all elements of a query satisfy a predicate. |
-| `Any` | Determines whether the query contains any elements or any elements matching a predicate. |
-| `Append` | Appends a value to the end of a query. |
-| `Average` | Returns the average of the query or projected query values using the default accumulator. |
-| `Chunk` | Splits a query into contiguous temporary native chunks. |
-| `Concat` | Concatenates two queries. |
-| `Contains` | Determines whether the query contains a specified value. |
-| `Count` | Returns the number of elements in the query or the number matching a predicate. |
-| `CountBy` | Counts elements by selected key and yields key/count pairs. |
-| `DefaultIfEmpty` | Returns the query elements, or a singleton default value when the query is empty. |
-| `Distinct` | Returns distinct elements from a query using default equality. |
-| `DistinctBy` | Returns distinct elements according to a selected key. |
-| `ElementAt` | Returns the element at a zero-based index. |
-| `ElementAtOrDefault` | Returns the element at a zero-based index, or the default value when the index is out of range. |
-| `Except` | Produces the set difference of two queries using default equality. |
-| `ExceptBy` | Produces the set difference of two queries according to a selected key. |
-| `First` | Returns the first element of a query or the first element matching a predicate. |
-| `FirstOrDefault` | Returns the first element of a query or predicate match, or the default value when no element exists. |
-| `GroupBy` | Groups query elements by key and returns grouped results. |
-| `GroupJoin` | Correlates two queries by matching keys and groups inner matches for each outer element. |
-| `Intersect` | Produces the set intersection of two queries using default equality. |
-| `IntersectBy` | Produces the set intersection of two queries according to a selected key. |
-| `Join` | Correlates two queries by matching keys and yields one result for each matching outer and inner pair. |
-| `JoinLeft` | Correlates two queries by matching keys and yields all outer elements, using default inner values for unmatched keys. |
-| `JoinRight` | Correlates two queries by matching keys and yields all inner elements, using default outer values for unmatched keys. |
-| `Last` | Returns the last element of a query or the last element matching a predicate. |
-| `LastOrDefault` | Returns the last element of a query or predicate match, or the default value when no element exists. |
-| `LongCount` | Returns the number of elements in the query as a `long`, or the number matching a predicate. |
-| `Max` | Returns the largest element in the query according to the default comparer or a supplied comparer. |
-| `MaxBy` | Returns the element with the maximum selected key. |
-| `Min` | Returns the smallest element in the query according to the default comparer or a supplied comparer. |
-| `MinBy` | Returns the element with the minimum selected key. |
-| `OrderBy` | Sorts the query in ascending order according to the element or a selected key. |
-| `OrderByDescending` | Sorts the query in descending order according to the element or a selected key. |
-| `Prepend` | Prepends a value to the beginning of a query. |
-| `Reverse` | Yields the elements of a query in reverse order. |
-| `Select` | Projects each element of a query into a new form. |
-| `SelectMany` | Projects each element to an inner query and flattens the resulting queries. |
-| `SequenceEqual` | Determines whether two queries contain equal elements in the same order. |
-| `Single` | Returns the only element of a query or predicate match and throws when the result is not exactly one element. |
-| `SingleOrDefault` | Returns the only element of a query or predicate match, or the default value when no element exists. |
-| `Skip` | Bypasses a specified number of elements and yields the remaining elements. |
-| `SkipWhile` | Bypasses elements while they match a predicate, then yields the remaining elements. |
-| `Sum` | Returns the sum of the query or projected query values using the default accumulator. |
-| `Take` | Yields a specified number of contiguous elements from the start of a query. |
-| `TakeLast` | Yields a specified number of contiguous elements from the end of a query. |
-| `TakeWhile` | Yields elements while they match a predicate. |
-| `ThenBy` | Adds a secondary ascending key ordering to an ordered query. |
-| `ThenByDescending` | Adds a secondary descending key ordering to an ordered query. |
-| `ToLookup` | Groups elements by key and returns a lookup stored in native containers. |
-| `Union` | Produces the set union of two queries using default equality. |
-| `UnionBy` | Produces the set union of two queries according to a selected key. |
-| `Where` | Filters a query so that only elements matching a predicate are yielded. |
-| `Zip` | Merges two queries pairwise, optionally using a result selector. |
+| Operator             | Brief                                                                                                                 |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------|
+| `Aggregate`          | Applies an accumulator over the query and returns the final accumulated value.                                        |
+| `AggregateBy`        | Groups elements by key and accumulates a value for each key.                                                          |
+| `All`                | Determines whether all elements of a query satisfy a predicate.                                                       |
+| `Any`                | Determines whether the query contains any elements or any elements matching a predicate.                              |
+| `Append`             | Appends a value to the end of a query.                                                                                |
+| `Average`            | Returns the average of the query or projected query values using the default accumulator.                             |
+| `Chunk`              | Splits a query into contiguous temporary native chunks.                                                               |
+| `Concat`             | Concatenates two queries.                                                                                             |
+| `Contains`           | Determines whether the query contains a specified value.                                                              |
+| `Count`              | Returns the number of elements in the query or the number matching a predicate.                                       |
+| `CountBy`            | Counts elements by selected key and yields key/count pairs.                                                           |
+| `DefaultIfEmpty`     | Returns the query elements, or a singleton default value when the query is empty.                                     |
+| `Distinct`           | Returns distinct elements from a query using default equality.                                                        |
+| `DistinctBy`         | Returns distinct elements according to a selected key.                                                                |
+| `ElementAt`          | Returns the element at a zero-based index.                                                                            |
+| `ElementAtOrDefault` | Returns the element at a zero-based index, or the default value when the index is out of range.                       |
+| `Except`             | Produces the set difference of two queries using default equality.                                                    |
+| `ExceptBy`           | Produces the set difference of two queries according to a selected key.                                               |
+| `First`              | Returns the first element of a query or the first element matching a predicate.                                       |
+| `FirstOrDefault`     | Returns the first element of a query or predicate match, or the default value when no element exists.                 |
+| `GroupBy`            | Groups query elements by key and returns grouped results.                                                             |
+| `GroupJoin`          | Correlates two queries by matching keys and groups inner matches for each outer element.                              |
+| `Index`              | Incorporates the element's index into a value tuple.                                                                  |
+| `Intersect`          | Produces the set intersection of two queries using default equality.                                                  |
+| `IntersectBy`        | Produces the set intersection of two queries according to a selected key.                                             |
+| `Join`               | Correlates two queries by matching keys and yields one result for each matching outer and inner pair.                 |
+| `JoinLeft`           | Correlates two queries by matching keys and yields all outer elements, using default inner values for unmatched keys. |
+| `JoinRight`          | Correlates two queries by matching keys and yields all inner elements, using default outer values for unmatched keys. |
+| `Last`               | Returns the last element of a query or the last element matching a predicate.                                         |
+| `LastOrDefault`      | Returns the last element of a query or predicate match, or the default value when no element exists.                  |
+| `LongCount`          | Returns the number of elements in the query as a `long`, or the number matching a predicate.                          |
+| `Max`                | Returns the largest element in the query according to the default comparer or a supplied comparer.                    |
+| `MaxBy`              | Returns the element with the maximum selected key.                                                                    |
+| `Min`                | Returns the smallest element in the query according to the default comparer or a supplied comparer.                   |
+| `MinBy`              | Returns the element with the minimum selected key.                                                                    |
+| `OrderBy`            | Sorts the query in ascending order according to the element or a selected key.                                        |
+| `OrderByDescending`  | Sorts the query in descending order according to the element or a selected key.                                       |
+| `Prepend`            | Prepends a value to the beginning of a query.                                                                         |
+| `Reverse`            | Yields the elements of a query in reverse order.                                                                      |
+| `Select`             | Projects each element of a query into a new form.                                                                     |
+| `SelectMany`         | Projects each element to an inner query and flattens the resulting queries.                                           |
+| `SequenceEqual`      | Determines whether two queries contain equal elements in the same order.                                              |
+| `Single`             | Returns the only element of a query or predicate match and throws when the result is not exactly one element.         |
+| `SingleOrDefault`    | Returns the only element of a query or predicate match, or the default value when no element exists.                  |
+| `Skip`               | Bypasses a specified number of elements and yields the remaining elements.                                            |
+| `SkipWhile`          | Bypasses elements while they match a predicate, then yields the remaining elements.                                   |
+| `Sum`                | Returns the sum of the query or projected query values using the default accumulator.                                 |
+| `Take`               | Yields a specified number of contiguous elements from the start of a query.                                           |
+| `TakeLast`           | Yields a specified number of contiguous elements from the end of a query.                                             |
+| `TakeWhile`          | Yields elements while they match a predicate.                                                                         |
+| `ThenBy`             | Adds a secondary ascending key ordering to an ordered query.                                                          |
+| `ThenByDescending`   | Adds a secondary descending key ordering to an ordered query.                                                         |
+| `ToLookup`           | Groups elements by key and returns a lookup stored in native containers.                                              |
+| `Union`              | Produces the set union of two queries using default equality.                                                         |
+| `UnionBy`            | Produces the set union of two queries according to a selected key.                                                    |
+| `Where`              | Filters a query so that only elements matching a predicate are yielded.                                               |
+| `Zip`                | Merges two queries pairwise, optionally using a result selector.                                                      |
 
 ## Materialization
 
@@ -200,8 +201,7 @@ BLinq has a few intentional limitations that follow from its design. These trade
 - **IL2CPP generic depth**: IL2CPP has a maximum generic nesting depth, which is `7` by default. Query chains should stay within that operation depth unless the IL2CPP generic depth limit is increased through IL2CPP compiler arguments; with a higher limit, longer query chains are supported.
 
 ## TODO
-- ToOrderedBy(keySelector) overload
-- Add fast paths for sources where count or indexability can be preserved through the query pipeline.
+- Add support for tuples to ILPP.
 - Optimize ILPP.
 - Add benchmark data.
 
