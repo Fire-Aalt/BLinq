@@ -315,3 +315,8 @@ Query chains should stay within that operation depth unless the IL2CPP generic d
 - CORE CLR: use static abstract interface members for aggregatable numeric types and remove the current accumulator source generator.
 - FUTURE C#: use extension operators for arithmetic so external types can participate in accumulator contracts without owning the original type.
 
+## Special Thanks to
+
+[apkdev](https://discussions.unity.com/t/burst-compatible-linq-extensions/812588/7) for the idea to use Mono.Cecil to make `Func<>` API possible in Burst.
+
+[ZLinq](https://github.com/Cysharp/ZLinq) for the additional architectural optimizations and certain algorithms.
