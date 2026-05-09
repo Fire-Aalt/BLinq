@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -15,10 +14,8 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields <paramref name="element"/> followed by the source elements.</returns>
         public Query<Prepend<TEnumerator, T>, T> Prepend(T element)
         {
-            var length = TryGetLength(out var sourceLength) ? checked(sourceLength + 1) : -1;
             return new Query<Prepend<TEnumerator, T>, T>(
-                new Prepend<TEnumerator, T>(GetEnumerator(), element),
-                length);
+                new Prepend<TEnumerator, T>(GetEnumerator(), element));
         }
     }
 
@@ -95,6 +92,24 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var sourceCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = checked(sourceCount + 1);
+            return true;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out T value)

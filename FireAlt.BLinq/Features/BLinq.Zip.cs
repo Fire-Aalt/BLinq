@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -19,13 +18,8 @@ namespace FireAlt.BLinq
             where TSecond : unmanaged
             where TSecondEnumerator : unmanaged, IQueryEnumerator<TSecond>
         {
-            var length = TryGetLength(out var firstLength) && second.TryGetLength(out var secondLength)
-                ? firstLength < secondLength ? firstLength : secondLength
-                : -1;
-
             return new Query<Zip<TEnumerator, TSecondEnumerator, T, TSecond>, ValueTuple<T, TSecond>>(
-                new Zip<TEnumerator, TSecondEnumerator, T, TSecond>(GetEnumerator(), second.GetEnumerator()),
-                length);
+                new Zip<TEnumerator, TSecondEnumerator, T, TSecond>(GetEnumerator(), second.GetEnumerator()));
         }
 
         /// <summary>
@@ -42,16 +36,11 @@ namespace FireAlt.BLinq
             where TSecondEnumerator : unmanaged, IQueryEnumerator<TSecond>
             where TResultSelector : unmanaged, IZipResultSelector<T, TSecond, TResult>
         {
-            var length = TryGetLength(out var firstLength) && second.TryGetLength(out var secondLength)
-                ? firstLength < secondLength ? firstLength : secondLength
-                : -1;
-
             return new Query<Zip<TEnumerator, TSecondEnumerator, T, TSecond, TResult, TResultSelector>, TResult>(
                 new Zip<TEnumerator, TSecondEnumerator, T, TSecond, TResult, TResultSelector>(
                     GetEnumerator(),
                     second.GetEnumerator(),
-                    resultSelector),
-                length);
+                    resultSelector));
         }
     }
 
@@ -168,6 +157,25 @@ namespace FireAlt.BLinq
             _second.Dispose();
         }
 
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_first.TryGetNonEnumeratedCount(out var firstCount) ||
+                !_second.TryGetNonEnumeratedCount(out var secondCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = firstCount < secondCount ? firstCount : secondCount;
+            return true;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<ValueTuple<TFirst, TSecond>> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out ValueTuple<TFirst, TSecond> value)
         {
             value = default;
@@ -239,6 +247,25 @@ namespace FireAlt.BLinq
             _second.Dispose();
         }
 
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_first.TryGetNonEnumeratedCount(out var firstCount) ||
+                !_second.TryGetNonEnumeratedCount(out var secondCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = firstCount < secondCount ? firstCount : secondCount;
+            return true;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out TResult value)
         {
             value = default;
@@ -277,6 +304,18 @@ namespace FireAlt.BLinq
 
         public void Dispose()
         {
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out TResult value)

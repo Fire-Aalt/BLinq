@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -14,12 +13,13 @@ namespace FireAlt.BLinq
         /// <returns><c>true</c> when the sequence contains at least one element; otherwise <c>false</c>.</returns>
         public bool Any()
         {
-            if (TryGetLength(out var length))
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 return length != 0;
             }
 
-            return BLinqUtilities.Any<T, TEnumerator>(GetEnumerator());
+            return BLinqUtilities.Any<T, TEnumerator>(enumerator);
         }
     }
 
@@ -48,12 +48,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 return false;
             }
 
-            return BLinqUtilities.Any<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
+            return BLinqUtilities.Any<T, TEnumerator, TPredicate>(enumerator, predicate);
         }
 
         /// <summary>
@@ -67,12 +68,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 return true;
             }
 
-            return BLinqUtilities.All<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
+            return BLinqUtilities.All<T, TEnumerator, TPredicate>(enumerator, predicate);
         }
 
         /// <summary>

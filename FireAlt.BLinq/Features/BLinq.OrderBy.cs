@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Unity.Collections;
 
 namespace FireAlt.BLinq
 {
@@ -35,8 +34,7 @@ namespace FireAlt.BLinq
             return new Query<OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>, T>(
                 new OrderBy<TEnumerator, T, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>(
                     this,
-                    new KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>(keySelector, comparer)),
-                TryGetLength(out var length) ? length : -1);
+                    new KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>(keySelector, comparer)));
         }
 
         /// <summary>

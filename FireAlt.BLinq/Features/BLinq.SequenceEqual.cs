@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace FireAlt.BLinq
 {
@@ -68,8 +67,10 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TOtherEnumerator : unmanaged, IQueryEnumerator<T>
         {
-            if (source.TryGetLength(out var sourceLength) &&
-                other.TryGetLength(out var otherLength))
+            var sourceEnumerator = source.GetEnumerator();
+            var otherEnumerator = other.GetEnumerator();
+            if (sourceEnumerator.TryGetNonEnumeratedCount(out var sourceLength) &&
+                otherEnumerator.TryGetNonEnumeratedCount(out var otherLength))
             {
                 if (sourceLength != otherLength)
                 {
@@ -81,13 +82,30 @@ namespace FireAlt.BLinq
                     return true;
                 }
 
-                if (source.TryGetElementAt(0, out _) && other.TryGetElementAt(0, out _))
+                if (sourceEnumerator.TryGetSpan(out var sourceSpan) &&
+                    otherEnumerator.TryGetSpan(out var otherSpan))
                 {
                     var comparer = new NativeEqualityComparer<T>();
                     for (var i = 0; i < sourceLength; i++)
                     {
-                        source.TryGetElementAt(i, out var left);
-                        other.TryGetElementAt(i, out var right);
+                        var left = sourceSpan[i];
+                        var right = otherSpan[i];
+                        if (!comparer.Equals(in left, in right))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+
+                if (sourceEnumerator.TryGetElementAt(0, out _) && otherEnumerator.TryGetElementAt(0, out _))
+                {
+                    var comparer = new NativeEqualityComparer<T>();
+                    for (var i = 0; i < sourceLength; i++)
+                    {
+                        sourceEnumerator.TryGetElementAt(i, out var left);
+                        otherEnumerator.TryGetElementAt(i, out var right);
                         if (!comparer.Equals(in left, in right))
                         {
                             return false;
@@ -98,7 +116,7 @@ namespace FireAlt.BLinq
                 }
             }
 
-            return source.SequenceEqual(other.GetEnumerator(), new NativeEqualityComparer<T>());
+            return source.SequenceEqual(otherEnumerator, new NativeEqualityComparer<T>());
         }
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -15,10 +14,8 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields the source elements followed by <paramref name="element"/>.</returns>
         public Query<Append<TEnumerator, T>, T> Append(T element)
         {
-            var length = TryGetLength(out var sourceLength) ? checked(sourceLength + 1) : -1;
             return new Query<Append<TEnumerator, T>, T>(
-                new Append<TEnumerator, T>(GetEnumerator(), element, TryGetLength(out sourceLength), sourceLength),
-                length);
+                new Append<TEnumerator, T>(GetEnumerator(), element));
         }
     }
 
@@ -57,18 +54,7 @@ namespace FireAlt.BLinq
             _element = element;
             _current = default;
             _state = 0;
-            _sourceLength = 0;
-            _hasKnownLength = false;
-        }
-
-        public Append(TEnumerator source, T element, bool hasKnownLength, int sourceLength)
-        {
-            _source = source;
-            _element = element;
-            _current = default;
-            _state = 0;
-            _sourceLength = sourceLength;
-            _hasKnownLength = hasKnownLength;
+            _hasKnownLength = source.TryGetNonEnumeratedCount(out _sourceLength);
         }
 
         public T Current
@@ -113,6 +99,24 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var sourceCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = checked(sourceCount + 1);
+            return true;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out T value)

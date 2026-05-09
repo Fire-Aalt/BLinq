@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -19,10 +18,8 @@ namespace FireAlt.BLinq
         public Query<Select<TEnumerator, T, T, TSelector>, T> Select<TSelector>(TSelector selector)
             where TSelector : unmanaged, ISelector<T, T>
         {
-            var hasKnownLength = TryGetLength(out var length);
             return new Query<Select<TEnumerator, T, T, TSelector>, T>(
-                new Select<TEnumerator, T, T, TSelector>(GetEnumerator(), selector),
-                Query<Select<TEnumerator, T, T, TSelector>, T>.KnownLengthOrUnknown(hasKnownLength, length));
+                new Select<TEnumerator, T, T, TSelector>(GetEnumerator(), selector));
         }
 
         /// <summary>
@@ -36,10 +33,8 @@ namespace FireAlt.BLinq
             where TResult : unmanaged
             where TSelector : unmanaged, ISelector<T, TResult>
         {
-            var hasKnownLength = TryGetLength(out var length);
             return new Query<Select<TEnumerator, T, TResult, TSelector>, TResult>(
-                new Select<TEnumerator, T, TResult, TSelector>(GetEnumerator(), selector),
-                Query<Select<TEnumerator, T, TResult, TSelector>, TResult>.KnownLengthOrUnknown(hasKnownLength, length));
+                new Select<TEnumerator, T, TResult, TSelector>(GetEnumerator(), selector));
         }
     }
 
@@ -127,6 +122,17 @@ namespace FireAlt.BLinq
             _source.Dispose();
         }
 
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            return _source.TryGetNonEnumeratedCount(out count);
+        }
+
         public bool TryGetElementAt(int index, out TResult value)
         {
             var sourceValue = default(TSource);
@@ -162,6 +168,18 @@ namespace FireAlt.BLinq
 
         public void Dispose()
         {
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out TResult value)

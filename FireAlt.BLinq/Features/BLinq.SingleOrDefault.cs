@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -15,7 +14,8 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">The source sequence contains no elements or more than one element.</exception>
         public T Single()
         {
-            if (TryGetLength(out var length))
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 if (length == 0)
                 {
@@ -27,14 +27,15 @@ namespace FireAlt.BLinq
                     throw new InvalidOperationException("The BLinq source contains more than one element.");
                 }
 
-                if (TryGetElementAt(0, out var singleValue) ||
-                    BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out singleValue))
+                if (enumerator.TryGetElementAt(0, out var singleValue) ||
+                    enumerator.TryGetSpan(out var span) && TryGetFirstFromSpan(span, out singleValue) ||
+                    BLinqUtilities.TryElementAt<T, TEnumerator>(enumerator, 0, out singleValue))
                 {
                     return singleValue;
                 }
             }
 
-            return BLinqUtilities.Single<T, TEnumerator>(GetEnumerator());
+            return BLinqUtilities.Single<T, TEnumerator>(enumerator);
         }
 
         /// <summary>
@@ -44,7 +45,8 @@ namespace FireAlt.BLinq
         /// <exception cref="InvalidOperationException">The source sequence contains more than one element.</exception>
         public T SingleOrDefault()
         {
-            if (TryGetLength(out var length))
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 if (length == 0)
                 {
@@ -56,13 +58,26 @@ namespace FireAlt.BLinq
                     throw new InvalidOperationException("The BLinq source contains more than one element.");
                 }
 
-                return TryGetElementAt(0, out var singleValue) ||
-                       BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), 0, out singleValue)
+                return enumerator.TryGetElementAt(0, out var singleValue) ||
+                       enumerator.TryGetSpan(out var span) && TryGetFirstFromSpan(span, out singleValue) ||
+                       BLinqUtilities.TryElementAt<T, TEnumerator>(enumerator, 0, out singleValue)
                     ? singleValue
                     : default;
             }
 
-            return BLinqUtilities.SingleOrDefault<T, TEnumerator>(GetEnumerator());
+            return BLinqUtilities.SingleOrDefault<T, TEnumerator>(enumerator);
+        }
+
+        private static bool TryGetFirstFromSpan(ReadOnlySpan<T> span, out T value)
+        {
+            if (span.Length == 0)
+            {
+                value = default;
+                return false;
+            }
+
+            value = span[0];
+            return true;
         }
     }
 
@@ -93,12 +108,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 throw new InvalidOperationException("The BLinq source contains no matching elements.");
             }
 
-            return BLinqUtilities.Single<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
+            return BLinqUtilities.Single<T, TEnumerator, TPredicate>(enumerator, predicate);
         }
 
         /// <summary>
@@ -126,12 +142,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 return default;
             }
 
-            return BLinqUtilities.SingleOrDefault<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
+            return BLinqUtilities.SingleOrDefault<T, TEnumerator, TPredicate>(enumerator, predicate);
         }
 
         /// <summary>

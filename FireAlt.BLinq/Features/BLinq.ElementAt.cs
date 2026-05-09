@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace FireAlt.BLinq
 {
@@ -35,14 +34,31 @@ namespace FireAlt.BLinq
 
         private bool TryElementAt(int index, out T value)
         {
-            if (index < 0 || TryGetLength(out var length) && index >= length)
+            if (index < 0)
             {
                 value = default;
                 return false;
             }
 
-            return TryGetElementAt(index, out value) ||
-                   BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), index, out value);
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && index >= length)
+            {
+                value = default;
+                return false;
+            }
+
+            if (enumerator.TryGetElementAt(index, out value))
+            {
+                return true;
+            }
+
+            if (enumerator.TryGetSpan(out var span))
+            {
+                value = span[index];
+                return true;
+            }
+
+            return BLinqUtilities.TryElementAt<T, TEnumerator>(enumerator, index, out value);
         }
     }
 

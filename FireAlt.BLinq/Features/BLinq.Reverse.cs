@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 
@@ -15,10 +14,8 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields the source elements in reverse order.</returns>
         public Query<Reverse<TEnumerator, T>, T> Reverse()
         {
-            var hasKnownLength = TryGetLength(out var length);
             return new Query<Reverse<TEnumerator, T>, T>(
-                new Reverse<TEnumerator, T>(GetEnumerator(), hasKnownLength, length),
-                Query<Reverse<TEnumerator, T>, T>.KnownLengthOrUnknown(hasKnownLength, length));
+                new Reverse<TEnumerator, T>(GetEnumerator()));
         }
     }
 
@@ -50,18 +47,13 @@ namespace FireAlt.BLinq
         private int _length;
 
         public Reverse(TEnumerator source)
-            : this(source, false, 0)
-        {
-        }
-
-        public Reverse(TEnumerator source, bool hasKnownLength, int length)
         {
             _source = source;
             _values = default;
             _index = -1;
             _current = default;
             _state = 0;
-            _length = hasKnownLength ? length : -1;
+            _length = source.TryGetNonEnumeratedCount(out var length) ? length : -1;
         }
 
         public T Current
@@ -132,6 +124,18 @@ namespace FireAlt.BLinq
                 _values.Dispose();
                 _values = default;
             }
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = _length;
+            return count >= 0;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out T value)

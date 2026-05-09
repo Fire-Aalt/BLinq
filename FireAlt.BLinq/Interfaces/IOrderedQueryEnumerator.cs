@@ -88,6 +88,18 @@ namespace FireAlt.BLinq
             }
         }
 
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            var enumerator = _source.GetEnumerator();
+            return enumerator.TryGetNonEnumeratedCount(out count);
+        }
+
+        public bool TryGetSpan(out global::System.ReadOnlySpan<T> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out T value)
         {
             value = default;

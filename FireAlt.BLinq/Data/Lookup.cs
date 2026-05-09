@@ -64,7 +64,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<NativeArrayQueryEnumerator<T>, T> AsQuery()
         {
-            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(_values.AsArray()), Length);
+            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(_values.AsArray()));
         }
 
         internal void Dispose()
@@ -103,7 +103,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<LookupEnumerator<TKey, T>, Group<TKey, T>> AsQuery()
         {
-            return new Query<LookupEnumerator<TKey, T>, Group<TKey, T>>(GetEnumerator(), GroupCount);
+            return new Query<LookupEnumerator<TKey, T>, Group<TKey, T>>(GetEnumerator());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -166,6 +166,18 @@ namespace FireAlt.BLinq
 
         public void Dispose()
         {
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = _groups.Length;
+            return true;
+        }
+
+        public bool TryGetSpan(out global::System.ReadOnlySpan<Group<TKey, T>> span)
+        {
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out Group<TKey, T> value)

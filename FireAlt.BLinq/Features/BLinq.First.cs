@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -10,18 +9,24 @@ namespace FireAlt.BLinq
     {
         private bool TryFirst(out T value)
         {
-            if (TryGetLength(out var length) && length == 0)
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 value = default;
                 return false;
             }
 
-            if (TryGetElementAt(0, out value))
+            if (enumerator.TryGetElementAt(0, out value))
             {
                 return true;
             }
 
-            var enumerator = GetEnumerator();
+            if (enumerator.TryGetSpan(out var span))
+            {
+                value = span[0];
+                return true;
+            }
+
             if (enumerator.MoveNext())
             {
                 value = enumerator.Current;
@@ -65,13 +70,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 value = default;
                 return false;
             }
 
-            var enumerator = source.GetEnumerator();
             while (enumerator.MoveNext())
             {
                 value = enumerator.Current;

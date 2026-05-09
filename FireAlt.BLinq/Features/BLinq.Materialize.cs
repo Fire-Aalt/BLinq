@@ -12,40 +12,45 @@ namespace FireAlt.BLinq
     {
         public NativeArray<T> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {
+            var enumerator = GetEnumerator();
             return BLinqUtilities.ToNativeArray<T, TEnumerator>(
-                GetEnumerator(),
+                enumerator,
                 allocator,
-                TryGetLength(out var length) ? length : -1);
+                enumerator.TryGetNonEnumeratedCount(out var length) ? length : -1);
         }
 
         public UnsafeList<T> ToUnsafeList(AllocatorManager.AllocatorHandle allocator)
         {
+            var enumerator = GetEnumerator();
             return BLinqUtilities.ToUnsafeList<T, TEnumerator>(
-                GetEnumerator(),
+                enumerator,
                 allocator,
-                TryGetLength(out var length) ? length : -1);
+                enumerator.TryGetNonEnumeratedCount(out var length) ? length : -1);
         }
 
         public NativeList<T> ToNativeList(AllocatorManager.AllocatorHandle allocator)
         {
+            var enumerator = GetEnumerator();
             return BLinqUtilities.ToNativeList<T, TEnumerator>(
-                GetEnumerator(),
+                enumerator,
                 allocator,
-                TryGetLength(out var length) ? length : -1);
+                enumerator.TryGetNonEnumeratedCount(out var length) ? length : -1);
         }
 
         public T[] ToManagedArray()
         {
+            var enumerator = GetEnumerator();
             return BLinqUtilities.ToManagedArray<T, TEnumerator>(
-                GetEnumerator(),
-                TryGetLength(out var length) ? length : -1);
+                enumerator,
+                enumerator.TryGetNonEnumeratedCount(out var length) ? length : -1);
         }
 
         public List<T> ToManagedList()
         {
+            var enumerator = GetEnumerator();
             return BLinqUtilities.ToManagedList<T, TEnumerator>(
-                GetEnumerator(),
-                TryGetLength(out var length) ? length : -1);
+                enumerator,
+                enumerator.TryGetNonEnumeratedCount(out var length) ? length : -1);
         }
 
         public Dictionary<TKey, T> ToManagedDictionary<TKey, TKeySelector>(TKeySelector keySelector)
@@ -322,7 +327,7 @@ namespace FireAlt.BLinq
         public static Query<NativeArrayQueryEnumerator<T>, T> ToRawQuery<T>(NativeList<T> list)
             where T : unmanaged
         {
-            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(list.AsArray()), list.Length);
+            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(list.AsArray()));
         }
 
         public static NativeArray<T> ToNativeArray<T, TEnumerator>(
@@ -375,6 +380,17 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
+            if (source.TryGetSpan(out var span))
+            {
+                var managedArrayLength = knownLength >= 0
+                    ? knownLength
+                    : source.TryGetNonEnumeratedCount(out var count) ? count : span.Length;
+                var managedArray = new T[managedArrayLength];
+                span.CopyTo(managedArray);
+                source.Dispose();
+                return managedArray;
+            }
+
             if (knownLength >= 0)
             {
                 var managedArray = new T[knownLength];
@@ -402,6 +418,21 @@ namespace FireAlt.BLinq
             where T : unmanaged
             where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
+            if (source.TryGetSpan(out var span))
+            {
+                var spanListCapacity = knownLength >= 0
+                    ? knownLength
+                    : source.TryGetNonEnumeratedCount(out var count) ? count : span.Length;
+                var spanList = new List<T>(spanListCapacity);
+                for (var i = 0; i < span.Length; i++)
+                {
+                    spanList.Add(span[i]);
+                }
+
+                source.Dispose();
+                return spanList;
+            }
+
             var list = knownLength >= 0 ? new List<T>(knownLength) : new List<T>();
             while (source.MoveNext())
             {

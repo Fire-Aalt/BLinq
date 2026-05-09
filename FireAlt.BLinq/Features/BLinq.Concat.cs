@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -17,17 +16,10 @@ namespace FireAlt.BLinq
             Query<TSecondEnumerator, T> second)
             where TSecondEnumerator : unmanaged, IQueryEnumerator<T>
         {
-            var length = TryGetLength(out var firstLength) && second.TryGetLength(out var secondLength)
-                ? checked(firstLength + secondLength)
-                : -1;
-
             return new Query<Concat<TEnumerator, TSecondEnumerator, T>, T>(
                 new Concat<TEnumerator, TSecondEnumerator, T>(
                     GetEnumerator(),
-                    second.GetEnumerator(),
-                    TryGetLength(out firstLength),
-                    firstLength),
-                length);
+                    second.GetEnumerator()));
         }
     }
 
@@ -68,22 +60,7 @@ namespace FireAlt.BLinq
             _second = second;
             _current = default;
             _state = 0;
-            _hasFirstLength = false;
-            _firstLength = 0;
-        }
-
-        public Concat(
-            TEnumerator source,
-            TSecondEnumerator second,
-            bool hasFirstLength,
-            int firstLength)
-        {
-            _source = source;
-            _second = second;
-            _current = default;
-            _state = 0;
-            _hasFirstLength = hasFirstLength;
-            _firstLength = firstLength;
+            _hasFirstLength = source.TryGetNonEnumeratedCount(out _firstLength);
         }
 
         public T Current
@@ -130,6 +107,35 @@ namespace FireAlt.BLinq
         {
             _source.Dispose();
             _second.Dispose();
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var firstCount) ||
+                !_second.TryGetNonEnumeratedCount(out var secondCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = checked(firstCount + secondCount);
+            return true;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            if (_source.TryGetNonEnumeratedCount(out var firstCount) && firstCount == 0)
+            {
+                return _second.TryGetSpan(out span);
+            }
+
+            if (_second.TryGetNonEnumeratedCount(out var secondCount) && secondCount == 0)
+            {
+                return _source.TryGetSpan(out span);
+            }
+
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out T value)

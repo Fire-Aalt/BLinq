@@ -16,12 +16,13 @@ namespace FireAlt.BLinq
         /// <exception cref="OverflowException">The number of elements is larger than <see cref="int.MaxValue"/>.</exception>
         public int Count()
         {
-            if (TryGetLength(out var length))
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 return length;
             }
 
-            return BLinqUtilities.Count<T, TEnumerator>(GetEnumerator());
+            return BLinqUtilities.Count<T, TEnumerator>(enumerator);
         }
     }
 
@@ -52,12 +53,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 return 0;
             }
 
-            return BLinqUtilities.Count<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
+            return BLinqUtilities.Count<T, TEnumerator, TPredicate>(enumerator, predicate);
         }
 
         /// <summary>

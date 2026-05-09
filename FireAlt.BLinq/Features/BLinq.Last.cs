@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -14,21 +13,23 @@ namespace FireAlt.BLinq
         /// <returns>The last element in the sequence.</returns>
         public T Last()
         {
-            if (TryGetLength(out var length))
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 if (length == 0)
                 {
                     throw new InvalidOperationException("The BLinq source contains no elements.");
                 }
 
-                if (TryGetElementAt(length - 1, out var lastValue) ||
-                    BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out lastValue))
+                if (enumerator.TryGetElementAt(length - 1, out var lastValue) ||
+                    enumerator.TryGetSpan(out var span) && TryGetLastFromSpan(span, out lastValue) ||
+                    BLinqUtilities.TryElementAt<T, TEnumerator>(enumerator, length - 1, out lastValue))
                 {
                     return lastValue;
                 }
             }
 
-            if (BLinqUtilities.TryLast<T, TEnumerator>(GetEnumerator(), out var value))
+            if (BLinqUtilities.TryLast<T, TEnumerator>(enumerator, out var value))
             {
                 return value;
             }
@@ -42,20 +43,34 @@ namespace FireAlt.BLinq
         /// <returns>The last element in the sequence, or default when the sequence is empty.</returns>
         public T LastOrDefault()
         {
-            if (TryGetLength(out var length))
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 if (length == 0)
                 {
                     return default;
                 }
 
-                return TryGetElementAt(length - 1, out var lastValue) ||
-                       BLinqUtilities.TryElementAt<T, TEnumerator>(GetEnumerator(), length - 1, out lastValue)
+                return enumerator.TryGetElementAt(length - 1, out var lastValue) ||
+                       enumerator.TryGetSpan(out var span) && TryGetLastFromSpan(span, out lastValue) ||
+                       BLinqUtilities.TryElementAt<T, TEnumerator>(enumerator, length - 1, out lastValue)
                     ? lastValue
                     : default;
             }
 
-            return BLinqUtilities.TryLast<T, TEnumerator>(GetEnumerator(), out var value) ? value : default;
+            return BLinqUtilities.TryLast<T, TEnumerator>(enumerator, out var value) ? value : default;
+        }
+
+        private static bool TryGetLastFromSpan(ReadOnlySpan<T> span, out T value)
+        {
+            if (span.Length == 0)
+            {
+                value = default;
+                return false;
+            }
+
+            value = span[span.Length - 1];
+            return true;
         }
     }
 
@@ -96,28 +111,29 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length))
+            var enumerator = source.GetEnumerator();
+
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 if (length == 0)
                 {
                     throw new InvalidOperationException("The BLinq source contains no elements.");
                 }
-
-                for (var i = length - 1; i >= 0; i--)
+                
+                if (enumerator.TryGetSpan(out var span))
                 {
-                    if (!source.TryGetElementAt(i, out var current))
+                    for (var i = span.Length - 1; i >= 0; i--)
                     {
-                        break;
-                    }
-
-                    if (predicate.Match(in current))
-                    {
-                        return current;
+                        ref readonly var element = ref span[i];
+                        if (predicate.Match(in element))
+                        {
+                            return element;
+                        }
                     }
                 }
             }
 
-            if (BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate, out var value))
+            if (BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(enumerator, predicate, out var value))
             {
                 return value;
             }
@@ -136,28 +152,20 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length))
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetSpan(out var span))
             {
-                if (length == 0)
+                for (var i = span.Length - 1; i >= 0; i--)
                 {
-                    return default;
-                }
-
-                for (var i = length - 1; i >= 0; i--)
-                {
-                    if (!source.TryGetElementAt(i, out var current))
+                    ref readonly var element = ref span[i];
+                    if (predicate.Match(in element))
                     {
-                        break;
-                    }
-
-                    if (predicate.Match(in current))
-                    {
-                        return current;
+                        return element;
                     }
                 }
             }
 
-            return BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate, out var value)
+            return BLinqUtilities.TryLast<T, TEnumerator, TPredicate>(enumerator, predicate, out var value)
                 ? value
                 : default;
         }

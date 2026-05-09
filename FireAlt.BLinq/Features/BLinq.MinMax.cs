@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
 {
@@ -17,6 +16,27 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var enumerator = GetEnumerator();
+            if (enumerator.TryGetSpan(out var span))
+            {
+                if (span.Length == 0)
+                {
+                    throw new InvalidOperationException("The BLinq source contains no elements.");
+                }
+
+                var spanBest = span[0];
+                for (var i = 1; i < span.Length; i++)
+                {
+                    var value = span[i];
+                    if (comparer.Compare(value, spanBest) < 0)
+                    {
+                        spanBest = value;
+                    }
+                }
+
+                enumerator.Dispose();
+                return spanBest;
+            }
+
             if (!enumerator.MoveNext())
             {
                 enumerator.Dispose();
@@ -46,6 +66,27 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var enumerator = GetEnumerator();
+            if (enumerator.TryGetSpan(out var span))
+            {
+                if (span.Length == 0)
+                {
+                    throw new InvalidOperationException("The BLinq source contains no elements.");
+                }
+
+                var spanBest = span[0];
+                for (var i = 1; i < span.Length; i++)
+                {
+                    var value = span[i];
+                    if (comparer.Compare(value, spanBest) > 0)
+                    {
+                        spanBest = value;
+                    }
+                }
+
+                enumerator.Dispose();
+                return spanBest;
+            }
+
             if (!enumerator.MoveNext())
             {
                 enumerator.Dispose();

@@ -74,8 +74,7 @@ namespace FireAlt.BLinq
             return new Query<OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>>, T>(
                 new OrderBy<TEnumerator, T, ThenByComparer<T, TComparer, KeySelectorComparer<T, TKey, TKeySelector, TKeyComparer>>>(
                     orderedEnumerator.Source,
-                    combinedComparer),
-                source.TryGetLength(out var length) ? length : -1);
+                    combinedComparer));
         }
 
         /// <summary>

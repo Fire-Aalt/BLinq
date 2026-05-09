@@ -10,7 +10,7 @@ namespace FireAlt.BLinq.Tests
         [Test]
         public void LengthMetadata_TerminalsUseKnownLengthWithoutEnumerating()
         {
-            var query = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 3);
+            var query = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(3));
 
             Assert.That(query.Count(), Is.EqualTo(3));
             Assert.That(query.LongCount(), Is.EqualTo(3));
@@ -21,8 +21,8 @@ namespace FireAlt.BLinq.Tests
         [Test]
         public void LengthMetadata_PreservingOperatorsKeepKnownLength()
         {
-            var query = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 3);
-            var other = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 2);
+            var query = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(3));
+            var other = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(2));
 
             Assert.That(query.Select(new IdentitySelector<int>()).Count(), Is.EqualTo(3));
             Assert.That(query.Take(2).Count(), Is.EqualTo(2));
@@ -35,7 +35,7 @@ namespace FireAlt.BLinq.Tests
         [Test]
         public void LengthMetadata_FilteringOperatorsInvalidateKnownLength()
         {
-            var query = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 3);
+            var query = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(3));
 
             Assert.Throws<InvalidOperationException>(() => query.Where(new TruePredicate()).Count());
         }
@@ -43,14 +43,21 @@ namespace FireAlt.BLinq.Tests
         [Test]
         public void LengthMetadata_SequenceEqualUsesDifferentKnownLengths()
         {
-            var left = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 3);
-            var right = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(), 2);
+            var left = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(3));
+            var right = new Query<ThrowingEnumerator, int>(new ThrowingEnumerator(2));
 
             Assert.That(BLinqExtensions.SequenceEqual(left, right), Is.False);
         }
 
         private struct ThrowingEnumerator : IQueryEnumerator<int>
         {
+            private int _count;
+
+            public ThrowingEnumerator(int count)
+            {
+                _count = count;
+            }
+
             public int Current => throw new InvalidOperationException("Enumerator should not be read.");
 
             object IEnumerator.Current => Current;
@@ -66,6 +73,18 @@ namespace FireAlt.BLinq.Tests
 
             public void Dispose()
             {
+            }
+
+            public bool TryGetNonEnumeratedCount(out int count)
+            {
+                count = _count;
+                return true;
+            }
+
+            public bool TryGetSpan(out ReadOnlySpan<int> span)
+            {
+                span = default;
+                return false;
             }
 
             public bool TryGetElementAt(int index, out int value)

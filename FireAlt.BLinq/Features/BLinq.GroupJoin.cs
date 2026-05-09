@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 
@@ -208,6 +207,18 @@ namespace FireAlt.BLinq
             }
         }
     
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out TResult value)
         {
             value = default;
@@ -241,6 +252,18 @@ namespace FireAlt.BLinq
         {
         }
     
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out TResult value)
         {
             value = default;

@@ -1,6 +1,8 @@
 using System.Collections;
+using System;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace FireAlt.BLinq
 {
@@ -38,6 +40,20 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _enumerator.Dispose();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = _values.Length;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe bool TryGetSpan(out ReadOnlySpan<T> span)
+        {
+            span = new ReadOnlySpan<T>(NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(_values), _values.Length);
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

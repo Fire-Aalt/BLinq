@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -116,6 +115,18 @@ namespace FireAlt.BLinq
             _source.Dispose();
         }
     
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<T> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out T value)
         {
             value = default;
@@ -145,6 +156,18 @@ namespace FireAlt.BLinq
         {
         }
     
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<T> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out T value)
         {
             value = default;

@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 
@@ -23,13 +22,8 @@ namespace FireAlt.BLinq
                 throw new ArgumentOutOfRangeException(nameof(size));
             }
 
-            var length = TryGetLength(out var sourceLength)
-                ? sourceLength == 0 ? 0 : (sourceLength + size - 1) / size
-                : -1;
-
             return new Query<Chunk<TEnumerator, T>, Chunk<T>>(
-                new Chunk<TEnumerator, T>(GetEnumerator(), size),
-                length);
+                new Chunk<TEnumerator, T>(GetEnumerator(), size));
         }
     }
 
@@ -89,7 +83,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Query<NativeArrayQueryEnumerator<T>, T> AsQuery()
         {
-            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(_values), Length);
+            return new Query<NativeArrayQueryEnumerator<T>, T>(new NativeArrayQueryEnumerator<T>(_values));
         }
     }
 
@@ -156,6 +150,24 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var sourceCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = sourceCount == 0 ? 0 : (sourceCount + _size - 1) / _size;
+            return true;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<Chunk<T>> span)
+        {
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out Chunk<T> value)

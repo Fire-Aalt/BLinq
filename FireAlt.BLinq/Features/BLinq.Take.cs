@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -15,14 +14,8 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields at most <paramref name="count"/> elements.</returns>
         public Query<Take<TEnumerator, T>, T> Take(int count)
         {
-            var takeCount = count < 0 ? 0 : count;
-            var length = TryGetLength(out var sourceLength)
-                ? sourceLength < takeCount ? sourceLength : takeCount
-                : -1;
-
             return new Query<Take<TEnumerator, T>, T>(
-                new Take<TEnumerator, T>(GetEnumerator(), count),
-                length);
+                new Take<TEnumerator, T>(GetEnumerator(), count));
         }
     }
 
@@ -92,6 +85,31 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var sourceCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = sourceCount < _count ? sourceCount : _count;
+            return true;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            if (!_source.TryGetSpan(out var sourceSpan))
+            {
+                span = default;
+                return false;
+            }
+
+            var count = sourceSpan.Length < _count ? sourceSpan.Length : _count;
+            span = sourceSpan.Slice(0, count);
+            return true;
         }
 
         public bool TryGetElementAt(int index, out T value)

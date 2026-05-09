@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -117,6 +116,18 @@ namespace FireAlt.BLinq
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             var total = default(T);
+            if (enumerator.TryGetSpan(out var span))
+            {
+                for (var i = 0; i < span.Length; i++)
+                {
+                    var value = span[i];
+                    total = accumulator.Add(in total, in value);
+                }
+
+                enumerator.Dispose();
+                return total;
+            }
+
             while (enumerator.MoveNext())
             {
                 var value = enumerator.Current;
@@ -153,6 +164,18 @@ namespace FireAlt.BLinq
             where TAccumulator : unmanaged, IAccumulator<T>
         {
             var total = default(T);
+            if (enumerator.TryGetSpan(out var span))
+            {
+                for (var i = 0; i < span.Length; i++)
+                {
+                    var value = span[i];
+                    total = accumulator.Add(in total, in value);
+                }
+
+                enumerator.Dispose();
+                return span.Length == 0 ? default : accumulator.Divide(in total, (uint)span.Length);
+            }
+
             var count = 0u;
             while (enumerator.MoveNext())
             {

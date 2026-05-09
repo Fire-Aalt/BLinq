@@ -5,8 +5,6 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 // System
-[assembly: GenerateQueryExtensionFor(typeof(Span<>), typeof(Span<>.Enumerator), LengthProperty = nameof(Span<int>.Length))]
-[assembly: GenerateQueryExtensionFor(typeof(ReadOnlySpan<>), typeof(ReadOnlySpan<>.Enumerator), LengthProperty = nameof(ReadOnlySpan<int>.Length))]
 [assembly: GenerateQueryExtensionFor(typeof(ReadOnlySequence<>), typeof(ReadOnlySequence<>.Enumerator))]
 
 // UnityEngine.CoreModule
@@ -17,7 +15,7 @@ using Unity.Collections.LowLevel.Unsafe;
 // Unity.Collections
 [assembly: GenerateQueryExtensionFor(typeof(NativeList<>), typeof(NativeArray<>.Enumerator), LengthProperty = nameof(NativeList<int>.Length), Indexer = true)]
 [assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>), typeof(UnsafeList<>.Enumerator), LengthProperty = nameof(UnsafeList<int>.Length), Indexer = true)]
-[assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>.ReadOnly), typeof(UnsafeList<>.Enumerator), LengthProperty = nameof(UnsafeList<int>.ReadOnly.Length))]
+[assembly: GenerateQueryExtensionFor(typeof(UnsafeList<>.ReadOnly), typeof(UnsafeList<>.Enumerator), LengthProperty = nameof(UnsafeList<int>.ReadOnly.Length), Indexer = true)]
 [assembly: GenerateQueryExtensionFor(typeof(NativeQueue<>.ReadOnly), typeof(NativeQueue<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeHashSet<>), typeof(NativeHashSet<>.Enumerator))]
 [assembly: GenerateQueryExtensionFor(typeof(NativeHashSet<>.ReadOnly), typeof(NativeHashSet<>.Enumerator))]

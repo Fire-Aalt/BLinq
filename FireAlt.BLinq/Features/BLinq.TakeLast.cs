@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 
@@ -16,15 +15,8 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields at most <paramref name="count"/> elements from the tail of the source.</returns>
         public Query<TakeLast<TEnumerator, T>, T> TakeLast(int count)
         {
-            var takeCount = count < 0 ? 0 : count;
-            var hasKnownLength = TryGetLength(out var sourceLength);
-            var length = hasKnownLength
-                ? sourceLength < takeCount ? sourceLength : takeCount
-                : -1;
-
             return new Query<TakeLast<TEnumerator, T>, T>(
-                new TakeLast<TEnumerator, T>(GetEnumerator(), count, hasKnownLength, sourceLength),
-                length);
+                new TakeLast<TEnumerator, T>(GetEnumerator(), count));
         }
     }
 
@@ -63,11 +55,6 @@ namespace FireAlt.BLinq
         private int _resultLength;
 
         public TakeLast(TEnumerator source, int count)
-            : this(source, count, false, 0)
-        {
-        }
-
-        public TakeLast(TEnumerator source, int count, bool hasKnownLength, int sourceLength)
         {
             _source = source;
             _buffer = default;
@@ -75,11 +62,11 @@ namespace FireAlt.BLinq
             _index = 0;
             _remaining = 0;
             _skipRemaining = 0;
-            _sourceLength = sourceLength;
+            _sourceLength = 0;
             _current = default;
             _state = 0;
-            _hasKnownLength = hasKnownLength;
-            _resultLength = hasKnownLength ? sourceLength < _count ? sourceLength : _count : -1;
+            _hasKnownLength = source.TryGetNonEnumeratedCount(out _sourceLength);
+            _resultLength = _hasKnownLength ? _sourceLength < _count ? _sourceLength : _count : -1;
         }
 
         public T Current
@@ -233,6 +220,31 @@ namespace FireAlt.BLinq
 
             _index++;
             _remaining--;
+            return true;
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var sourceCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = sourceCount < _count ? sourceCount : _count;
+            return true;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            if (!_source.TryGetSpan(out var sourceSpan))
+            {
+                span = default;
+                return false;
+            }
+
+            var count = sourceSpan.Length < _count ? sourceSpan.Length : _count;
+            span = sourceSpan.Slice(sourceSpan.Length - count, count);
             return true;
         }
 

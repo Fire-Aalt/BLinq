@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -15,15 +14,8 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields the elements after the skipped prefix.</returns>
         public Query<Skip<TEnumerator, T>, T> Skip(int count)
         {
-            var skipCount = count < 0 ? 0 : count;
-            var hasKnownLength = TryGetLength(out var sourceLength);
-            var length = hasKnownLength
-                ? sourceLength > skipCount ? sourceLength - skipCount : 0
-                : -1;
-
             return new Query<Skip<TEnumerator, T>, T>(
-                new Skip<TEnumerator, T>(GetEnumerator(), count, hasKnownLength && skipCount >= sourceLength),
-                length);
+                new Skip<TEnumerator, T>(GetEnumerator(), count));
         }
     }
 
@@ -58,19 +50,14 @@ namespace FireAlt.BLinq
         private bool _initialDone;
 
         public Skip(TEnumerator source, int count)
-            : this(source, count, false)
-        {
-        }
-
-        public Skip(TEnumerator source, int count, bool done)
         {
             _source = source;
             _count = count < 0 ? 0 : count;
             _remaining = count < 0 ? 0 : count;
             _current = default;
             _skipped = false;
-            _done = done;
-            _initialDone = done;
+            _done = source.TryGetNonEnumeratedCount(out var sourceCount) && _count >= sourceCount;
+            _initialDone = _done;
         }
 
         public T Current
@@ -120,6 +107,31 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var sourceCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = sourceCount > _count ? sourceCount - _count : 0;
+            return true;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            if (!_source.TryGetSpan(out var sourceSpan))
+            {
+                span = default;
+                return false;
+            }
+
+            var start = sourceSpan.Length > _count ? _count : sourceSpan.Length;
+            span = sourceSpan.Slice(start);
+            return true;
         }
 
         public bool TryGetElementAt(int index, out T value)

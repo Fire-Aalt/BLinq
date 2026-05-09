@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -15,14 +14,8 @@ namespace FireAlt.BLinq
         /// <returns>A query that yields the source elements, or <paramref name="defaultValue"/> when the source is empty.</returns>
         public Query<DefaultIfEmpty<TEnumerator, T>, T> DefaultIfEmpty(T defaultValue = default)
         {
-            var hasKnownLength = TryGetLength(out var sourceLength);
-            var length = hasKnownLength
-                ? sourceLength == 0 ? 1 : sourceLength
-                : -1;
-
             return new Query<DefaultIfEmpty<TEnumerator, T>, T>(
-                new DefaultIfEmpty<TEnumerator, T>(GetEnumerator(), defaultValue, hasKnownLength, sourceLength),
-                length);
+                new DefaultIfEmpty<TEnumerator, T>(GetEnumerator(), defaultValue));
         }
     }
 
@@ -69,18 +62,12 @@ namespace FireAlt.BLinq
         private bool _hasKnownLength;
 
         public DefaultIfEmpty(TEnumerator source, T defaultValue)
-            : this(source, defaultValue, false, 0)
-        {
-        }
-
-        public DefaultIfEmpty(TEnumerator source, T defaultValue, bool hasKnownLength, int length)
         {
             _source = source;
             _defaultValue = defaultValue;
             _current = default;
-            _state = hasKnownLength && length > 0 ? (byte)1 : (byte)0;
-            _length = length;
-            _hasKnownLength = hasKnownLength;
+            _hasKnownLength = source.TryGetNonEnumeratedCount(out _length);
+            _state = _hasKnownLength && _length > 0 ? (byte)1 : (byte)0;
         }
 
         public T Current
@@ -133,6 +120,31 @@ namespace FireAlt.BLinq
         public void Dispose()
         {
             _source.Dispose();
+        }
+
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            if (!_source.TryGetNonEnumeratedCount(out var sourceCount))
+            {
+                count = 0;
+                return false;
+            }
+
+            count = sourceCount == 0 ? 1 : sourceCount;
+            return true;
+        }
+
+        public bool TryGetSpan(out System.ReadOnlySpan<T> span)
+        {
+            if (_source.TryGetNonEnumeratedCount(out var sourceCount) &&
+                sourceCount > 0 &&
+                _source.TryGetSpan(out span))
+            {
+                return true;
+            }
+
+            span = default;
+            return false;
         }
 
         public bool TryGetElementAt(int index, out T value)

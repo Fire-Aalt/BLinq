@@ -191,6 +191,18 @@ namespace FireAlt.BLinq
             _source.Dispose();
         }
     
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out TResult value)
         {
             value = default;
@@ -222,6 +234,18 @@ namespace FireAlt.BLinq
         {
         }
     
+        public bool TryGetNonEnumeratedCount(out int count)
+        {
+            count = 0;
+            return false;
+        }
+
+        public bool TryGetSpan(out ReadOnlySpan<TResult> span)
+        {
+            span = default;
+            return false;
+        }
+
         public bool TryGetElementAt(int index, out TResult value)
         {
             value = default;

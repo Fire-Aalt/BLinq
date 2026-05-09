@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace FireAlt.BLinq
 {
@@ -17,6 +16,20 @@ namespace FireAlt.BLinq
             where TEqualityComparer : unmanaged, INativeEqualityComparer<T>
         {
             var enumerator = GetEnumerator();
+            if (enumerator.TryGetSpan(out var span))
+            {
+                for (var i = 0; i < span.Length; i++)
+                {
+                    var current = span[i];
+                    if (comparer.Equals(in current, in value))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
             while (enumerator.MoveNext())
             {
                 var current = enumerator.Current;

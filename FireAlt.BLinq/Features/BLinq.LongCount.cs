@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace FireAlt.BLinq
@@ -14,12 +13,13 @@ namespace FireAlt.BLinq
         /// <returns>The number of elements in the sequence.</returns>
         public long LongCount()
         {
-            if (TryGetLength(out var length))
+            var enumerator = GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length))
             {
                 return length;
             }
 
-            return BLinqUtilities.LongCount<T, TEnumerator>(GetEnumerator());
+            return BLinqUtilities.LongCount<T, TEnumerator>(enumerator);
         }
     }
     
@@ -48,12 +48,13 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TPredicate : unmanaged, IPredicate<T>
         {
-            if (source.TryGetLength(out var length) && length == 0)
+            var enumerator = source.GetEnumerator();
+            if (enumerator.TryGetNonEnumeratedCount(out var length) && length == 0)
             {
                 return 0;
             }
 
-            return BLinqUtilities.LongCount<T, TEnumerator, TPredicate>(source.GetEnumerator(), predicate);
+            return BLinqUtilities.LongCount<T, TEnumerator, TPredicate>(enumerator, predicate);
         }
 
         /// <summary>
