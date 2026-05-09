@@ -28,7 +28,8 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return (values.Contains(values.Length - 1) ? 1 : 0) + (values.Contains(-1) ? 2 : 0);
+            return (Enumerable.Contains(values, values.Length - 1) ? 1 : 0) 
+                   + (Enumerable.Contains(values, -1) ? 2 : 0);
         }
 
         public int ZLinq(in NativeArray<int> values)

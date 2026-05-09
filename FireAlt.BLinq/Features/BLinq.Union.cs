@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using Unity.Collections;
 
 namespace FireAlt.BLinq
@@ -122,5 +121,5 @@ namespace FireAlt.BLinq
             value = default;
             return false;
         }
-}
+    }
 }

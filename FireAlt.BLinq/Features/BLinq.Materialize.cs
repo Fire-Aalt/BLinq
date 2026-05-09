@@ -110,7 +110,7 @@ namespace FireAlt.BLinq
 
         public HashSet<T> ToManagedHashSet(IEqualityComparer<T> comparer)
         {
-            return BLinqUtilities.ToManagedHashSet<T, TEnumerator>(GetEnumerator(), comparer);
+            return BLinqUtilities.ToManagedHashSet(GetEnumerator(), comparer);
         }
 
         public NativeHashMap<TKey, T> ToNativeHashMap<TKey, TKeySelector>(
@@ -141,7 +141,6 @@ namespace FireAlt.BLinq
                 valueSelector,
                 allocator);
         }
-
     }
 
     public static partial class BLinqExtensions
@@ -175,7 +174,7 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
             where TKeySelector : unmanaged, ISelector<T, TKey>
         {
-            return source.ToManagedDictionary<TKey, TKeySelector>(keySelector, comparer);
+            return source.ToManagedDictionary(keySelector, comparer);
         }
 
         public static Dictionary<TKey, TValue> ToManagedDictionary<T, TKey, TValue, TEnumerator, TKeySelector, TValueSelector>(
@@ -335,7 +334,6 @@ namespace FireAlt.BLinq
         {
             var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp, knownLength);
             var array = list.ToArray(allocator);
-            list.Dispose();
             return array;
         }
 
@@ -397,7 +395,6 @@ namespace FireAlt.BLinq
 
             var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp);
             var array = ToManagedArray(list);
-            list.Dispose();
             return array;
         }
 
@@ -425,7 +422,6 @@ namespace FireAlt.BLinq
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
             var array = list.ToArray(allocator);
-            list.Dispose();
             return array;
         }
 
@@ -476,8 +472,6 @@ namespace FireAlt.BLinq
             {
                 list[i] = entries[i].Value;
             }
-
-            entries.Dispose();
         }
 
         public static void StableSort<T, TComparer>(ref UnsafeList<T> list, TComparer comparer)
@@ -501,8 +495,6 @@ namespace FireAlt.BLinq
             {
                 list[i] = entries[i].Value;
             }
-
-            entries.Dispose();
         }
 
         private readonly struct StableSortEntry<T>
@@ -545,7 +537,6 @@ namespace FireAlt.BLinq
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
             var array = ToManagedArray(list);
-            list.Dispose();
             return array;
         }
 
@@ -585,19 +576,13 @@ namespace FireAlt.BLinq
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
             var dictionary = new Dictionary<TKey, TValue>(comparer);
-            try
+            while (source.MoveNext())
             {
-                while (source.MoveNext())
-                {
-                    var value = source.Current;
-                    dictionary.Add(keySelector.Select(in value), valueSelector.Select(in value));
-                }
-            }
-            finally
-            {
-                source.Dispose();
+                var value = source.Current;
+                dictionary.Add(keySelector.Select(in value), valueSelector.Select(in value));
             }
 
+            source.Dispose();
             return dictionary;
         }
 
@@ -616,18 +601,12 @@ namespace FireAlt.BLinq
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
-            try
-            {
-                return ToManagedDictionary<T, TKey, TValue, NativeArrayQueryEnumerator<T>, TKeySelector, TValueSelector>(
-                    new NativeArrayQueryEnumerator<T>(list.AsArray()),
-                    keySelector,
-                    valueSelector,
-                    equalityComparer);
-            }
-            finally
-            {
-                list.Dispose();
-            }
+
+            return ToManagedDictionary<T, TKey, TValue, NativeArrayQueryEnumerator<T>, TKeySelector, TValueSelector>(
+                new NativeArrayQueryEnumerator<T>(list.AsArray()),
+                keySelector,
+                valueSelector,
+                equalityComparer);
         }
 
         public static HashSet<T> ToManagedHashSet<T, TEnumerator>(
@@ -637,18 +616,12 @@ namespace FireAlt.BLinq
             where TEnumerator : unmanaged, IQueryEnumerator<T>
         {
             var hashSet = new HashSet<T>(comparer);
-            try
-            {
-                while (source.MoveNext())
-                {
-                    hashSet.Add(source.Current);
-                }
-            }
-            finally
-            {
-                source.Dispose();
-            }
 
+            while (source.MoveNext())
+            {
+                hashSet.Add(source.Current);
+            }
+            source.Dispose();
             return hashSet;
         }
 
@@ -661,14 +634,7 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
-            try
-            {
-                return ToManagedHashSet<T, NativeArrayQueryEnumerator<T>>(new NativeArrayQueryEnumerator<T>(list.AsArray()), equalityComparer);
-            }
-            finally
-            {
-                list.Dispose();
-            }
+            return ToManagedHashSet(new NativeArrayQueryEnumerator<T>(list.AsArray()), equalityComparer);
         }
 
         public static NativeHashMap<TKey, TValue> ToNativeHashMap<T, TKey, TValue, TEnumerator, TKeySelector, TValueSelector>(
@@ -685,28 +651,16 @@ namespace FireAlt.BLinq
         {
             var list = ToNativeList<T, TEnumerator>(source, Allocator.Temp);
             var hashMap = new NativeHashMap<TKey, TValue>(list.Length, allocator);
-            try
+
+            for (var i = 0; i < list.Length; i++)
             {
-                for (var i = 0; i < list.Length; i++)
+                var value = list[i];
+                var key = keySelector.Select(in value);
+                if (!hashMap.TryAdd(key, valueSelector.Select(in value)))
                 {
-                    var value = list[i];
-                    var key = keySelector.Select(in value);
-                    if (!hashMap.TryAdd(key, valueSelector.Select(in value)))
-                    {
-                        throw new ArgumentException("An item with the same key has already been added.");
-                    }
+                    throw new ArgumentException("An item with the same key has already been added.");
                 }
             }
-            catch
-            {
-                hashMap.Dispose();
-                throw;
-            }
-            finally
-            {
-                list.Dispose();
-            }
-
             return hashMap;
         }
 
@@ -725,18 +679,11 @@ namespace FireAlt.BLinq
             where TValueSelector : unmanaged, ISelector<T, TValue>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
-            try
-            {
-                return ToNativeHashMap<T, TKey, TValue, NativeArrayQueryEnumerator<T>, TKeySelector, TValueSelector>(
-                    new NativeArrayQueryEnumerator<T>(list.AsArray()),
-                    keySelector,
-                    valueSelector,
-                    allocator);
-            }
-            finally
-            {
-                list.Dispose();
-            }
+            return ToNativeHashMap<T, TKey, TValue, NativeArrayQueryEnumerator<T>, TKeySelector, TValueSelector>(
+                new NativeArrayQueryEnumerator<T>(list.AsArray()),
+                keySelector,
+                valueSelector,
+                allocator);
         }
 
         public static NativeHashSet<T> ToNativeHashSet<T, TEnumerator>(
@@ -751,8 +698,6 @@ namespace FireAlt.BLinq
             {
                 hashSet.Add(list[i]);
             }
-
-            list.Dispose();
             return hashSet;
         }
 
@@ -765,14 +710,7 @@ namespace FireAlt.BLinq
             where TComparer : unmanaged, IComparer<T>
         {
             var list = ToSortedNativeList<T, TEnumerator, TComparer>(source, comparer, Allocator.Temp);
-            try
-            {
-                return ToNativeHashSet<T, NativeArrayQueryEnumerator<T>>(new NativeArrayQueryEnumerator<T>(list.AsArray()), allocator);
-            }
-            finally
-            {
-                list.Dispose();
-            }
+            return ToNativeHashSet<T, NativeArrayQueryEnumerator<T>>(new NativeArrayQueryEnumerator<T>(list.AsArray()), allocator);
         }
     }
 }
