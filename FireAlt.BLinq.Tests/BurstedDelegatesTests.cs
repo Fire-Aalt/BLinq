@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using Unity.Burst;
 using Unity.Collections;
@@ -26,7 +27,7 @@ namespace FireAlt.BLinq.Tests
             var min = 1;
             var factor = 3;
             var offset = 2;
-            
+
             var result = input
                 .AsQuery()
                 .Where(value => value > min)
