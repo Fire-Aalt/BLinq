@@ -1,33 +1,40 @@
 {
-    "name": "FireAlt.BLinq.Tests",
-    "rootNamespace": "FireAlt.BLinq.Tests",
-    "references": [
-        "KrasCore",
-        "FireAlt.BLinq",
-        "Unity.Entities",
-        "Unity.PerformanceTesting",
-        "Unity.Collections",
-        "Unity.Jobs",
-        "Unity.Burst",
-        "Unity.Mathematics",
-        "BovineLabs.Core",
-        "ZLinq.Unity",
-        "ZLinq.Unity.UnityCollectoins"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": true,
-    "overrideReferences": false,
-    "precompiledReferences": [
-        "ZLinq.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false,
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ]
+  "name": "FireAlt.BLinq.Tests",
+  "rootNamespace": "FireAlt.BLinq.Tests",
+  "references": [
+    "KrasCore",
+    "FireAlt.BLinq",
+    "Unity.Entities",
+    "Unity.PerformanceTesting",
+    "Unity.Collections",
+    "Unity.Burst",
+    "Unity.Mathematics",
+    "BovineLabs.Core",
+    "ZLinq.Unity",
+    "ZLinq.Unity.UnityCollectoins"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": true,
+  "overrideReferences": false,
+  "precompiledReferences": [
+    "ZLinq.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+      "ZLINQ"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.cysharp.zlinq",
+      "expression": "",
+      "define": "ZLINQ"
+    }
+  ],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
 }

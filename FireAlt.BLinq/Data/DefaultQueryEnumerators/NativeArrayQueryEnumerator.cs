@@ -52,7 +52,7 @@ namespace FireAlt.BLinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe bool TryGetSpan(out ReadOnlySpan<T> span)
         {
-            span = new ReadOnlySpan<T>(NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(_values), _values.Length);
+            span = new ReadOnlySpan<T>(_values.GetUnsafeReadOnlyPtr(), _values.Length);
             return true;
         }
 
