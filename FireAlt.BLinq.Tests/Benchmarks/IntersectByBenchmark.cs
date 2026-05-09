@@ -23,17 +23,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<IntersectByBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<IntersectByBenchmark>(elementCount, BLinq, BLinqBurst, true);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            var keys = values.Select(Key).ToHashSet();
-            return values
-                .GroupBy(Key)
-                .Select(group => group.First())
-                .Where(value => keys.Contains(Key(value)))
-                .Sum(Select);
+            throw new System.Exception();
         }
 
         public int ZLinq(in NativeArray<int> values)

@@ -23,26 +23,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<CountByBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<CountByBenchmark>(elementCount, BLinq, BLinqBurst, true);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            var counts = new Dictionary<int, int>();
-            for (var i = 0; i < values.Length; i++)
-            {
-                var key = Key(values[i]);
-                counts.TryGetValue(key, out var count);
-                counts[key] = count + 1;
-            }
-
-            var sum = 0;
-            foreach (var pair in counts)
-            {
-                sum += (pair.Key + 1) * pair.Value;
-            }
-
-            return sum;
+            throw new System.Exception();
         }
 
         public int ZLinq(in NativeArray<int> values)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -23,14 +24,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<AggregateByBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<AggregateByBenchmark>(elementCount, BLinq, BLinqBurst, true);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values
-                .GroupBy(Key)
-                .Sum(group => (group.Key + 1) * group.Sum(Select));
+            throw new System.Exception();
         }
 
         public int ZLinq(in NativeArray<int> values)

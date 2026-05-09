@@ -23,16 +23,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<UnionByBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<UnionByBenchmark>(elementCount, BLinq, BLinqBurst, true);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values
-                .Concat(values.Where(Right))
-                .GroupBy(Key)
-                .Select(group => group.First())
-                .Sum(Select);
+            throw new System.Exception();
         }
 
         public int ZLinq(in NativeArray<int> values)

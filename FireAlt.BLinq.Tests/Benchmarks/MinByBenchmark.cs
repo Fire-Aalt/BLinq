@@ -23,12 +23,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<MinByBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<MinByBenchmark>(elementCount, BLinq, BLinqBurst, true);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.OrderBy(Key).First();
+            throw new System.Exception();
         }
 
         public int ZLinq(in NativeArray<int> values)

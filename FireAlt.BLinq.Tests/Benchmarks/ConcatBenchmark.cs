@@ -28,7 +28,9 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Concat(values).Sum(Select);
+            return values
+                .Concat(values)
+                .Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)

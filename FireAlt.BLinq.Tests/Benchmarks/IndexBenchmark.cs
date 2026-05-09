@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using Unity.Burst;
 using Unity.Collections;
@@ -22,23 +23,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<IndexBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<IndexBenchmark>(elementCount, BLinq, BLinqBurst, true);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            var i = 0;
-            var sum = 0;
-
-            var enumerator = values.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                var tuple = (i, values[i]);
-                sum += Select(tuple.i);
-                i++;
-            }
-            enumerator.Dispose();
-            return sum;
+            throw new Exception();
         }
 
         public int ZLinq(in NativeArray<int> values)

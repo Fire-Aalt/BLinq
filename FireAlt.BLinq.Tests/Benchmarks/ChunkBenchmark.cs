@@ -24,22 +24,12 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [TestCase(100_000)]
         public void CompareLINQs(int elementCount)
         {
-            BenchmarkRunner.Run<ChunkBenchmark>(elementCount, BLinq, BLinqBurst);
+            BenchmarkRunner.Run<ChunkBenchmark>(elementCount, BLinq, BLinqBurst, true);
         }
 
         public int Linq(in NativeArray<int> values)
         {
-            var sum = 0;
-            for (var i = 0; i < values.Length; i += CHUNK_SIZE)
-            {
-                var end = i + CHUNK_SIZE < values.Length ? i + CHUNK_SIZE : values.Length;
-                for (var j = i; j < end; j++)
-                {
-                    sum += Select(values[j]);
-                }
-            }
-
-            return sum;
+            throw new System.Exception();
         }
 
         public int ZLinq(in NativeArray<int> values)

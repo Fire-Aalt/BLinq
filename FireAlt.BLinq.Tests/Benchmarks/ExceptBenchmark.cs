@@ -28,7 +28,9 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.Except(values.Select(Key)).Sum(Select);
+            return values
+                .Except(values.Select(Key))
+                .Sum(Select);
         }
 
         public int ZLinq(in NativeArray<int> values)
