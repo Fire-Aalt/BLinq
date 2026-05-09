@@ -15,7 +15,7 @@ This allows to store the full query shape in the type system, giving Burst a con
 using FireAlt.BLinq;
 
 [BurstCompile]
-private static void BurstedMethod() 
+private static void BurstedMethod(in NativeArray<int> nativeArray) 
 {
     var sum = nativeArray
         .AsQuery()
