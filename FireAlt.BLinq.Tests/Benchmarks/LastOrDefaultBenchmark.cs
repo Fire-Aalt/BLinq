@@ -28,7 +28,8 @@ namespace FireAlt.BLinq.Tests.Benchmarks
 
         public int Linq(in NativeArray<int> values)
         {
-            return values.LastOrDefault(Where) + values.LastOrDefault(NoMatch);
+            return values.LastOrDefault(Where)
+                   + values.LastOrDefault(NoMatch);
         }
 
         public int ZLinq(in NativeArray<int> values)

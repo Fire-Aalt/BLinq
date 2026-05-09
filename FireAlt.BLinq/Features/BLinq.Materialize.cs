@@ -467,7 +467,7 @@ namespace FireAlt.BLinq
             }
 
             entries.Sort(new StableSortEntryComparer<T, TComparer>(comparer));
-
+            
             for (var i = 0; i < entries.Length; i++)
             {
                 list[i] = entries[i].Value;
