@@ -116,7 +116,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
                 Measure.Custom(new SampleGroup($"Relative.BLinq.Burst.{benchmarkName}/{elementCount}", SampleUnit.Undefined, true), burstSpeedup);
 
                 TestContext.Out.WriteLine("\n");
-                TestContext.Out.WriteLine($"{benchmarkName}.Benchmark @ {elementCount} elements | LINQ x1.00 | ZLinq x{zLinqSpeedup:0.00} | BLinq.NoBurst x{bLinqSpeedup:0.00} | BLinq.Burst x{burstSpeedup:0.00}");
+                TestContext.Out.WriteLine($"| {benchmarkName} | LINQ x1.00 | ZLinq x{zLinqSpeedup:0.00} | BLinq.NoBurst x{bLinqSpeedup:0.00} | BLinq.Burst x{burstSpeedup:0.00} |");
                 TestContext.Out.WriteLine("\n");
             }
             else
@@ -129,7 +129,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
                 Measure.Custom(new SampleGroup($"Relative.BLinq.Burst.{benchmarkName}/{elementCount}", SampleUnit.Undefined, true), burstSpeedup);
 
                 TestContext.Out.WriteLine("\n");
-                TestContext.Out.WriteLine($"{benchmarkName}.Benchmark @ {elementCount} elements | LINQ ----- | ZLinq x1.00 | BLinq.NoBurst x{bLinqSpeedup:0.00} | BLinq.Burst x{burstSpeedup:0.00}");
+                TestContext.Out.WriteLine($"| {benchmarkName} | LINQ ----- | ZLinq x1.00 | BLinq.NoBurst x{bLinqSpeedup:0.00} | BLinq.Burst x{burstSpeedup:0.00} |");
                 TestContext.Out.WriteLine("\n");
             }
         }

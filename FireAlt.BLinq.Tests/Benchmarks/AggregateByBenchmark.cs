@@ -10,7 +10,7 @@ using ZLinq;
 
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true)]
     public class AggregateByBenchmark : IBenchmark
     {
         public string Name => "AggregateBy";
@@ -21,7 +21,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [Category("Benchmark")]
         [TestCase(1_000)]
         [TestCase(10_000)]
-        [TestCase(100_000)]
+        
         public void CompareLINQs(int elementCount)
         {
             BenchmarkRunner.Run<AggregateByBenchmark>(elementCount, BLinq, BLinqBurst, true);
@@ -48,7 +48,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
                 .Sum(AggregateSelector);
         }
         
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true)]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);

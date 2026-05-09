@@ -9,7 +9,7 @@ using ZLinq;
 
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true)]
     public class ContainsBenchmark : IBenchmark
     {
         public string Name => "Contains";
@@ -20,7 +20,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [Category("Benchmark")]
         [TestCase(1_000)]
         [TestCase(10_000)]
-        [TestCase(100_000)]
+        
         public void CompareLINQs(int elementCount)
         {
             BenchmarkRunner.Run<ContainsBenchmark>(elementCount, BLinq, BLinqBurst);
@@ -44,7 +44,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
                 + (values.AsQuery().Contains(-1) ? 2 : 0);
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true)]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);

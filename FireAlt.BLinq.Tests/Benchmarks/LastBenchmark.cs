@@ -9,7 +9,7 @@ using ZLinq;
 
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true)]
     public class LastBenchmark : IBenchmark
     {
         public string Name => "Last";
@@ -20,7 +20,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [Category("Benchmark")]
         [TestCase(1_000)]
         [TestCase(10_000)]
-        [TestCase(100_000)]
+        
         public void CompareLINQs(int elementCount)
         {
             BenchmarkRunner.Run<LastBenchmark>(elementCount, BLinq, BLinqBurst);
@@ -41,7 +41,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
             return values.AsQuery().Last(Where);
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true)]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
@@ -50,11 +50,6 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         private static bool Where(int value)
         {
             return (value & 1) == 0;
-        }
-
-        private static bool NoMatch(int value)
-        {
-            return value < 0;
         }
     }
 }

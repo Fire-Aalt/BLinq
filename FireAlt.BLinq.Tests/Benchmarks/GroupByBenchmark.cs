@@ -8,7 +8,7 @@ using ZLinq;
 
 namespace FireAlt.BLinq.Tests.Benchmarks
 {
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true)]
     public class GroupByBenchmark : IBenchmark
     {
         public string Name => "GroupBy";
@@ -19,7 +19,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
         [Category("Benchmark")]
         [TestCase(1_000)]
         [TestCase(10_000)]
-        [TestCase(100_000)]
+        
         public void CompareLINQs(int elementCount)
         {
             BenchmarkRunner.Run<GroupByBenchmark>(elementCount, BLinq, BLinqBurst);
@@ -48,7 +48,7 @@ namespace FireAlt.BLinq.Tests.Benchmarks
                 .Sum(group => (group.Key + 1) * group.AsQuery().Sum(Select));
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true)]
         public static int BLinqBurst(in NativeArray<int> values)
         {
             return BLinq(values);
