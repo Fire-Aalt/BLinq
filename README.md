@@ -26,7 +26,7 @@ private static void BurstedMethod(in NativeArray<int> nativeArray)
 
 private static int SelectBig(int value) 
 {
-    return value > 5;
+    return value > 5 ? value : 0;
 }
 ```
 
