@@ -56,8 +56,9 @@ private static int SelectBig(int value)
 
 ## Burst Behavior
 
-In benchmarks, Burst can vectorize pretty complex fixed-count pipelines such as `Select()`, `Sum()`, `Average()`, and similar non-count changing queries. 
-Operators that can change the number of elements, such as `Where()`, naturally limit vectorization after that point because the resulting count is data-dependent.
+In benchmarks, Burst showed that it can vectorize pretty complex fixed-count pipelines including `Select()`, `Sum()`, `Average()`, and similar non-count changing queries. 
+Operators that can change the number of elements, such as `Where()`, naturally limit vectorization after that point because the resulting count is data-dependent. 
+In practice, I found that Burst produces nearly identical assembly for queries created using BLinq, compared to manually written operators, even if the query contains multiple levels of generic depth: Burst Compiler is very good at optimizing all abstractions away.
 
 Comparisons against regular LINQ under Burst have shown query speedups from about **2.5x** to **100x** depending on query shape ([Benchmarks](#benchmarks)). 
 BLinq only targets unmanaged data and unmanaged-compatible query logic, and thus it is not intended to be a drop-in replacement for managed `IEnumerable<T>` pipelines.
@@ -164,17 +165,17 @@ Please see [Limitations](#limitations) for details.
 
 ## Materialization
 
-| Operator              | Brief                                                                                    |
-|-----------------------|------------------------------------------------------------------------------------------|
-| `ToNativeList`        | Materializes a query into a `NativeList<T>` using the requested allocator.               |
-| `ToUnsafeList`        | Materializes a query into an `UnsafeList<T>` using the requested allocator.              |
-| `ToNativeArray`       | Materializes a query into a `NativeArray<T>` using the requested allocator.              |
-| `ToNativeHashSet`     | Materializes a query into a `NativeHashSet<T>`.                                          |
-| `ToNativeHashMap`     | Materializes a query into a `NativeHashMap<TKey,TValue>` using selected keys and values. |
-| `ToManagedList`       | Materializes a query into a managed list.                                                |
-| `ToManagedArray`      | Materializes a query into a managed array.                                               |
-| `ToManagedHashSet`    | Materializes a query into a managed hash set.                                            |
-| `ToManagedDictionary` | Materializes a query into a managed dictionary using selected keys and values.           |
+| Operator              | Brief                                                                                                              |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------|
+| `ToNativeList`        | Materializes a query into a `NativeList<T>` using the requested allocator.                                         |
+| `ToUnsafeList`        | Materializes a query into an `UnsafeList<T>` using the requested allocator.                                        |
+| `ToNativeArray`       | Materializes a query into a `NativeArray<T>` using the requested allocator.                                        |
+| `ToNativeHashSet`     | Materializes a query into a `NativeHashSet<T>` using the requested allocator.                                      |
+| `ToNativeHashMap`     | Materializes a query into a `NativeHashMap<TKey,TValue>` using selected keys and values and a requested allocator. |
+| `ToManagedList`       | Materializes a query into a managed list.                                                                          |
+| `ToManagedArray`      | Materializes a query into a managed array.                                                                         |
+| `ToManagedHashSet`    | Materializes a query into a managed hash set.                                                                      |
+| `ToManagedDictionary` | Materializes a query into a managed dictionary using selected keys and values.                                     |
 
 ## Unsupported Core LINQ Operators
 
