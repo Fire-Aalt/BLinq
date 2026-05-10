@@ -1,6 +1,6 @@
 # BLinq
 
-Burst-compatible LINQ for unmanaged Unity collections, built around generic query fusion, IL post-processing, Roslyn validation, and source-generated boilerplate.
+Burst-compatible LINQ for unmanaged Unity collections, built around generic type system, IL post-processing, Roslyn validation, and source-generation.
 
 BLinq combines practical ideas from existing LINQ libraries with an architecture designed specifically for High-Performance C# (HPC#): 
 constrained unmanaged pipelines, ILPP delegate rewriting, and source-generated boilerplate where necessary.
