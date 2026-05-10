@@ -157,7 +157,6 @@ Please see [Limitations](#limitations) for details.
 | `TakeWhile`          | Yields elements while they match a predicate.                                                                         |
 | `ThenBy`             | Adds a secondary ascending key ordering to an ordered query.                                                          |
 | `ThenByDescending`   | Adds a secondary descending key ordering to an ordered query.                                                         |
-| `ToLookup`           | Groups elements by key and returns a lookup stored in native containers.                                              |
 | `Union`              | Produces the set union of two queries using default equality.                                                         |
 | `UnionBy`            | Produces the set union of two queries according to a selected key.                                                    |
 | `Where`              | Filters a query so that only elements matching a predicate are yielded.                                               |
