@@ -17,11 +17,16 @@ using FireAlt.BLinq;
 [BurstCompile]
 private static void BurstedMethod(in NativeArray<int> nativeArray) 
 {
+    var localVar = 2;
     var sum = nativeArray
         .AsQuery()
-        .Where(x => x > 0)
-        .Select(x => x * 2)
-        .Sum();
+        .Where(x => x > 0) // Supports anonymous lambdas
+        .Select(x => x * localVar) // Supports capturing local vars
+        .Sum(SelectBig); // Supports all LINQ overloads and static method capturing
+
+private static int SelectBig(int value) 
+{
+    return value > 5;
 }
 ```
 
