@@ -41,7 +41,7 @@ private static void BurstedMethod(in NativeArray<int> nativeArray)
 
 ## Highlights
 
-- **Broad LINQ coverage**: 97% of core LINQ operators are available, with each implemented operator covered by unit tests and benchmarks.
+- **Broad LINQ coverage**: 97% of core LINQ operators up to .Net 10 are available, with each implemented operator covered by unit tests and benchmarks.
 - **Ergonomic `Func` APIs**: an ILPostProcessor rewrites supported LINQ-shaped `Func` calls into unmanaged strategy structs, so common query code remains natural while staying Burst compatible.
 - **Burst-friendly query fusion**: operators compose through generics all the way down, creating one concrete mega-type that represents the complete query.
 - **Lazy by default**: query chains are initialized lazily and do not allocate intermediate collections unless materialization is required.
