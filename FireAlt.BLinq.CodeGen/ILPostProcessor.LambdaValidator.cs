@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
@@ -32,9 +31,14 @@ namespace FireAlt.BLinq.CodeGen
                 return null;
             }
 
-            var fields = declaringType.Fields
-                .Where(f => !f.IsStatic)
-                .ToArray();
+            var fields = new List<FieldDefinition>();
+            foreach (var field in declaringType.Fields)
+            {
+                if (!field.IsStatic)
+                {
+                    fields.Add(field);
+                }
+            }
 
             foreach (var field in fields)
             {
@@ -94,7 +98,11 @@ namespace FireAlt.BLinq.CodeGen
                 }
             }
 
-            var capturedFieldNames = new HashSet<string>(capturedFields.Select(field => field.FullName));
+            var capturedFieldNames = new HashSet<string>();
+            foreach (var field in capturedFields)
+            {
+                capturedFieldNames.Add(field.FullName);
+            }
             foreach (var instruction in lambda.Body.Instructions)
             {
                 if (TryGetManagedTypeUsage(instruction, capturedFieldNames, out var message))
@@ -186,7 +194,7 @@ namespace FireAlt.BLinq.CodeGen
             if (instruction.Operand is MethodReference methodReference)
             {
                 var isNativeDelegateMethod = IsPotentialNativeDelegateMethodReference(methodReference) &&
-                    HasNativeDelegateMethodAttribute(methodReference.Resolve());
+                    HasNativeDelegateMethodAttribute(ResolveMethod(methodReference));
                 if (methodReference.HasThis && !IsUnmanaged(methodReference.DeclaringType))
                 {
                     message = $"BLinq delegate body cannot call instance method on managed type '{methodReference.DeclaringType.FullName}'.";
@@ -373,7 +381,7 @@ namespace FireAlt.BLinq.CodeGen
                 return true;
             }
 
-            var definition = elementType.Resolve();
+            var definition = ResolveType(elementType);
             if (definition == null || !definition.IsValueType)
             {
                 return false;
@@ -392,9 +400,16 @@ namespace FireAlt.BLinq.CodeGen
 
             try
             {
-                return definition.Fields
-                    .Where(field => !field.IsStatic)
-                    .All(field => IsUnmanaged(CloseTypeGenericType(closedType, field.FieldType), visited));
+                foreach (var field in definition.Fields)
+                {
+                    if (!field.IsStatic &&
+                        !IsUnmanaged(CloseTypeGenericType(closedType, field.FieldType), visited))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
             finally
             {

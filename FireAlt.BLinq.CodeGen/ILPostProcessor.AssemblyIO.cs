@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
@@ -32,12 +31,14 @@ namespace FireAlt.BLinq.CodeGen
             private readonly Dictionary<string, HashSet<string>> _referenceToPathMap = new();
             private readonly Dictionary<string, AssemblyDefinition> _cache = new();
             private readonly Dictionary<string, string> _assemblyFullNameCache = new();
-            private readonly string[] _referenceDirectories;
+            private readonly HashSet<string> _failedAssemblyResolutions = new();
+            private readonly List<string> _referenceDirectories = new();
+            private readonly HashSet<string> _referenceDirectorySet = new();
             private AssemblyDefinition _selfAssembly;
 
             public PostProcessorAssemblyResolver(ICompiledAssembly compiledAssembly)
             {
-                this._compiledAssembly = compiledAssembly;
+                _compiledAssembly = compiledAssembly;
 
                 foreach (var reference in compiledAssembly.References)
                 {
@@ -49,9 +50,12 @@ namespace FireAlt.BLinq.CodeGen
                     }
 
                     paths.Add(reference);
+                    var directory = Path.GetDirectoryName(reference);
+                    if (directory != null && _referenceDirectorySet.Add(directory))
+                    {
+                        _referenceDirectories.Add(directory);
+                    }
                 }
-
-                _referenceDirectories = _referenceToPathMap.Values.SelectMany(p => p.Select(Path.GetDirectoryName)).Distinct().ToArray();
             }
 
             public void Dispose()
@@ -70,9 +74,15 @@ namespace FireAlt.BLinq.CodeGen
                     return _selfAssembly;
                 }
 
+                if (_failedAssemblyResolutions.Contains(name.FullName))
+                {
+                    return null;
+                }
+
                 var fileName = FindFile(name);
                 if (fileName == null)
                 {
+                    _failedAssemblyResolutions.Add(name.FullName);
                     return null;
                 }
 
@@ -105,7 +115,10 @@ namespace FireAlt.BLinq.CodeGen
                 {
                     if (paths.Count == 1)
                     {
-                        return paths.First();
+                        foreach (var path in paths)
+                        {
+                            return path;
+                        }
                     }
 
                     foreach (var path in paths)

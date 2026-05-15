@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
@@ -40,7 +39,7 @@ namespace FireAlt.BLinq.CodeGen
                 return null;
             }
 
-            var lambda = lambdaReference.Resolve();
+            var lambda = ResolveMethod(lambdaReference);
             if (lambda == null)
             {
                 AddError(diagnostics, owner, callInstruction, $"BLinq delegate weaving could not resolve '{lambdaReference.FullName}'.");
@@ -73,13 +72,24 @@ namespace FireAlt.BLinq.CodeGen
                 }
             }
 
-            var capturedFields = GetCapturedFields(lambda, diagnostics, owner, callInstruction);
+            IReadOnlyList<FieldDefinition> capturedFields;
+            using (MeasureStage("Analyze captures"))
+            {
+                capturedFields = GetCapturedFields(lambda, diagnostics, owner, callInstruction);
+            }
+
             if (capturedFields == null)
             {
                 return null;
             }
 
-            if (!ValidateLambdaBodyUsesOnlyUnmanagedTypes(lambda, capturedFields, diagnostics, owner, callInstruction))
+            bool valid;
+            using (MeasureStage("Validate lambdas"))
+            {
+                valid = ValidateLambdaBodyUsesOnlyUnmanagedTypes(lambda, capturedFields, diagnostics, owner, callInstruction);
+            }
+
+            if (!valid)
             {
                 return null;
             }
@@ -129,9 +139,13 @@ namespace FireAlt.BLinq.CodeGen
                 adapterType.ClassSize = 1;
             }
 
-            var ctor = CreateAdapterConstructor(module, adapterType, instanceTargetField, capturedFields, fieldMap);
-            adapterType.Methods.Add(ctor);
-            adapterType.Methods.Add(CloneLambdaMethod(module, adapterType, lambda, signature, interfaceType, instanceTargetField, fieldMap));
+            MethodDefinition ctor;
+            using (MeasureStage("Clone lambdas"))
+            {
+                ctor = CreateAdapterConstructor(module, adapterType, instanceTargetField, capturedFields, fieldMap);
+                adapterType.Methods.Add(ctor);
+                adapterType.Methods.Add(CloneLambdaMethod(module, adapterType, lambda, signature, interfaceType, instanceTargetField, fieldMap));
+            }
 
             foreach (var instruction in instructionsToRemove)
             {
@@ -377,7 +391,7 @@ namespace FireAlt.BLinq.CodeGen
             return ctor;
         }
 
-        private static MethodDefinition CloneLambdaMethod(
+        private MethodDefinition CloneLambdaMethod(
             ModuleDefinition module,
             TypeDefinition adapterType,
             MethodDefinition lambda,
@@ -386,9 +400,11 @@ namespace FireAlt.BLinq.CodeGen
             FieldDefinition instanceTargetField,
             IReadOnlyDictionary<FieldDefinition, FieldDefinition> fieldMap)
         {
-            var interfaceMethod = interfaceType.Resolve().Methods.First(method =>
-                !method.IsSpecialName &&
-                method.HasThis);
+            var interfaceMethod = ResolveInterfaceMethod(interfaceType);
+            if (interfaceMethod == null)
+            {
+                throw new InvalidOperationException($"Could not resolve native delegate interface method for '{interfaceType.FullName}'.");
+            }
 
             var method = new MethodDefinition(
                 interfaceMethod.Name,
@@ -448,7 +464,13 @@ namespace FireAlt.BLinq.CodeGen
                 }
                 else if (cloned.Operand is Instruction[] targets)
                 {
-                    cloned.Operand = targets.Select(t => instructionMap[t]).ToArray();
+                    var mappedTargets = new Instruction[targets.Length];
+                    for (var i = 0; i < targets.Length; i++)
+                    {
+                        mappedTargets[i] = instructionMap[targets[i]];
+                    }
+
+                    cloned.Operand = mappedTargets;
                 }
             }
 

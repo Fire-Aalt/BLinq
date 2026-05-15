@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
@@ -20,7 +19,7 @@ namespace FireAlt.BLinq.CodeGen
                 return false;
             }
 
-            var placeholder = placeholderCall.Resolve();
+            var placeholder = ResolveMethod(placeholderCall);
             if (placeholder == null)
             {
                 return false;
@@ -33,20 +32,26 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             var module = owner.Module;
-            var delegateParameters = placeholder.Parameters
-                .Where(parameter => IsFuncOrActionDelegateType(CloseMethodGenericType(module, parameter.ParameterType, placeholderCall)))
-                .ToArray();
-
-            if (delegateParameters.Length != interfaceDefinitions.Count)
+            var delegateParameters = new List<ParameterDefinition>();
+            foreach (var parameter in placeholder.Parameters)
             {
-                AddError(diagnostics, owner, callInstruction, $"BLinq delegate method '{placeholder.FullName}' has {interfaceDefinitions.Count} delegate attributes but {delegateParameters.Length} delegate parameters.");
+                if (IsFuncOrActionDelegateType(CloseMethodGenericType(module, parameter.ParameterType, placeholderCall)))
+                {
+                    delegateParameters.Add(parameter);
+                }
+            }
+
+            if (delegateParameters.Count != interfaceDefinitions.Count)
+            {
+                AddError(diagnostics, owner, callInstruction, $"BLinq delegate method '{placeholder.FullName}' has {interfaceDefinitions.Count} delegate attributes but {delegateParameters.Count} delegate parameters.");
                 return false;
             }
 
-            var originalInstructions = owner.Body.Instructions.ToArray();
-            var originalInstructionState = originalInstructions.ToDictionary(
-                instruction => instruction,
-                instruction => (instruction.OpCode, instruction.Operand));
+            var originalInstructionState = new Dictionary<Instruction, (OpCode OpCode, object Operand)>(owner.Body.Instructions.Count);
+            foreach (var instruction in owner.Body.Instructions)
+            {
+                originalInstructionState.Add(instruction, (instruction.OpCode, instruction.Operand));
+            }
             var originalVariableCount = owner.Body.Variables.Count;
             var originalNestedTypeCount = owner.DeclaringType.NestedTypes.Count;
             var originalAdapterIndex = _adapterIndex;
@@ -59,9 +64,13 @@ namespace FireAlt.BLinq.CodeGen
 
             bool Fail()
             {
-                foreach (var instruction in owner.Body.Instructions.Where(instruction => !originalInstructionState.ContainsKey(instruction)).ToArray())
+                var instructions = owner.Body.Instructions;
+                for (var i = instructions.Count - 1; i >= 0; i--)
                 {
-                    owner.Body.Instructions.Remove(instruction);
+                    if (!originalInstructionState.ContainsKey(instructions[i]))
+                    {
+                        instructions.RemoveAt(i);
+                    }
                 }
 
                 foreach (var pair in originalInstructionState)
@@ -121,7 +130,7 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             var adapters = new Dictionary<int, AdapterInfo>();
-            for (var i = delegateParameters.Length - 1; i >= 0; i--)
+            for (var i = delegateParameters.Count - 1; i >= 0; i--)
             {
                 var parameter = delegateParameters[i];
                 var trailingArguments = MoveTrailingArgumentsAfterDelegate(owner, callInstruction, placeholder, parameter, diagnostics);
@@ -138,7 +147,12 @@ namespace FireAlt.BLinq.CodeGen
                 }
 
                 var interfaceType = CreateNativeDelegateInterfaceType(module, interfaceDefinitions[i], signature);
-                var adapter = CreateAdapter(owner, callInstruction, signature, interfaceType, diagnostics);
+                AdapterInfo adapter;
+                using (MeasureStage("Emit adapters"))
+                {
+                    adapter = CreateAdapter(owner, callInstruction, signature, interfaceType, diagnostics);
+                }
+
                 if (adapter == null)
                 {
                     return Fail();
@@ -152,7 +166,12 @@ namespace FireAlt.BLinq.CodeGen
                 adapters.Add(parameter.Index, adapter);
             }
 
-            var target = FindTargetMethod(module, placeholderCall, placeholder, adapters, diagnostics, owner, callInstruction);
+            TargetMethodInfo target;
+            using (MeasureStage("Find target methods"))
+            {
+                target = FindTargetMethod(module, placeholderCall, placeholder, adapters, diagnostics, owner, callInstruction);
+            }
+
             if (target == null)
             {
                 return Fail();
@@ -215,8 +234,16 @@ namespace FireAlt.BLinq.CodeGen
                 return cached;
             }
 
-            var hasAttribute = method.CustomAttributes.Any(attribute =>
-                attribute.AttributeType.FullName == NativeDelegateMethodAttributeTypeName);
+            var hasAttribute = false;
+            foreach (var attribute in method.CustomAttributes)
+            {
+                if (attribute.AttributeType.FullName == NativeDelegateMethodAttributeTypeName)
+                {
+                    hasAttribute = true;
+                    break;
+                }
+            }
+
             _nativeDelegateMethodCache.Add(method.FullName, hasAttribute);
             return hasAttribute;
         }
@@ -263,7 +290,19 @@ namespace FireAlt.BLinq.CodeGen
                 current = beforeProducer;
             }
 
-            return moved.SelectMany(argument => argument).ToArray();
+            var total = 0;
+            foreach (var argument in moved)
+            {
+                total += argument.Count;
+            }
+
+            var result = new List<Instruction>(total);
+            foreach (var argument in moved)
+            {
+                result.AddRange(argument);
+            }
+
+            return result;
         }
 
         private static IEnumerable<Instruction> GetMeaningfulInstructionRange(Instruction start, Instruction end)
@@ -362,10 +401,11 @@ namespace FireAlt.BLinq.CodeGen
                 return false;
             }
 
-            var parameterTypes = genericDelegate.GenericArguments
-                .Take(genericDelegate.GenericArguments.Count - 1)
-                .Select(module.ImportReference)
-                .ToArray();
+            var parameterTypes = new TypeReference[genericDelegate.GenericArguments.Count - 1];
+            for (var i = 0; i < parameterTypes.Length; i++)
+            {
+                parameterTypes[i] = module.ImportReference(genericDelegate.GenericArguments[i]);
+            }
 
             signature = new DelegateSignature(
                 parameterTypes,
@@ -393,9 +433,11 @@ namespace FireAlt.BLinq.CodeGen
                 return false;
             }
 
-            var parameterTypes = genericDelegate.GenericArguments
-                .Select(module.ImportReference)
-                .ToArray();
+            var parameterTypes = new TypeReference[genericDelegate.GenericArguments.Count];
+            for (var i = 0; i < parameterTypes.Length; i++)
+            {
+                parameterTypes[i] = module.ImportReference(genericDelegate.GenericArguments[i]);
+            }
 
             signature = new DelegateSignature(parameterTypes, module.TypeSystem.Void);
             return true;
@@ -657,10 +699,17 @@ namespace FireAlt.BLinq.CodeGen
                 genericParameter.Type == GenericParameterType.Method)
             {
                 var candidateGenericParameter = candidate.GenericParameters[genericParameter.Position];
-                return candidateGenericParameter.Constraints.Any(constraint =>
-                    TypeReferencesMatch(
+                foreach (var constraint in candidateGenericParameter.Constraints)
+                {
+                    if (TypeReferencesMatch(
                         SubstituteMethodGenericArguments(module, constraint.ConstraintType, candidate, targetGenericArguments),
-                        adapter.InterfaceType));
+                        adapter.InterfaceType))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             if (parameterType is GenericInstanceType genericInstance)
@@ -686,10 +735,23 @@ namespace FireAlt.BLinq.CodeGen
             {
                 return leftGeneric.ElementType.FullName == rightGeneric.ElementType.FullName &&
                     leftGeneric.GenericArguments.Count == rightGeneric.GenericArguments.Count &&
-                    leftGeneric.GenericArguments.Zip(rightGeneric.GenericArguments, TypeReferencesMatch).All(match => match);
+                    GenericArgumentsMatch(leftGeneric, rightGeneric);
             }
 
             return left.FullName == right.FullName;
+        }
+
+        private static bool GenericArgumentsMatch(GenericInstanceType left, GenericInstanceType right)
+        {
+            for (var i = 0; i < left.GenericArguments.Count; i++)
+            {
+                if (!TypeReferencesMatch(left.GenericArguments[i], right.GenericArguments[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static TypeReference UnwrapComparableType(TypeReference type)
@@ -712,8 +774,15 @@ namespace FireAlt.BLinq.CodeGen
 
         private static bool GenericParameterAcceptsInterface(GenericParameter genericParameter, TypeReference interfaceType)
         {
-            return genericParameter.Constraints.Any(constraint =>
-                TypeDefinitionsMatch(constraint.ConstraintType, interfaceType));
+            foreach (var constraint in genericParameter.Constraints)
+            {
+                if (TypeDefinitionsMatch(constraint.ConstraintType, interfaceType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool TypeDefinitionsMatch(TypeReference left, TypeReference right)
@@ -1263,7 +1332,7 @@ namespace FireAlt.BLinq.CodeGen
             GenericInstanceMethod call)
         {
             var inferredArguments = new Dictionary<int, TypeReference>();
-            var methodDefinition = call.Resolve();
+            var methodDefinition = ResolveMethod(call);
             if (methodDefinition == null ||
                 !TryGetArgumentProducerEnds(owner, callInstruction, call, out var producerEnds))
             {

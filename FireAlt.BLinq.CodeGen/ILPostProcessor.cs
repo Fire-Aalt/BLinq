@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -25,6 +24,10 @@ namespace FireAlt.BLinq.CodeGen
         private readonly Dictionary<string, IReadOnlyList<TypeReference>> _nativeDelegateInterfaceCache = new();
         private readonly Dictionary<string, IReadOnlyList<MethodDefinition>> _targetCandidateCache = new();
         private readonly Dictionary<string, bool> _unmanagedTypeCache = new();
+        private readonly Dictionary<string, MethodDefinition> _methodResolveCache = new();
+        private readonly Dictionary<string, TypeDefinition> _typeResolveCache = new();
+        private readonly Dictionary<string, MethodDefinition> _interfaceMethodCache = new();
+        private ProfilingSession _profile;
 
         public override Unity.CompilationPipeline.Common.ILPostProcessing.ILPostProcessor GetInstance()
         {
@@ -33,47 +36,85 @@ namespace FireAlt.BLinq.CodeGen
 
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
-            return compiledAssembly.Name == BLinqAssemblyName ||
-                   compiledAssembly.References.Any(r => Path.GetFileNameWithoutExtension(r) == BLinqAssemblyName);
+            if (compiledAssembly.Name == BLinqAssemblyName)
+            {
+                return true;
+            }
+
+            foreach (var reference in compiledAssembly.References)
+            {
+                if (Path.GetFileNameWithoutExtension(reference) == BLinqAssemblyName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
             var diagnostics = new List<DiagnosticMessage>();
-            if (!MightContainNativeDelegateCall(compiledAssembly))
-            {
-                return new ILPostProcessResult(null, diagnostics);
-            }
-
-            ClearProcessCaches();
-            var assembly = AssemblyDefinitionFor(compiledAssembly);
-            if (!HasCandidateNativeDelegateMemberReference(assembly.MainModule))
-            {
-                return new ILPostProcessResult(null, diagnostics);
-            }
-
+            var profile = new ProfilingSession(compiledAssembly.Name);
+            _profile = profile;
+            var reportProfile = false;
             var modified = false;
 
-            foreach (var type in assembly.MainModule.Types)
+            try
             {
-                modified |= ProcessType(type, diagnostics);
+                using (profile.Measure("PE prefilter"))
+                {
+                    if (!MightContainNativeDelegateCall(compiledAssembly))
+                    {
+                        return new ILPostProcessResult(null, diagnostics);
+                    }
+                }
+
+                reportProfile = true;
+                ClearProcessCaches();
+
+                AssemblyDefinition assembly;
+                using (profile.Measure("Read assembly"))
+                {
+                    assembly = AssemblyDefinitionFor(compiledAssembly);
+                }
+
+                using (profile.Measure("Process methods"))
+                {
+                    foreach (var type in assembly.MainModule.Types)
+                    {
+                        modified |= ProcessType(type, diagnostics);
+                    }
+                }
+
+                if (!modified)
+                {
+                    return new ILPostProcessResult(null, diagnostics);
+                }
+
+                var pe = new MemoryStream();
+                var pdb = new MemoryStream();
+                using (profile.Measure("Write assembly"))
+                {
+                    assembly.Write(pe, new WriterParameters
+                    {
+                        WriteSymbols = true,
+                        SymbolStream = pdb,
+                        SymbolWriterProvider = new PortablePdbWriterProvider(),
+                    });
+                }
+
+                return new ILPostProcessResult(new InMemoryAssembly(pe.ToArray(), pdb.ToArray()), diagnostics);
             }
-
-            if (!modified)
+            finally
             {
-                return new ILPostProcessResult(null, diagnostics);
+                if (reportProfile)
+                {
+                    profile.Report(modified);
+                }
+
+                _profile = null;
             }
-
-            var pe = new MemoryStream();
-            var pdb = new MemoryStream();
-            assembly.Write(pe, new WriterParameters
-            {
-                WriteSymbols = true,
-                SymbolStream = pdb,
-                SymbolWriterProvider = new PortablePdbWriterProvider(),
-            });
-
-            return new ILPostProcessResult(new InMemoryAssembly(pe.ToArray(), pdb.ToArray()), diagnostics);
         }
 
         private bool ProcessType(TypeDefinition type, List<DiagnosticMessage> diagnostics)
@@ -103,11 +144,6 @@ namespace FireAlt.BLinq.CodeGen
 
         private bool ProcessMethod(MethodDefinition method, List<DiagnosticMessage> diagnostics)
         {
-            if (!ContainsCandidateNativeDelegateCall(method))
-            {
-                return false;
-            }
-
             var modified = false;
             _rewrittenEnumeratorTypes.Clear();
             _ambiguousRewrittenEnumeratorTypes.Clear();
@@ -128,7 +164,13 @@ namespace FireAlt.BLinq.CodeGen
                 if (call is GenericInstanceMethod genericCall &&
                     IsPotentialNativeDelegateMethodReference(genericCall))
                 {
-                    if (TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics))
+                    bool rewritten;
+                    using (MeasureStage("Rewrite delegate call"))
+                    {
+                        rewritten = TryRewriteNativeDelegateCall(method, instruction, genericCall, diagnostics);
+                    }
+
+                    if (rewritten)
                     {
                         modified = true;
                     }
@@ -147,7 +189,10 @@ namespace FireAlt.BLinq.CodeGen
 
             if (modified)
             {
-                method.Body.OptimizeMacros();
+                using (MeasureStage("Optimize method macros"))
+                {
+                    method.Body.OptimizeMacros();
+                }
             }
 
             return modified;
@@ -218,75 +263,148 @@ namespace FireAlt.BLinq.CodeGen
             _nativeDelegateInterfaceCache.Clear();
             _targetCandidateCache.Clear();
             _unmanagedTypeCache.Clear();
+            _methodResolveCache.Clear();
+            _typeResolveCache.Clear();
+            _interfaceMethodCache.Clear();
+        }
+
+        private System.IDisposable MeasureStage(string stage)
+        {
+            return _profile == null
+                ? NoopProfileScope.Instance
+                : _profile.Measure(stage);
+        }
+
+        private MethodDefinition ResolveMethod(MethodReference method)
+        {
+            if (method == null)
+            {
+                return null;
+            }
+
+            var key = $"{method.DeclaringType.Scope}|{method.FullName}";
+            if (_methodResolveCache.TryGetValue(key, out var cached))
+            {
+                return cached;
+            }
+
+            MethodDefinition resolved;
+            using (MeasureStage("Resolve methods"))
+            {
+                resolved = method.Resolve();
+            }
+
+            _methodResolveCache[key] = resolved;
+            return resolved;
+        }
+
+        private TypeDefinition ResolveType(TypeReference type)
+        {
+            if (type == null)
+            {
+                return null;
+            }
+
+            var elementType = type.GetElementType();
+            var key = $"{elementType.Scope}|{elementType.FullName}";
+            if (_typeResolveCache.TryGetValue(key, out var cached))
+            {
+                return cached;
+            }
+
+            TypeDefinition resolved;
+            using (MeasureStage("Resolve types"))
+            {
+                resolved = elementType.Resolve();
+            }
+
+            _typeResolveCache[key] = resolved;
+            return resolved;
+        }
+
+        private MethodDefinition ResolveInterfaceMethod(TypeReference interfaceType)
+        {
+            var key = interfaceType.FullName;
+            if (_interfaceMethodCache.TryGetValue(key, out var cached))
+            {
+                return cached;
+            }
+
+            var definition = ResolveType(interfaceType);
+            if (definition == null)
+            {
+                return null;
+            }
+
+            foreach (var method in definition.Methods)
+            {
+                if (!method.IsSpecialName && method.HasThis)
+                {
+                    _interfaceMethodCache[key] = method;
+                    return method;
+                }
+            }
+
+            return null;
         }
 
         private static bool MightContainNativeDelegateCall(ICompiledAssembly compiledAssembly)
         {
             var peData = compiledAssembly.InMemoryAssembly.PeData;
-            return ContainsAscii(peData, "BLinqExtensions") &&
-                (ContainsAscii(peData, "Func`") || ContainsAscii(peData, "Action"));
+            return ContainsAscii(peData, "BLinqExtensions", "Func`", "Action");
         }
 
-        private static bool ContainsAscii(byte[] data, string value)
+        private static bool ContainsAscii(byte[] data, string required, string eitherLeft, string eitherRight)
         {
-            if (data == null || data.Length < value.Length)
+            if (data == null || data.Length < required.Length)
             {
                 return false;
             }
 
-            for (var i = 0; i <= data.Length - value.Length; i++)
+            var foundRequired = false;
+            var foundEither = false;
+            for (var i = 0; i < data.Length && (!foundRequired || !foundEither); i++)
             {
-                var matched = true;
-                for (var j = 0; j < value.Length; j++)
+                if (!foundRequired && MatchesAscii(data, i, required))
                 {
-                    if (data[i + j] != (byte)value[j])
-                    {
-                        matched = false;
-                        break;
-                    }
+                    foundRequired = true;
                 }
 
-                if (matched)
+                if (!foundEither &&
+                    (MatchesAscii(data, i, eitherLeft) || MatchesAscii(data, i, eitherRight)))
                 {
-                    return true;
+                    foundEither = true;
                 }
             }
 
-            return false;
+            return foundRequired && foundEither;
         }
 
-        private static bool HasCandidateNativeDelegateMemberReference(ModuleDefinition module)
+        private static bool MatchesAscii(byte[] data, int start, string value)
         {
-            foreach (var memberReference in module.GetMemberReferences())
-            {
-                if (memberReference is MethodReference methodReference &&
-                    IsPotentialNativeDelegateMethodReference(methodReference))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool ContainsCandidateNativeDelegateCall(MethodDefinition method)
-        {
-            if (!method.HasBody)
+            if (start + value.Length > data.Length)
             {
                 return false;
             }
 
-            foreach (var instruction in method.Body.Instructions)
+            for (var i = 0; i < value.Length; i++)
             {
-                if (instruction.OpCode == OpCodes.Call &&
-                    instruction.Operand is MethodReference methodReference &&
-                    IsPotentialNativeDelegateMethodReference(methodReference))
+                if (data[start + i] != (byte)value[i])
                 {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
+        }
+
+        private sealed class NoopProfileScope : System.IDisposable
+        {
+            public static readonly NoopProfileScope Instance = new();
+
+            public void Dispose()
+            {
+            }
         }
 
         private static bool IsPotentialNativeDelegateMethodReference(MethodReference methodReference)

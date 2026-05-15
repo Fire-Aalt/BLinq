@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Mono.Cecil;
 
 namespace FireAlt.BLinq.CodeGen
@@ -59,9 +58,13 @@ namespace FireAlt.BLinq.CodeGen
                 return;
             }
 
-            foreach (var attribute in source.CustomAttributes.Where(attribute =>
-                attribute.AttributeType.FullName == TupleElementNamesAttributeTypeName))
+            foreach (var attribute in source.CustomAttributes)
             {
+                if (attribute.AttributeType.FullName != TupleElementNamesAttributeTypeName)
+                {
+                    continue;
+                }
+
                 var copied = new CustomAttribute(targetModule.ImportReference(attribute.Constructor));
                 foreach (var argument in attribute.ConstructorArguments)
                 {
@@ -94,9 +97,13 @@ namespace FireAlt.BLinq.CodeGen
             switch (argument.Value)
             {
                 case CustomAttributeArgument[] values:
-                    return new CustomAttributeArgument(
-                        type,
-                        values.Select(value => ImportCustomAttributeArgument(module, value)).ToArray());
+                    var importedValues = new CustomAttributeArgument[values.Length];
+                    for (var i = 0; i < values.Length; i++)
+                    {
+                        importedValues[i] = ImportCustomAttributeArgument(module, values[i]);
+                    }
+
+                    return new CustomAttributeArgument(type, importedValues);
                 case TypeReference typeReference:
                     return new CustomAttributeArgument(type, module.ImportReference(typeReference));
                 default:

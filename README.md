@@ -310,9 +310,6 @@ I could not find a way to whitelist the declared `Func` method because the analy
 - **IL2CPP generic depth**: IL2CPP has a maximum generic nesting depth, which is `7` by default. 
 Query chains should stay within that operation depth unless the IL2CPP generic depth limit is increased through IL2CPP compiler arguments: with a higher limit, longer query chains are supported.
 
-## TODO
-- Second round of ILPP optimizations.
-
 ## Future C# / Unity TODO
 
 - CORE CLR: revise Mono.Cecil dependency.
