@@ -39,6 +39,7 @@ private static int SelectBig(int value)
 - [Materialization](#materialization)
 - [Unsupported Core LINQ Operators](#unsupported-core-linq-operators)
 - [Benchmarks](#benchmarks)
+- [ILPP Profiling](#ilpp-profiling)
 - [Source Generation Attributes](#source-generation-attributes)
 - [Limitations](#limitations)
 - [TODO](#todo)
@@ -251,6 +252,14 @@ Each operator test used 10,000 elements, with multiple overloads included where 
 | UnionBy             | -----   | x1.00    | x2.29         | x4.83         |
 | Where               | x1.00   | x1.72    | x5.46         | x25.45        |
 | Zip                 | x1.00   | x2.22    | x4.42         | x284.52       |
+
+## ILPP Profiling
+
+Define `BLINQ_ILPP_PROFILE` to enable IL post-processor timing logs.
+When enabled, BLinq writes `[BLinq ILPP]` entries to Unity's Editor log with total ILPP time, nested stage timings, self time for parent stages, and call counts for repeated stages.
+
+This is intended for diagnosing editor import or compilation slowdowns.
+Leave the define disabled during normal development if you do not need ILPP timing output.
 
 ## Source Generation Attributes
 
