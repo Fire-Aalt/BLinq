@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
@@ -113,6 +114,42 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return true;
+        }
+
+        private bool ValidateLambdaBodyUsesOnlyUnmanagedTypesCached(
+            MethodDefinition lambda,
+            IReadOnlyList<FieldDefinition> capturedFields,
+            List<DiagnosticMessage> diagnostics,
+            MethodDefinition owner,
+            Instruction diagnosticInstruction)
+        {
+            var key = BuildLambdaValidationCacheKey(lambda, capturedFields);
+            if (_validLambdaBodyCache.Contains(key))
+            {
+                return true;
+            }
+
+            if (!ValidateLambdaBodyUsesOnlyUnmanagedTypes(lambda, capturedFields, diagnostics, owner, diagnosticInstruction))
+            {
+                return false;
+            }
+
+            _validLambdaBodyCache.Add(key);
+            return true;
+        }
+
+        private static string BuildLambdaValidationCacheKey(MethodDefinition lambda, IReadOnlyList<FieldDefinition> capturedFields)
+        {
+            var builder = new StringBuilder(lambda.Module.Assembly.FullName);
+            builder.Append('|');
+            builder.Append(lambda.FullName);
+            for (var i = 0; i < capturedFields.Count; i++)
+            {
+                builder.Append('|');
+                builder.Append(capturedFields[i].FullName);
+            }
+
+            return builder.ToString();
         }
 
         private bool TryGetManagedTypeUsage(

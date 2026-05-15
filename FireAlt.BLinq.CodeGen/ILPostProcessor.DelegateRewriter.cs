@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
@@ -47,11 +48,16 @@ namespace FireAlt.BLinq.CodeGen
                 return false;
             }
 
-            var originalInstructionState = new Dictionary<Instruction, (OpCode OpCode, object Operand)>(owner.Body.Instructions.Count);
-            foreach (var instruction in owner.Body.Instructions)
+            Dictionary<Instruction, (OpCode OpCode, object Operand)> originalInstructionState;
+            using (MeasureStage("Create rewrite snapshot"))
             {
-                originalInstructionState.Add(instruction, (instruction.OpCode, instruction.Operand));
+                originalInstructionState = new Dictionary<Instruction, (OpCode OpCode, object Operand)>(owner.Body.Instructions.Count);
+                foreach (var instruction in owner.Body.Instructions)
+                {
+                    originalInstructionState.Add(instruction, (instruction.OpCode, instruction.Operand));
+                }
             }
+
             var originalVariableCount = owner.Body.Variables.Count;
             var originalNestedTypeCount = owner.DeclaringType.NestedTypes.Count;
             var originalAdapterIndex = _adapterIndex;
@@ -133,20 +139,35 @@ namespace FireAlt.BLinq.CodeGen
             for (var i = delegateParameters.Count - 1; i >= 0; i--)
             {
                 var parameter = delegateParameters[i];
-                var trailingArguments = MoveTrailingArgumentsAfterDelegate(owner, callInstruction, placeholder, parameter, diagnostics);
+                IReadOnlyList<Instruction> trailingArguments;
+                using (MeasureStage("Move trailing arguments"))
+                {
+                    trailingArguments = MoveTrailingArgumentsAfterDelegate(owner, callInstruction, placeholder, parameter, diagnostics);
+                }
+
                 if (trailingArguments == null)
                 {
                     return Fail();
                 }
 
                 var delegateType = CloseMethodGenericType(module, parameter.ParameterType, placeholderCall);
-                var signature = ResolveDelegateSignature(module, delegateType, diagnostics, owner, callInstruction);
+                DelegateSignature signature;
+                using (MeasureStage("Resolve delegate signatures"))
+                {
+                    signature = ResolveDelegateSignature(module, delegateType, diagnostics, owner, callInstruction);
+                }
+
                 if (signature == null)
                 {
                     return Fail();
                 }
 
-                var interfaceType = CreateNativeDelegateInterfaceType(module, interfaceDefinitions[i], signature);
+                TypeReference interfaceType;
+                using (MeasureStage("Create delegate interface types"))
+                {
+                    interfaceType = CreateNativeDelegateInterfaceType(module, interfaceDefinitions[i], signature);
+                }
+
                 AdapterInfo adapter;
                 using (MeasureStage("Emit adapters"))
                 {
@@ -178,9 +199,12 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             callInstruction.Operand = target.Call;
-            var placeholderReturnType = CloseMethodGenericType(module, placeholderCall.ReturnType, placeholderCall);
-            MapRewrittenReturnType(placeholderReturnType, target.ReturnType);
-            MapRewrittenStoredLocal(owner, callInstruction, placeholderReturnType, target.ReturnType);
+            using (MeasureStage("Map rewritten types"))
+            {
+                var placeholderReturnType = CloseMethodGenericType(module, placeholderCall.ReturnType, placeholderCall);
+                MapRewrittenReturnType(placeholderReturnType, target.ReturnType);
+                MapRewrittenStoredLocal(owner, callInstruction, placeholderReturnType, target.ReturnType);
+            }
 
             return true;
         }
@@ -514,18 +538,58 @@ namespace FireAlt.BLinq.CodeGen
                 placeholderCall,
                 placeholder);
 
-            var candidates = GetTargetCandidates(placeholder);
+            var cacheKey = CreateTargetCandidateCacheKey(placeholder, placeholderGenericArguments, adapters);
+            if (_targetCandidateMatchCache.TryGetValue(cacheKey, out var cachedCandidate) &&
+                TryCreateTargetMethod(module, placeholderCall, placeholder, cachedCandidate, placeholderGenericArguments, adapters, out var cachedTarget))
+            {
+                return cachedTarget;
+            }
 
+            var candidates = GetTargetCandidates(placeholder);
             foreach (var candidate in candidates)
             {
                 if (TryCreateTargetMethod(module, placeholderCall, placeholder, candidate, placeholderGenericArguments, adapters, out var target))
                 {
+                    _targetCandidateMatchCache[cacheKey] = candidate;
                     return target;
                 }
             }
 
             AddError(diagnostics, owner, diagnosticInstruction, $"BLinq delegate weaving could not find unmanaged overload for '{placeholder.FullName}'.");
             return null;
+        }
+
+        private static string CreateTargetCandidateCacheKey(
+            MethodDefinition placeholder,
+            IReadOnlyDictionary<string, TypeReference> placeholderGenericArguments,
+            IReadOnlyDictionary<int, AdapterInfo> adapters)
+        {
+            var builder = new StringBuilder(placeholder.FullName);
+            foreach (var genericParameter in placeholder.GenericParameters)
+            {
+                builder.Append('|');
+                builder.Append(genericParameter.Name);
+                builder.Append('=');
+                if (placeholderGenericArguments.TryGetValue(genericParameter.Name, out var argument))
+                {
+                    builder.Append(argument.FullName);
+                }
+            }
+
+            for (var i = 0; i < placeholder.Parameters.Count; i++)
+            {
+                if (!adapters.TryGetValue(i, out var adapter))
+                {
+                    continue;
+                }
+
+                builder.Append("|adapter:");
+                builder.Append(i);
+                builder.Append('=');
+                builder.Append(adapter.InterfaceType.FullName);
+            }
+
+            return builder.ToString();
         }
 
         private IReadOnlyList<MethodDefinition> GetTargetCandidates(MethodDefinition placeholder)

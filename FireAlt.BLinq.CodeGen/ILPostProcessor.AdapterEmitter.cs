@@ -86,7 +86,7 @@ namespace FireAlt.BLinq.CodeGen
             bool valid;
             using (MeasureStage("Validate lambdas"))
             {
-                valid = ValidateLambdaBodyUsesOnlyUnmanagedTypes(lambda, capturedFields, diagnostics, owner, callInstruction);
+                valid = ValidateLambdaBodyUsesOnlyUnmanagedTypesCached(lambda, capturedFields, diagnostics, owner, callInstruction);
             }
 
             if (!valid)
@@ -94,9 +94,12 @@ namespace FireAlt.BLinq.CodeGen
                 return null;
             }
 
-            if (!ReferenceEquals(lambda, owner))
+            if (!ReferenceEquals(lambda, owner) && MethodContainsCandidateNativeDelegateCall(lambda))
             {
-                ProcessMethodPreservingRewriteState(lambda, diagnostics);
+                using (MeasureStage("Process nested lambdas"))
+                {
+                    ProcessMethodPreservingRewriteState(lambda, diagnostics);
+                }
             }
 
             IReadOnlyDictionary<FieldDefinition, VariableDefinition> captureLocals = null;

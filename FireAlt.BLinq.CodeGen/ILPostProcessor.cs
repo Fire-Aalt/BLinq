@@ -27,6 +27,9 @@ namespace FireAlt.BLinq.CodeGen
         private readonly Dictionary<string, MethodDefinition> _methodResolveCache = new();
         private readonly Dictionary<string, TypeDefinition> _typeResolveCache = new();
         private readonly Dictionary<string, MethodDefinition> _interfaceMethodCache = new();
+        private readonly HashSet<string> _validLambdaBodyCache = new();
+        private readonly Dictionary<string, bool> _methodCandidateNativeDelegateCallCache = new();
+        private readonly Dictionary<string, MethodDefinition> _targetCandidateMatchCache = new();
         private ProfilingSession _profile;
 
         public override Unity.CompilationPipeline.Common.ILPostProcessing.ILPostProcessor GetInstance()
@@ -266,6 +269,9 @@ namespace FireAlt.BLinq.CodeGen
             _methodResolveCache.Clear();
             _typeResolveCache.Clear();
             _interfaceMethodCache.Clear();
+            _validLambdaBodyCache.Clear();
+            _methodCandidateNativeDelegateCallCache.Clear();
+            _targetCandidateMatchCache.Clear();
         }
 
         private System.IDisposable MeasureStage(string stage)
@@ -346,6 +352,39 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             return null;
+        }
+
+        private bool MethodContainsCandidateNativeDelegateCall(MethodDefinition method)
+        {
+            if (method == null || !method.HasBody)
+            {
+                return false;
+            }
+
+            var key = GetMethodCacheKey(method);
+            if (_methodCandidateNativeDelegateCallCache.TryGetValue(key, out var cached))
+            {
+                return cached;
+            }
+
+            foreach (var instruction in method.Body.Instructions)
+            {
+                if ((instruction.OpCode == OpCodes.Call || instruction.OpCode == OpCodes.Callvirt) &&
+                    instruction.Operand is MethodReference methodReference &&
+                    IsPotentialNativeDelegateMethodReference(methodReference))
+                {
+                    _methodCandidateNativeDelegateCallCache[key] = true;
+                    return true;
+                }
+            }
+
+            _methodCandidateNativeDelegateCallCache[key] = false;
+            return false;
+        }
+
+        private static string GetMethodCacheKey(MethodDefinition method)
+        {
+            return $"{method.Module.Assembly.FullName}|{method.FullName}";
         }
 
         private static bool MightContainNativeDelegateCall(ICompiledAssembly compiledAssembly)

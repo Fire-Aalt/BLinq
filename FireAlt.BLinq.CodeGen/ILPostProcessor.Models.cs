@@ -61,14 +61,17 @@ namespace FireAlt.BLinq.CodeGen
 
 #if BLINQ_ILPP_PROFILE
             private readonly Stopwatch _total;
-            private readonly Dictionary<string, long> _elapsedTicks = new();
-            private readonly Dictionary<string, int> _counts = new();
+            private readonly ProfileNode _root = new("<root>");
+            private readonly Stack<ProfileNode> _stack = new();
 
             private string AssemblyName { get; }
 
             public IDisposable Measure(string stage)
             {
-                return new Scope(this, stage);
+                var parent = _stack.Count == 0 ? _root : _stack.Peek();
+                var node = parent.GetOrAddChild(stage);
+                _stack.Push(node);
+                return new Scope(this, node);
             }
 
             public void Report(bool modified)
@@ -82,37 +85,57 @@ namespace FireAlt.BLinq.CodeGen
                 builder.Append(FormatMilliseconds(_total.ElapsedTicks));
                 builder.AppendLine("ms");
 
-                foreach (var pair in _elapsedTicks)
+                foreach (var child in _root.Children)
                 {
-                    builder.Append("  ");
-                    builder.Append(pair.Key);
-                    builder.Append(": ");
-                    builder.Append(FormatMilliseconds(pair.Value));
-                    builder.Append("ms");
-                    if (_counts.TryGetValue(pair.Key, out var count) && count > 1)
-                    {
-                        builder.Append(" (");
-                        builder.Append(count);
-                        builder.Append("x)");
-                    }
-
-                    builder.AppendLine();
+                    AppendNode(builder, child, 1);
                 }
 
                 Console.Write(builder.ToString());
             }
 
-            private void Add(string stage, long ticks)
+            private void End(ProfileNode node, long ticks)
             {
-                if (_elapsedTicks.TryGetValue(stage, out var existing))
+                if (_stack.Count != 0 && ReferenceEquals(_stack.Peek(), node))
                 {
-                    _elapsedTicks[stage] = existing + ticks;
-                    _counts[stage]++;
-                    return;
+                    _stack.Pop();
                 }
 
-                _elapsedTicks.Add(stage, ticks);
-                _counts.Add(stage, 1);
+                node.Add(ticks);
+            }
+
+            private static void AppendNode(StringBuilder builder, ProfileNode node, int depth)
+            {
+                for (var i = 0; i < depth; i++)
+                {
+                    builder.Append("  ");
+                }
+
+                builder.Append(node.Name);
+                builder.Append(": ");
+                builder.Append(FormatMilliseconds(node.ElapsedTicks));
+                builder.Append("ms");
+
+                var childTicks = node.ChildElapsedTicks;
+                if (childTicks > 0)
+                {
+                    builder.Append(" self=");
+                    builder.Append(FormatMilliseconds(node.ElapsedTicks - childTicks));
+                    builder.Append("ms");
+                }
+
+                if (node.Count > 1)
+                {
+                    builder.Append(" (");
+                    builder.Append(node.Count);
+                    builder.Append("x)");
+                }
+
+                builder.AppendLine();
+
+                foreach (var child in node.Children)
+                {
+                    AppendNode(builder, child, depth + 1);
+                }
             }
 
             private static string FormatMilliseconds(long ticks)
@@ -124,19 +147,71 @@ namespace FireAlt.BLinq.CodeGen
             private readonly struct Scope : IDisposable
             {
                 private readonly ProfilingSession _session;
-                private readonly string _stage;
+                private readonly ProfileNode _node;
                 private readonly long _start;
 
-                public Scope(ProfilingSession session, string stage)
+                public Scope(ProfilingSession session, ProfileNode node)
                 {
                     _session = session;
-                    _stage = stage;
+                    _node = node;
                     _start = Stopwatch.GetTimestamp();
                 }
 
                 public void Dispose()
                 {
-                    _session.Add(_stage, Stopwatch.GetTimestamp() - _start);
+                    _session.End(_node, Stopwatch.GetTimestamp() - _start);
+                }
+            }
+
+            private sealed class ProfileNode
+            {
+                private readonly List<ProfileNode> _children = new();
+                private readonly Dictionary<string, ProfileNode> _childByName = new();
+
+                public ProfileNode(string name)
+                {
+                    Name = name;
+                }
+
+                public string Name { get; }
+
+                public long ElapsedTicks { get; private set; }
+
+                public int Count { get; private set; }
+
+                public IReadOnlyList<ProfileNode> Children => _children;
+
+                public long ChildElapsedTicks
+                {
+                    get
+                    {
+                        long ticks = 0;
+                        foreach (var child in _children)
+                        {
+                            ticks += child.ElapsedTicks;
+                        }
+
+                        return ticks;
+                    }
+                }
+
+                public ProfileNode GetOrAddChild(string name)
+                {
+                    if (_childByName.TryGetValue(name, out var child))
+                    {
+                        return child;
+                    }
+
+                    child = new ProfileNode(name);
+                    _childByName.Add(name, child);
+                    _children.Add(child);
+                    return child;
+                }
+
+                public void Add(long ticks)
+                {
+                    ElapsedTicks += ticks;
+                    Count++;
                 }
             }
 #else
