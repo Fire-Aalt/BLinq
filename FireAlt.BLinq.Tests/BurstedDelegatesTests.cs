@@ -105,6 +105,61 @@ namespace FireAlt.BLinq.Tests
                 .Select(tuple => (Left: tuple.Index, Right: tuple.Item + offset))
                 .Sum(tuple => tuple.Left * 10 + tuple.Right);
         }
+
+        [Test]
+        public void DelegatePipeline_TupleLocals_RewriteInBurst()
+        {
+            var input = new NativeArray<int>(new[] { 1, 2, 3 }, Allocator.Temp);
+
+            var result = BurstDelegatePipeline_TupleLocals(input);
+
+            Assert.That(result, Is.EqualTo(12));
+        }
+
+        [BurstCompile(CompileSynchronously = true)]
+        private static int BurstDelegatePipeline_TupleLocals(in NativeArray<int> input)
+        {
+            var offset = 4;
+
+            return input
+                .AsQuery()
+                .Select(value =>
+                {
+                    var pair = (Doubled: value * 2, Shifted: value + offset);
+                    return (Delta: pair.Doubled - pair.Shifted, Total: pair.Doubled + pair.Shifted);
+                })
+                .Sum(tuple => tuple.Delta * 3 + tuple.Total);
+        }
+
+        [Test]
+        public void DelegatePipeline_NestedTupleInputReturnAndCapture_RewriteInBurst()
+        {
+            var input = new NativeArray<int>(new[] { 2, 3, 4, 5 }, Allocator.Temp);
+
+            var result = BurstDelegatePipeline_NestedTupleInputReturnAndCapture(input);
+
+            Assert.That(result, Is.EqualTo(2090));
+        }
+
+        [BurstCompile(CompileSynchronously = true)]
+        private static int BurstDelegatePipeline_NestedTupleInputReturnAndCapture(in NativeArray<int> input)
+        {
+            var capture = (Threshold: 1, Bonus: 3);
+
+            return input
+                .AsQuery()
+                .Index()
+                .Select(tuple => (
+                    Key: (Left: tuple.Index + capture.Threshold, Right: tuple.Item - capture.Threshold),
+                    Score: tuple.Index * tuple.Item + capture.Bonus))
+                .Where(tuple => ((tuple.Key.Left + tuple.Key.Right + tuple.Score) & 1) == 0)
+                .Aggregate(
+                    (Count: 0, Total: 0),
+                    (accumulator, tuple) => (
+                        Count: accumulator.Count + 1,
+                        Total: accumulator.Total + tuple.Key.Left * 10 + tuple.Key.Right + tuple.Score),
+                    accumulator => accumulator.Count * 1000 + accumulator.Total);
+        }
         
         [Test]
         public void DelegateAggregateBy_UsesMultipleNonAdjacentDelegates()
