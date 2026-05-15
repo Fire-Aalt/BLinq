@@ -741,10 +741,15 @@ namespace FireAlt.BLinq.CodeGen
             }
 
             methodReference.ReturnType = ImportMethodReferenceSignatureType(module, methodDefinition.ReturnType, methodReference);
+            CopyTupleElementNamesAttributes(methodDefinition.MethodReturnType, methodReference.MethodReturnType, module);
             foreach (var parameter in methodDefinition.Parameters)
             {
-                methodReference.Parameters.Add(new ParameterDefinition(
-                    ImportMethodReferenceSignatureType(module, parameter.ParameterType, methodReference)));
+                var parameterReference = new ParameterDefinition(
+                    parameter.Name,
+                    parameter.Attributes,
+                    ImportMethodReferenceSignatureType(module, parameter.ParameterType, methodReference));
+                CopyTupleElementNamesAttributes(parameter, parameterReference, module);
+                methodReference.Parameters.Add(parameterReference);
             }
 
             return methodReference;
@@ -1136,14 +1141,19 @@ namespace FireAlt.BLinq.CodeGen
                 method.ReturnType,
                 methodReference,
                 ref modified);
+            CopyTupleElementNamesAttributes(method.MethodReturnType, methodReference.MethodReturnType, module);
             foreach (var parameter in method.Parameters)
             {
-                methodReference.Parameters.Add(new ParameterDefinition(
+                var parameterReference = new ParameterDefinition(
+                    parameter.Name,
+                    parameter.Attributes,
                     RewriteMethodReferenceSignatureType(
                         module,
                         parameter.ParameterType,
                         methodReference,
-                        ref modified)));
+                        ref modified));
+                CopyTupleElementNamesAttributes(parameter, parameterReference, module);
+                methodReference.Parameters.Add(parameterReference);
             }
 
             return methodReference;

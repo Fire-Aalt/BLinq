@@ -311,7 +311,6 @@ I could not find a way to whitelist the declared `Func` method because the analy
 Query chains should stay within that operation depth unless the IL2CPP generic depth limit is increased through IL2CPP compiler arguments: with a higher limit, longer query chains are supported.
 
 ## TODO
-- Add support for tuples to ILPP.
 - Second round of ILPP optimizations.
 
 ## Future C# / Unity TODO

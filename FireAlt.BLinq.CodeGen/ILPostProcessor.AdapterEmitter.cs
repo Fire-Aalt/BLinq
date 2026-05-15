@@ -394,13 +394,22 @@ namespace FireAlt.BLinq.CodeGen
                 interfaceMethod.Name,
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.NewSlot,
                 CloseInterfaceType(module, interfaceMethod.ReturnType, interfaceType));
+            CopyTupleElementNamesAttributes(lambda.MethodReturnType, method.MethodReturnType, module);
 
-            foreach (var parameter in interfaceMethod.Parameters)
+            for (var i = 0; i < interfaceMethod.Parameters.Count; i++)
             {
-                method.Parameters.Add(new ParameterDefinition(
+                var parameter = interfaceMethod.Parameters[i];
+                var parameterDefinition = new ParameterDefinition(
                     parameter.Name,
                     parameter.Attributes,
-                    CloseInterfaceType(module, parameter.ParameterType, interfaceType)));
+                    CloseInterfaceType(module, parameter.ParameterType, interfaceType));
+
+                if (i < lambda.Parameters.Count)
+                {
+                    CopyTupleElementNamesAttributes(lambda.Parameters[i], parameterDefinition, module);
+                }
+
+                method.Parameters.Add(parameterDefinition);
             }
 
             method.Body.InitLocals = lambda.Body.InitLocals;

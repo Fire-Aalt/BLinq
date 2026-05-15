@@ -161,15 +161,16 @@ namespace FireAlt.BLinq.CodeGen
             if (instruction.Operand is FieldReference fieldReference)
             {
                 var fieldName = fieldReference.FullName;
-                if (IsFuncOrActionDelegateType(fieldReference.FieldType))
+                var fieldType = CloseFieldReferenceType(fieldReference.FieldType, fieldReference.DeclaringType);
+                if (IsFuncOrActionDelegateType(fieldType))
                 {
                     return false;
                 }
 
                 if (!capturedFieldNames.Contains(fieldName) &&
-                    !IsUnmanaged(fieldReference.FieldType))
+                    !IsUnmanaged(fieldType))
                 {
-                    message = $"BLinq delegate body cannot use managed field type '{fieldReference.FieldType.FullName}'.";
+                    message = $"BLinq delegate body cannot use managed field type '{fieldType.FullName}'.";
                     return true;
                 }
 
@@ -435,6 +436,17 @@ namespace FireAlt.BLinq.CodeGen
 
                     return null;
                 },
+                typeReference => typeReference);
+        }
+
+        private static TypeReference CloseFieldReferenceType(TypeReference type, TypeReference declaringType)
+        {
+            var declaringInstance = declaringType as GenericInstanceType;
+            return RewriteTypeReference(
+                type,
+                genericParameter => genericParameter.Type == GenericParameterType.Type && declaringInstance != null
+                    ? declaringInstance.GenericArguments[genericParameter.Position]
+                    : null,
                 typeReference => typeReference);
         }
     }

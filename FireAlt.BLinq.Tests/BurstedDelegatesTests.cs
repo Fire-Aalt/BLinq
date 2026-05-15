@@ -83,6 +83,28 @@ namespace FireAlt.BLinq.Tests
         {
             return value;
         }
+
+        [Test]
+        public void DelegatePipeline_TupleInputAndReturn_RewritesInBurst()
+        {
+            var input = new NativeArray<int>(new[] { 1, 2, 3 }, Allocator.Temp);
+
+            var result = BurstDelegatePipeline_TupleInputAndReturn(input);
+
+            Assert.That(result, Is.EqualTo(51));
+        }
+
+        [BurstCompile(CompileSynchronously = true)]
+        private static int BurstDelegatePipeline_TupleInputAndReturn(in NativeArray<int> input)
+        {
+            var offset = 5;
+
+            return input
+                .AsQuery()
+                .Index()
+                .Select(tuple => (Left: tuple.Index, Right: tuple.Item + offset))
+                .Sum(tuple => tuple.Left * 10 + tuple.Right);
+        }
         
         [Test]
         public void DelegateAggregateBy_UsesMultipleNonAdjacentDelegates()

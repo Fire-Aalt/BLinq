@@ -1,10 +1,13 @@
 using System;
+using System.Linq;
 using Mono.Cecil;
 
 namespace FireAlt.BLinq.CodeGen
 {
     internal sealed partial class ILPostProcessor
     {
+        private const string TupleElementNamesAttributeTypeName = "System.Runtime.CompilerServices.TupleElementNamesAttribute";
+
         private static TypeReference RewriteTypeReference(
             TypeReference type,
             Func<GenericParameter, TypeReference> resolveGenericParameter,
@@ -43,6 +46,61 @@ namespace FireAlt.BLinq.CodeGen
                         RewriteTypeReference(optionalModifier.ElementType, resolveGenericParameter, mapReference));
                 default:
                     return mapReference(type);
+            }
+        }
+
+        private static void CopyTupleElementNamesAttributes(
+            ICustomAttributeProvider source,
+            ICustomAttributeProvider target,
+            ModuleDefinition targetModule)
+        {
+            if (source == null || target == null || !source.HasCustomAttributes)
+            {
+                return;
+            }
+
+            foreach (var attribute in source.CustomAttributes.Where(attribute =>
+                attribute.AttributeType.FullName == TupleElementNamesAttributeTypeName))
+            {
+                var copied = new CustomAttribute(targetModule.ImportReference(attribute.Constructor));
+                foreach (var argument in attribute.ConstructorArguments)
+                {
+                    copied.ConstructorArguments.Add(ImportCustomAttributeArgument(targetModule, argument));
+                }
+
+                foreach (var argument in attribute.Fields)
+                {
+                    copied.Fields.Add(new CustomAttributeNamedArgument(
+                        argument.Name,
+                        ImportCustomAttributeArgument(targetModule, argument.Argument)));
+                }
+
+                foreach (var argument in attribute.Properties)
+                {
+                    copied.Properties.Add(new CustomAttributeNamedArgument(
+                        argument.Name,
+                        ImportCustomAttributeArgument(targetModule, argument.Argument)));
+                }
+
+                target.CustomAttributes.Add(copied);
+            }
+        }
+
+        private static CustomAttributeArgument ImportCustomAttributeArgument(
+            ModuleDefinition module,
+            CustomAttributeArgument argument)
+        {
+            var type = module.ImportReference(argument.Type);
+            switch (argument.Value)
+            {
+                case CustomAttributeArgument[] values:
+                    return new CustomAttributeArgument(
+                        type,
+                        values.Select(value => ImportCustomAttributeArgument(module, value)).ToArray());
+                case TypeReference typeReference:
+                    return new CustomAttributeArgument(type, module.ImportReference(typeReference));
+                default:
+                    return new CustomAttributeArgument(type, argument.Value);
             }
         }
     }

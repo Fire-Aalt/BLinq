@@ -12,32 +12,19 @@ namespace FireAlt.BLinq
         /// Incorporates the element's index into a value tuple.
         /// </summary>
         /// <returns>A query that incorporates the element's index into a tuple.</returns>
-        public Query<Index<TEnumerator, T>, IndexTuple<T>> Index()
+        public Query<Index<TEnumerator, T>, (int Index, T Item)> Index()
         {
-            return new Query<Index<TEnumerator, T>, IndexTuple<T>>(
+            return new Query<Index<TEnumerator, T>, (int Index, T Item)>(
                 new Index<TEnumerator, T>(GetEnumerator()));
         }
     }
 
-    public struct IndexTuple<T> 
-        where T : unmanaged
-    {
-        public int Index;
-        public T Item;
-        
-        public IndexTuple(int index, T item)
-        {
-            Index = index;
-            Item = item;
-        }
-    }
-
-    public struct Index<TEnumerator, T> : IQueryEnumerator<IndexTuple<T>>
+    public struct Index<TEnumerator, T> : IQueryEnumerator<(int Index, T Item)>
         where TEnumerator : unmanaged, IQueryEnumerator<T>
         where T : unmanaged
     {
         private TEnumerator _source;
-        private IndexTuple<T> _current;
+        private (int Index, T Item) _current;
         private int _index;
 
         public Index(TEnumerator source)
@@ -47,7 +34,7 @@ namespace FireAlt.BLinq
             _index = 0;
         }
 
-        public IndexTuple<T> Current
+        public (int Index, T Item) Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _current;
@@ -59,7 +46,7 @@ namespace FireAlt.BLinq
         {
             if (_source.MoveNext())
             {
-                _current = new IndexTuple<T>(_index, _source.Current);
+                _current = (_index, _source.Current);
                 _index++;
                 return true;
             }
@@ -89,18 +76,18 @@ namespace FireAlt.BLinq
             return true;
         }
 
-        public bool TryGetSpan(out ReadOnlySpan<IndexTuple<T>> span)
+        public bool TryGetSpan(out ReadOnlySpan<(int Index, T Item)> span)
         {
             span = default;
             return false;
         }
 
-        public bool TryGetElementAt(int index, out IndexTuple<T> value)
+        public bool TryGetElementAt(int index, out (int Index, T Item) value)
         {
             if (_source.TryGetElementAt(index, out var element))
             {
-                value = new IndexTuple<T>(index, element);
-                return false;
+                value = (index, element);
+                return true;
             }
             value = default;
             return false;
