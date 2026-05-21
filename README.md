@@ -313,8 +313,8 @@ Requirements:
 
 BLinq has a few intentional limitations that follow from its design. These tradeoffs keep the query pipeline Burst-friendly, allocation-tight, and statically optimizable.
 
-- **Rider Burst analyzer warnings**: Rider's Burst analyzer can flag queries that use delegate-shaped APIs as managed code, even though BLinq rewrites supported calls through ILPP. 
-I could not find a way to whitelist the declared `Func` method because the analyzer only evaluates the call site, so affected query blocks need local analyzer suppression comments. Disabling the analyzer globally is possible, but not recommended.
+- **Rider/ReSharper Burst analyzer warnings**: Rider/ReSharper's Burst analyzer can flag queries that use delegate-shaped APIs as managed code, even though BLinq rewrites supported calls through ILPP. 
+I could not find a way to whitelist the declared `Func` method because the analyzer only evaluates the call site, so affected query blocks need local analyzer suppression comments. Disabling the analyzer globally is possible, but is not recommended for beginners in Burst.
 - **Queries are temporary**: BLinq queries are meant to be built and consumed locally, not stored in fields. Some operators use temporary allocation state, such as `OrderBy`, and the nested generic query type can become complex quickly.
 - **IL2CPP generic depth**: IL2CPP has a maximum generic nesting depth, which is `7` by default. 
 Query chains should stay within that operation depth unless the IL2CPP generic depth limit is increased through IL2CPP compiler arguments: with a higher limit, longer query chains are supported.
