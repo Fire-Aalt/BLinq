@@ -43,7 +43,6 @@ private static int SelectBig(int value)
 - [ILPP Profiling](#ilpp-profiling)
 - [Source Generation Attributes](#source-generation-attributes)
 - [Limitations](#limitations)
-- [TODO](#todo)
 - [Future C# / Unity TODO](#future-c--unity-todo)
 
 ## Highlights
