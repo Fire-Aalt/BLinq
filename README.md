@@ -23,6 +23,7 @@ private static void BurstedMethod(in NativeArray<int> nativeArray)
         .Where(x => x > 0) // Supports anonymous lambdas
         .Select(x => x * localVar) // Supports capturing local vars
         .Sum(SelectBig); // Supports all LINQ overloads and static method capturing
+}
 
 private static int SelectBig(int value) 
 {
