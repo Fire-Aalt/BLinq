@@ -1,4 +1,3 @@
-using System;
 using System.Buffers;
 using FireAlt.BLinq;
 using Unity.Collections;
@@ -33,15 +32,15 @@ using Unity.Collections.LowLevel.Unsafe;
 #endif
 
 #if FA_CORE
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafeArray<>), typeof(KrasCore.UnsafeArray<>.Enumerator), LengthProperty = "Length", Indexer = true)]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafeThreadData<>), typeof(KrasCore.UnsafeThreadData<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativeThreadData<>), typeof(KrasCore.NativeThreadData<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafeThreadList<>), typeof(KrasCore.UnsafeThreadList<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativeThreadList<>), typeof(KrasCore.NativeThreadList<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafePriorityHeap<>), typeof(KrasCore.UnsafePriorityHeap<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativePriorityHeap<>), typeof(KrasCore.NativePriorityHeap<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.UnsafePriorityQueue<>), typeof(KrasCore.UnsafePriorityQueue<>.Enumerator))]
-[assembly: GenerateQueryExtensionFor(typeof(KrasCore.NativePriorityQueue<>), typeof(KrasCore.NativePriorityQueue<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.UnsafeArray<>), typeof(FireAlt.Core.Collections.UnsafeArray<>.Enumerator), LengthProperty = "Length", Indexer = true)]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.UnsafeThreadData<>), typeof(FireAlt.Core.Collections.UnsafeThreadData<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.NativeThreadData<>), typeof(FireAlt.Core.Collections.NativeThreadData<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.UnsafeThreadList<>), typeof(FireAlt.Core.Collections.UnsafeThreadList<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.NativeThreadList<>), typeof(FireAlt.Core.Collections.NativeThreadList<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.UnsafePriorityHeap<>), typeof(FireAlt.Core.Collections.UnsafePriorityHeap<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.NativePriorityHeap<>), typeof(FireAlt.Core.Collections.NativePriorityHeap<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.UnsafePriorityQueue<>), typeof(FireAlt.Core.Collections.UnsafePriorityQueue<>.Enumerator))]
+[assembly: GenerateQueryExtensionFor(typeof(FireAlt.Core.Collections.NativePriorityQueue<>), typeof(FireAlt.Core.Collections.NativePriorityQueue<>.Enumerator))]
 #endif
 
 #if BL_CORE
