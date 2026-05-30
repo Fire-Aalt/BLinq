@@ -2,14 +2,12 @@
   "name": "FireAlt.BLinq.Tests",
   "rootNamespace": "FireAlt.BLinq.Tests",
   "references": [
-    "KrasCore",
     "FireAlt.BLinq",
     "Unity.Entities",
     "Unity.PerformanceTesting",
     "Unity.Collections",
     "Unity.Burst",
     "Unity.Mathematics",
-    "BovineLabs.Core",
     "ZLinq.Unity",
     "ZLinq.Unity.UnityCollectoins"
   ],
