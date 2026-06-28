@@ -16,9 +16,7 @@
         "Mono.Cecil.Pdb.dll"
     ],
     "autoReferenced": false,
-    "defineConstraints": [
-        "BLINQ_ILPP_PROFILE"
-    ],
+    "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
 }

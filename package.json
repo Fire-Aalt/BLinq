@@ -1,6 +1,6 @@
 {
   "name": "com.firealt.blinq",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "displayName": "FireAlt BLinq",
   "description": "Blazingly fast, fully Burst compatible LINQ library. Utilizes an ILPostProcessor to allow LINQ syntax in Bursted methods.",
   "unity": "6000.3",
